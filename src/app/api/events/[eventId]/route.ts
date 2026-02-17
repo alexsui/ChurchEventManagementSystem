@@ -4,8 +4,10 @@ import { hasPermission } from "@/lib/authorization";
 import {
   getEventById,
   updateEvent,
+  updateEventStatus,
   deleteEvent,
 } from "@/services/event.service";
+import type { EventStatus } from "@/generated/prisma/client";
 
 type RouteParams = { params: Promise<{ eventId: string }> };
 
@@ -61,6 +63,48 @@ export async function PUT(request: Request, { params }: RouteParams) {
     console.error("PUT /api/events/[eventId] error:", error);
     return NextResponse.json(
       { error: "Failed to update event" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/events/:eventId
+ * Update event status (requires auth + events:write permission).
+ * Body: { status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "PLANNING" }
+ */
+export async function PATCH(request: Request, { params }: RouteParams) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!hasPermission(session.user.role, "events", "write")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { eventId } = await params;
+    const body = await request.json();
+
+    if (!body.status) {
+      return NextResponse.json(
+        { error: "Status is required" },
+        { status: 400 }
+      );
+    }
+
+    const existingEvent = await getEventById(eventId);
+    if (!existingEvent) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const event = await updateEventStatus(eventId, body.status as EventStatus);
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error("PATCH /api/events/[eventId] error:", error);
+    return NextResponse.json(
+      { error: "Failed to update event status" },
       { status: 500 }
     );
   }
