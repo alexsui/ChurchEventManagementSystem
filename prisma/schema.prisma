@@ -174,3 +174,13 @@ model Attendance {
 
   @@unique([userId, eventSessionId])
 }
+
+model RolePermission {
+  id      String  @id @default(cuid())
+  role    Role
+  module  String
+  action  String
+  allowed Boolean @default(false)
+
+  @@unique([role, module, action])
+}
