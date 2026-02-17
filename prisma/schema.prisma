@@ -108,6 +108,8 @@ model User {
   team          Team?          @relation(fields: [teamId], references: [id])
   registrations Registration[]
   attendances   Attendance[]
+  assignmentCompletions AssignmentCompletion[] @relation("assignmentCompletions")
+  assignmentCompletedBy AssignmentCompletion[] @relation("assignmentCompletedBy")
 }
 
 model Team {
@@ -131,6 +133,7 @@ model Event {
   maxParticipants  Int?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+  minAssignmentRate Float?
 
   eventSessions EventSession[]
   registrations Registration[]
@@ -149,6 +152,7 @@ model EventSession {
 
   event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
   attendances Attendance[]
+  assignments Assignment[]
 
   @@unique([eventId, sessionNo])
 }
@@ -190,4 +194,29 @@ model RolePermission {
   allowed Boolean @default(false)
 
   @@unique([role, module, action])
+}
+
+model Assignment {
+  id             String   @id @default(cuid())
+  eventSessionId String
+  title          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  eventSession EventSession          @relation(fields: [eventSessionId], references: [id], onDelete: Cascade)
+  completions  AssignmentCompletion[]
+}
+
+model AssignmentCompletion {
+  id            String   @id @default(cuid())
+  assignmentId  String
+  userId        String
+  completedAt   DateTime @default(now())
+  completedById String
+
+  assignment  Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user        User       @relation("assignmentCompletions", fields: [userId], references: [id], onDelete: Cascade)
+  completedBy User       @relation("assignmentCompletedBy", fields: [completedById], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, userId])
 }
