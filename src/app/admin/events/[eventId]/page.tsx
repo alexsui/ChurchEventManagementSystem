@@ -279,6 +279,9 @@ export default function EventDetailPage() {
           {canReadBudget && (
             <TabsTrigger value="budget">預算</TabsTrigger>
           )}
+          {canReadTeams && (
+            <TabsTrigger value="teams">工作小組</TabsTrigger>
+          )}
         </TabsList>
 
         {/* 活動資訊 Tab */}
@@ -404,13 +407,6 @@ export default function EventDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Event Teams */}
-            {canReadTeams && (
-              <EventTeamsSection
-                eventId={eventId}
-                canWrite={canWriteTeams}
-              />
-            )}
           </div>
         </TabsContent>
 
@@ -439,6 +435,16 @@ export default function EventDetailPage() {
         {canReadBudget && (
           <TabsContent value="budget">
             <BudgetPanel eventId={eventId} />
+          </TabsContent>
+        )}
+
+        {/* 工作小組 Tab */}
+        {canReadTeams && (
+          <TabsContent value="teams">
+            <EventTeamsSection
+              eventId={eventId}
+              canWrite={canWriteTeams}
+            />
           </TabsContent>
         )}
       </Tabs>

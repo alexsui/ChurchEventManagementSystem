@@ -6,12 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
   CalendarDays,
-  ClipboardList,
-  UserCheck,
-  BookCheck,
   Users,
   UsersRound,
-  Wallet,
   Menu,
   LogOut,
   Home,
@@ -39,10 +35,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: "/admin/events", label: "活動管理", icon: CalendarDays, module: "events" },
-  { href: "/admin/registrations", label: "報名管理", icon: ClipboardList, module: "registrations" },
-  { href: "/admin/attendance", label: "出席管理", icon: UserCheck, module: "attendance" },
-  { href: "/admin/assignments", label: "作業管理", icon: BookCheck, module: "assignments" },
-  { href: "/admin/budget", label: "預算管理", icon: Wallet, module: "budget" },
   { href: "/admin/users", label: "使用者管理", icon: Users, module: "users", adminOnly: true },
   { href: "/admin/teams", label: "組別管理", icon: UsersRound, module: "teams" },
 ];
