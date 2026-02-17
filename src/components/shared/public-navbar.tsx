@@ -40,64 +40,89 @@ export function PublicNavbar() {
   }, [isLoggedIn]);
 
   return (
-    <header className="border-b bg-white">
-      <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-        <nav className="flex items-center gap-4">
-          <Link
-            href="/events"
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-foreground",
-              pathname === "/events"
-                ? "text-foreground"
-                : "text-muted-foreground"
-            )}
-          >
+    <header className="sticky top-0 z-50 bg-warm-cream/90 backdrop-blur-md border-b border-warm-sand">
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Brand */}
+        <Link href="/events" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 bg-warm-green rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
+            </svg>
+          </div>
+          <span className="font-display text-xl font-bold text-warm-dark tracking-tight">
+            教會活動
+          </span>
+        </Link>
+
+        {/* Navigation */}
+        <nav className="hidden sm:flex items-center gap-1">
+          <NavLink href="/events" active={pathname === "/events"}>
             活動列表
-          </Link>
+          </NavLink>
           {isLoggedIn && (
-            <Link
+            <NavLink
               href="/my/registrations"
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-foreground",
-                pathname === "/my/registrations"
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              )}
+              active={pathname === "/my/registrations"}
             >
-              我的報名紀錄
-            </Link>
+              我的報名
+            </NavLink>
           )}
           {hasAdminAccess && (
-            <Link
+            <NavLink
               href="/admin/events"
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-foreground",
-                pathname.startsWith("/admin")
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              )}
+              active={pathname.startsWith("/admin")}
             >
               管理後台
-            </Link>
+            </NavLink>
           )}
         </nav>
 
+        {/* Auth */}
         <div>
           {isLoggedIn ? (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => signOut({ callbackUrl: "/events" })}
+              className="text-warm-dark/70 hover:text-warm-dark hover:bg-warm-sand/60 rounded-full px-4 font-medium"
             >
               登出
             </Button>
           ) : (
-            <Button variant="ghost" size="sm" asChild>
+            <Button
+              size="sm"
+              asChild
+              className="bg-warm-green hover:bg-warm-green/90 text-white rounded-full px-5 font-display font-semibold shadow-sm hover:shadow-md transition-all"
+            >
               <Link href="/login">登入</Link>
             </Button>
           )}
         </div>
       </div>
     </header>
+  );
+}
+
+function NavLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "px-4 py-2 rounded-full text-sm font-semibold transition-all",
+        active
+          ? "bg-warm-dark text-white shadow-sm"
+          : "text-warm-dark/60 hover:text-warm-dark hover:bg-warm-sand/60"
+      )}
+    >
+      {children}
+    </Link>
   );
 }
