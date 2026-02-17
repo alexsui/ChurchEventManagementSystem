@@ -294,7 +294,9 @@ describe("Event Service", () => {
           _count: {
             select: {
               eventSessions: true,
-              registrations: true,
+              registrations: {
+                where: { status: { not: "CANCELLED" } },
+              },
             },
           },
         },
@@ -382,7 +384,11 @@ describe("Event Service", () => {
             orderBy: { sessionNo: "asc" },
           },
           _count: {
-            select: { registrations: true },
+            select: {
+              registrations: {
+                where: { status: { not: "CANCELLED" } },
+              },
+            },
           },
         },
       });

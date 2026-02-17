@@ -158,6 +158,7 @@ export default function RegistrationsPage() {
         throw new Error("取消報名失敗");
       }
       toast.success(`已取消 ${userName} 的報名`);
+      fetchEvents();
       if (selectedEventId) {
         fetchRegistrations(selectedEventId);
       }

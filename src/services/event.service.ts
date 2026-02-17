@@ -115,7 +115,9 @@ export async function getEvents(filters?: EventFilters) {
       _count: {
         select: {
           eventSessions: true,
-          registrations: true,
+          registrations: {
+            where: { status: { not: "CANCELLED" } },
+          },
         },
       },
     },
@@ -139,7 +141,9 @@ export async function getEventById(id: string) {
       },
       _count: {
         select: {
-          registrations: true,
+          registrations: {
+            where: { status: { not: "CANCELLED" } },
+          },
         },
       },
     },
