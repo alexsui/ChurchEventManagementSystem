@@ -57,7 +57,15 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    const event = await updateEvent(eventId, body);
+    const updateData = {
+      ...body,
+      minAssignmentRate:
+        body.minAssignmentRate != null
+          ? body.minAssignmentRate / 100
+          : undefined,
+    };
+
+    const event = await updateEvent(eventId, updateData);
     return NextResponse.json(event);
   } catch (error) {
     console.error("PUT /api/events/[eventId] error:", error);

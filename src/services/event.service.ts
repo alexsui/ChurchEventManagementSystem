@@ -25,6 +25,7 @@ export interface CreateEventInput {
   status?: EventStatus;
   registrationMode?: RegistrationMode;
   maxParticipants?: number;
+  minAssignmentRate?: number;
   /** Required for SINGLE type: single session data */
   session?: CreateSessionInput;
   /** Required for SERIES type: array of session data */
@@ -39,6 +40,7 @@ export interface UpdateEventInput {
   type?: EventType;
   registrationMode?: RegistrationMode;
   maxParticipants?: number | null;
+  minAssignmentRate?: number | null;
 }
 
 export interface EventFilters {
@@ -83,6 +85,7 @@ export async function createEvent(data: CreateEventInput) {
       status: data.status ?? EventStatus.PLANNING,
       registrationMode: data.registrationMode ?? RegistrationMode.FULL_SERIES,
       maxParticipants: data.maxParticipants,
+      minAssignmentRate: data.minAssignmentRate,
       eventSessions: {
         create: sessionsToCreate.map((s) => ({
           sessionNo: s.sessionNo,
@@ -173,6 +176,7 @@ export async function updateEvent(id: string, data: UpdateEventInput) {
       type: data.type,
       registrationMode: data.registrationMode,
       maxParticipants: data.maxParticipants,
+      minAssignmentRate: data.minAssignmentRate,
     },
     include: {
       eventSessions: true,

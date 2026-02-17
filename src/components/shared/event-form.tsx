@@ -52,6 +52,7 @@ const eventFormSchema = z
     type: z.enum(["SINGLE", "SERIES"]),
     registrationMode: z.enum(["PER_SESSION", "FULL_SERIES"]),
     maxParticipants: z.number().int().positive().optional(),
+    minAssignmentRate: z.number().min(0).max(100).optional(),
     // SINGLE event session
     session: sessionSchema.optional(),
     // SERIES event sessions
@@ -89,6 +90,7 @@ interface EventFormValues {
   type: "SINGLE" | "SERIES";
   registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants?: number;
+  minAssignmentRate?: number;
   session?: {
     sessionDate: string;
     startTime?: string;
@@ -112,6 +114,7 @@ export interface EventFormDefaultValues {
   category?: "COURSE" | "LECTURE" | "CAMP"; // optional for defaults since edit may pre-fill
   type?: "SINGLE" | "SERIES";
   registrationMode?: "PER_SESSION" | "FULL_SERIES";
+  minAssignmentRate?: number | null;
   maxParticipants?: number | null;
   session?: {
     sessionDate: string;
@@ -135,6 +138,7 @@ export interface EventFormSubmitData {
   type: "SINGLE" | "SERIES";
   registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants?: number;
+  minAssignmentRate?: number;
   session?: {
     sessionNo: number;
     sessionDate: string;
@@ -176,6 +180,7 @@ export function EventForm({
       type: defaultValues?.type ?? "SINGLE",
       registrationMode: defaultValues?.registrationMode ?? "FULL_SERIES",
       maxParticipants: defaultValues?.maxParticipants ?? undefined,
+      minAssignmentRate: defaultValues?.minAssignmentRate ?? undefined,
       session: defaultValues?.session ?? {
         sessionDate: "",
         startTime: "",
@@ -202,6 +207,12 @@ export function EventForm({
         ? Number(raw)
         : undefined;
 
+    const rawRate = values.minAssignmentRate;
+    const minAssignmentRate =
+      rawRate !== undefined && rawRate !== null && String(rawRate) !== ""
+        ? Number(rawRate)
+        : undefined;
+
     const submitData: EventFormSubmitData = {
       title: values.title,
       description: values.description || undefined,
@@ -210,6 +221,7 @@ export function EventForm({
       type: values.type,
       registrationMode: values.registrationMode,
       maxParticipants,
+      minAssignmentRate,
     };
 
     if (values.type === "SINGLE" && values.session) {
@@ -387,6 +399,31 @@ export function EventForm({
                     onBlur={field.onBlur}
                     name={field.name}
                     ref={field.ref}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="minAssignmentRate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>作業完成率門檻 (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    placeholder="例：80（表示需完成 80% 作業才能結業）"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : Number(e.target.value)
+                      )
+                    }
                   />
                 </FormControl>
                 <FormMessage />

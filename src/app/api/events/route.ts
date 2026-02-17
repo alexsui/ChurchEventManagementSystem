@@ -54,7 +54,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const event = await createEvent(body);
+    const eventData = {
+      ...body,
+      minAssignmentRate:
+        body.minAssignmentRate != null
+          ? body.minAssignmentRate / 100
+          : undefined,
+    };
+
+    const event = await createEvent(eventData);
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error("POST /api/events error:", error);

@@ -55,6 +55,7 @@ interface EventDetail {
   status: "PLANNING" | "OPEN" | "IN_PROGRESS" | "COMPLETED";
   registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants: number | null;
+  minAssignmentRate: number | null;
   createdAt: string;
   eventSessions: EventSession[];
   _count: { registrations: number };
@@ -179,6 +180,10 @@ export default function EventDetailPage() {
     type: event.type,
     registrationMode: event.registrationMode,
     maxParticipants: event.maxParticipants,
+    minAssignmentRate:
+      event.minAssignmentRate != null
+        ? event.minAssignmentRate * 100
+        : undefined,
     ...(event.type === "SINGLE" && event.eventSessions[0]
       ? {
           session: {
