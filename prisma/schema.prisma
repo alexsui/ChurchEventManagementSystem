@@ -97,7 +97,6 @@ model User {
   phone               String?   @unique
   password            String?
   role                Role      @default(MEMBER)
-  teamId              String?
   permissionExpiresAt DateTime?
   isActive            Boolean   @default(true)
   createdAt           DateTime  @default(now())
@@ -105,11 +104,12 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
-  team          Team?          @relation(fields: [teamId], references: [id])
   registrations Registration[]
   attendances   Attendance[]
   assignmentCompletions AssignmentCompletion[] @relation("assignmentCompletions")
   assignmentCompletedBy AssignmentCompletion[] @relation("assignmentCompletedBy")
+  eventTeamMembers EventTeamMember[]
+  assignedTasks    EventTeamTask[]
 }
 
 model Team {
@@ -118,7 +118,50 @@ model Team {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users User[]
+  eventTeams EventTeam[]
+}
+
+model EventTeam {
+  id         String   @id @default(cuid())
+  eventId    String
+  teamId     String?
+  customName String?
+  sopLinks   String[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  team    Team?  @relation(fields: [teamId], references: [id])
+  members EventTeamMember[]
+  tasks   EventTeamTask[]
+
+  @@unique([eventId, teamId])
+}
+
+model EventTeamMember {
+  id          String   @id @default(cuid())
+  eventTeamId String
+  userId      String
+  role        String?
+  createdAt   DateTime @default(now())
+
+  eventTeam EventTeam @relation(fields: [eventTeamId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventTeamId, userId])
+}
+
+model EventTeamTask {
+  id          String   @id @default(cuid())
+  eventTeamId String
+  title       String
+  assigneeId  String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  eventTeam EventTeam @relation(fields: [eventTeamId], references: [id], onDelete: Cascade)
+  assignee  User?     @relation(fields: [assigneeId], references: [id])
 }
 
 model Event {
@@ -137,6 +180,7 @@ model Event {
 
   eventSessions EventSession[]
   registrations Registration[]
+  eventTeams    EventTeam[]
   budgetItems   BudgetItem[]
 }
 

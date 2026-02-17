@@ -129,25 +129,12 @@ describe("user.service", () => {
       );
     });
 
-    it("should update role with teamId", async () => {
-      const updated = { id: "u1", role: "TEAM_LEADER", teamId: "team-1" };
-      mockPrisma.user.update.mockResolvedValue(updated);
-
-      await updateUserRole("u1", "TEAM_LEADER", "team-1");
-
-      expect(mockPrisma.user.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: { role: "TEAM_LEADER", teamId: "team-1" },
-        })
-      );
-    });
-
     it("should update role with expiry", async () => {
       const expires = new Date("2026-12-31");
       const updated = { id: "u1", role: "TEAM_LEADER", permissionExpiresAt: expires };
       mockPrisma.user.update.mockResolvedValue(updated);
 
-      await updateUserRole("u1", "TEAM_LEADER", undefined, expires);
+      await updateUserRole("u1", "TEAM_LEADER", expires);
 
       expect(mockPrisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({

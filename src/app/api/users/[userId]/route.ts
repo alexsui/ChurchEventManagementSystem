@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
+import { hasPermission, assertActive } from "@/lib/authorization";
 import {
   getUserById,
   updateUserRole,
@@ -16,11 +16,11 @@ export async function GET(
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: "未登入" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (!(await hasPermission(session.user.role, "users", "read"))) {
-      return NextResponse.json({ error: "權限不足" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { userId } = await params;
@@ -28,7 +28,7 @@ export async function GET(
 
     if (!user) {
       return NextResponse.json(
-        { error: "找不到該使用者" },
+        { error: "User not found" },
         { status: 404 }
       );
     }
@@ -37,7 +37,7 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching user:", error);
     return NextResponse.json(
-      { error: "取得使用者資料失敗" },
+      { error: "Failed to fetch user" },
       { status: 500 }
     );
   }
@@ -51,11 +51,14 @@ export async function PATCH(
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: "未登入" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const inactiveResponse = assertActive(session.user);
+    if (inactiveResponse) return inactiveResponse;
+
     if (!(await hasPermission(session.user.role, "users", "write"))) {
-      return NextResponse.json({ error: "權限不足" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { userId } = await params;
@@ -67,7 +70,7 @@ export async function PATCH(
 
       if (!user) {
         return NextResponse.json(
-          { error: "找不到該使用者" },
+          { error: "User not found" },
           { status: 404 }
         );
       }
@@ -80,18 +83,16 @@ export async function PATCH(
       const validRoles = Object.values(Role);
       if (!validRoles.includes(body.role)) {
         return NextResponse.json(
-          { error: "無效的角色" },
+          { error: "Invalid role" },
           { status: 400 }
         );
       }
 
       const expiresAt = body.expiresAt ? new Date(body.expiresAt) : undefined;
-      const teamId = body.teamId !== undefined ? body.teamId : undefined;
 
       const user = await updateUserRole(
         userId,
         body.role as Role,
-        teamId,
         expiresAt
       );
 
@@ -99,13 +100,13 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { error: "缺少必要參數 (role 或 action)" },
+      { error: "Missing required parameter (role or action)" },
       { status: 400 }
     );
   } catch (error) {
     console.error("Error updating user:", error);
     return NextResponse.json(
-      { error: "更新使用者資料失敗" },
+      { error: "Failed to update user" },
       { status: 500 }
     );
   }

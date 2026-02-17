@@ -78,7 +78,6 @@ async function main() {
       phone: "0942345678",
       password: passwordHash,
       role: "TEAM_LEADER",
-      teamId: worshipTeam.id,
       isActive: true,
     },
   });

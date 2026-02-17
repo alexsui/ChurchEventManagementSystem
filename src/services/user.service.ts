@@ -33,18 +33,11 @@ export async function getUsers(filters?: GetUsersFilters) {
       email: true,
       phone: true,
       role: true,
-      teamId: true,
       permissionExpiresAt: true,
       isActive: true,
       image: true,
       createdAt: true,
       updatedAt: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -61,18 +54,11 @@ export async function getUserById(id: string) {
       email: true,
       phone: true,
       role: true,
-      teamId: true,
       permissionExpiresAt: true,
       isActive: true,
       image: true,
       createdAt: true,
       updatedAt: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
       registrations: {
         select: {
           id: true,
@@ -98,14 +84,9 @@ export async function getUserById(id: string) {
 export async function updateUserRole(
   id: string,
   role: Role,
-  teamId?: string | null,
   expiresAt?: Date | null
 ) {
   const data: Record<string, unknown> = { role };
-
-  if (teamId !== undefined) {
-    data.teamId = teamId;
-  }
 
   if (expiresAt !== undefined) {
     data.permissionExpiresAt = expiresAt;
@@ -119,15 +100,8 @@ export async function updateUserRole(
       name: true,
       email: true,
       role: true,
-      teamId: true,
       permissionExpiresAt: true,
       isActive: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
     },
   });
 
