@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   EventForm,
   type EventFormSubmitData,
@@ -36,6 +36,10 @@ import {
 import { cn } from "@/lib/utils";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { EventTeamsSection } from "@/components/shared/event-teams-section";
+import { RegistrationsPanel } from "@/components/admin/registrations-panel";
+import { AttendancePanel } from "@/components/admin/attendance-panel";
+import { AssignmentsPanel } from "@/components/admin/assignments-panel";
+import { BudgetPanel } from "@/components/admin/budget-panel";
 
 interface EventSession {
   id: string;
@@ -89,7 +93,14 @@ export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const router = useRouter();
   const { canWrite } = useAdminPermissions("events");
-  const { canRead: canReadTeams, canWrite: canWriteTeams } = useAdminPermissions("teams");
+  const { canRead: canReadTeams, canWrite: canWriteTeams } =
+    useAdminPermissions("teams");
+  const { canRead: canReadRegistrations } =
+    useAdminPermissions("registrations");
+  const { canRead: canReadAttendance } = useAdminPermissions("attendance");
+  const { canRead: canReadAssignments } = useAdminPermissions("assignments");
+  const { canRead: canReadBudget } = useAdminPermissions("budget");
+
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -252,128 +263,185 @@ export default function EventDetailPage() {
         )}
       </div>
 
-      {/* Event Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>活動資訊</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {event.description && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">說明</p>
-              <p className="whitespace-pre-wrap">{event.description}</p>
-            </div>
+      {/* Tabs */}
+      <Tabs defaultValue="info">
+        <TabsList variant="line">
+          <TabsTrigger value="info">活動資訊</TabsTrigger>
+          {canReadRegistrations && (
+            <TabsTrigger value="registrations">報名</TabsTrigger>
           )}
-          {event.location && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">地點</p>
-              <p>{event.location}</p>
-            </div>
+          {canReadAttendance && (
+            <TabsTrigger value="attendance">出席</TabsTrigger>
           )}
-          {event.type === "SERIES" && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                報名模式
-              </p>
-              <p>
-                {event.registrationMode === "PER_SESSION"
-                  ? "單場報名"
-                  : "整期報名"}
-              </p>
-            </div>
+          {canReadAssignments && (
+            <TabsTrigger value="assignments">作業</TabsTrigger>
           )}
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">
-              建立日期
-            </p>
-            <p>{formatDate(event.createdAt)}</p>
-          </div>
-        </CardContent>
-      </Card>
+          {canReadBudget && (
+            <TabsTrigger value="budget">預算</TabsTrigger>
+          )}
+        </TabsList>
 
-      {/* Status Management */}
-      {canWrite && (
-        <Card>
-          <CardHeader>
-            <CardTitle>狀態管理</CardTitle>
-            <CardDescription>變更活動狀態</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {statusFlow.map((s) => {
-                const info = statusConfig[s];
-                const isCurrent = event.status === s;
-                return (
-                  <Button
-                    key={s}
-                    variant={isCurrent ? "default" : "outline"}
-                    size="sm"
-                    disabled={isCurrent}
-                    onClick={() => handleStatusChange(s)}
-                  >
-                    {info.label}
-                  </Button>
-                );
-              })}
-            </div>
-            {nextStatus && (
-              <p className="text-sm text-muted-foreground mt-2">
-                下一步：{statusConfig[nextStatus].label}
-              </p>
+        {/* 活動資訊 Tab */}
+        <TabsContent value="info">
+          <div className="space-y-6">
+            {/* Event Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>活動資訊</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {event.description && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      說明
+                    </p>
+                    <p className="whitespace-pre-wrap">{event.description}</p>
+                  </div>
+                )}
+                {event.location && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      地點
+                    </p>
+                    <p>{event.location}</p>
+                  </div>
+                )}
+                {event.type === "SERIES" && (
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      報名模式
+                    </p>
+                    <p>
+                      {event.registrationMode === "PER_SESSION"
+                        ? "單場報名"
+                        : "整期報名"}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    建立日期
+                  </p>
+                  <p>{formatDate(event.createdAt)}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Status Management */}
+            {canWrite && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>狀態管理</CardTitle>
+                  <CardDescription>變更活動狀態</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {statusFlow.map((s) => {
+                      const info = statusConfig[s];
+                      const isCurrent = event.status === s;
+                      return (
+                        <Button
+                          key={s}
+                          variant={isCurrent ? "default" : "outline"}
+                          size="sm"
+                          disabled={isCurrent}
+                          onClick={() => handleStatusChange(s)}
+                        >
+                          {info.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  {nextStatus && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      下一步：{statusConfig[nextStatus].label}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Sessions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            場次列表 ({event.eventSessions.length} 場)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {event.eventSessions.length === 0 ? (
-            <p className="text-muted-foreground">尚無場次</p>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>堂次</TableHead>
-                    <TableHead>日期</TableHead>
-                    <TableHead>時間</TableHead>
-                    <TableHead>主題</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {event.eventSessions.map((session) => (
-                    <TableRow key={session.id}>
-                      <TableCell>第 {session.sessionNo} 堂</TableCell>
-                      <TableCell>
-                        {formatDate(session.sessionDate)}
-                      </TableCell>
-                      <TableCell>
-                        {session.startTime && session.endTime
-                          ? `${session.startTime} - ${session.endTime}`
-                          : session.startTime ?? "-"}
-                      </TableCell>
-                      <TableCell>{session.topic ?? "-"}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {/* Sessions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  場次列表 ({event.eventSessions.length} 場)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {event.eventSessions.length === 0 ? (
+                  <p className="text-muted-foreground">尚無場次</p>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>堂次</TableHead>
+                          <TableHead>日期</TableHead>
+                          <TableHead>時間</TableHead>
+                          <TableHead>主題</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {event.eventSessions.map((session) => (
+                          <TableRow key={session.id}>
+                            <TableCell>第 {session.sessionNo} 堂</TableCell>
+                            <TableCell>
+                              {formatDate(session.sessionDate)}
+                            </TableCell>
+                            <TableCell>
+                              {session.startTime && session.endTime
+                                ? `${session.startTime} - ${session.endTime}`
+                                : session.startTime ?? "-"}
+                            </TableCell>
+                            <TableCell>{session.topic ?? "-"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-      {/* Event Teams */}
-      {canReadTeams && (
-        <EventTeamsSection eventId={eventId} canWrite={canWriteTeams} />
-      )}
+            {/* Event Teams */}
+            {canReadTeams && (
+              <EventTeamsSection
+                eventId={eventId}
+                canWrite={canWriteTeams}
+              />
+            )}
+          </div>
+        </TabsContent>
 
-      <Separator />
+        {/* 報名 Tab */}
+        {canReadRegistrations && (
+          <TabsContent value="registrations">
+            <RegistrationsPanel eventId={eventId} />
+          </TabsContent>
+        )}
+
+        {/* 出席 Tab */}
+        {canReadAttendance && (
+          <TabsContent value="attendance">
+            <AttendancePanel eventId={eventId} />
+          </TabsContent>
+        )}
+
+        {/* 作業 Tab */}
+        {canReadAssignments && (
+          <TabsContent value="assignments">
+            <AssignmentsPanel eventId={eventId} />
+          </TabsContent>
+        )}
+
+        {/* 預算 Tab */}
+        {canReadBudget && (
+          <TabsContent value="budget">
+            <BudgetPanel eventId={eventId} />
+          </TabsContent>
+        )}
+      </Tabs>
 
       {/* Edit Dialog */}
       {canWrite && (
