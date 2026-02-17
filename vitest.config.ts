@@ -4,7 +4,8 @@ import path from "path";
 export default defineConfig({
   test: {
     globals: true,
-    exclude: ["e2e/**", "node_modules/**"],
+    environment: "jsdom",
+    exclude: ["e2e/**", "node_modules/**", ".worktrees/**"],
   },
   resolve: {
     alias: {
