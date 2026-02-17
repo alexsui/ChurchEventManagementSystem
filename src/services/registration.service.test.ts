@@ -34,6 +34,7 @@ import {
   getRegistrationsByEvent,
   getRegistrationsByUser,
   getRegistrationCount,
+  RegistrationServiceError,
 } from "./registration.service";
 
 // ---------------------------------------------------------------------------
@@ -99,7 +100,10 @@ describe("registration.service", () => {
       mockPrisma.event.findUnique.mockResolvedValue(event);
 
       await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        "Event is not open for registration"
+        RegistrationServiceError
+      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
+        { code: "EVENT_NOT_OPEN" }
       );
     });
 
@@ -107,7 +111,10 @@ describe("registration.service", () => {
       mockPrisma.event.findUnique.mockResolvedValue(null);
 
       await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        "Event not found"
+        RegistrationServiceError
+      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
+        { code: "EVENT_NOT_FOUND" }
       );
     });
 
@@ -119,7 +126,10 @@ describe("registration.service", () => {
       mockPrisma.registration.findUnique.mockResolvedValue(existing);
 
       await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        "User is already registered for this event"
+        RegistrationServiceError
+      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
+        { code: "ALREADY_REGISTERED" }
       );
     });
 
@@ -133,7 +143,10 @@ describe("registration.service", () => {
       mockPrisma.registration.findUnique.mockResolvedValue(existing);
 
       await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        "User is already registered for this event"
+        RegistrationServiceError
+      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
+        { code: "ALREADY_REGISTERED" }
       );
     });
 
@@ -232,8 +245,11 @@ describe("registration.service", () => {
       mockPrisma.registration.findUnique.mockResolvedValue(null);
 
       await expect(cancelRegistration("user-1", "event-1")).rejects.toThrow(
-        "Registration not found"
+        RegistrationServiceError
       );
+      await expect(
+        cancelRegistration("user-1", "event-1")
+      ).rejects.toMatchObject({ code: "REGISTRATION_NOT_FOUND" });
     });
 
     it("should throw when registration is already cancelled", async () => {
@@ -243,8 +259,11 @@ describe("registration.service", () => {
       mockPrisma.registration.findUnique.mockResolvedValue(cancelled);
 
       await expect(cancelRegistration("user-1", "event-1")).rejects.toThrow(
-        "Registration is already cancelled"
+        RegistrationServiceError
       );
+      await expect(
+        cancelRegistration("user-1", "event-1")
+      ).rejects.toMatchObject({ code: "ALREADY_CANCELLED" });
     });
 
     it("should promote the first waitlisted user when a registered user cancels", async () => {
@@ -312,7 +331,17 @@ describe("registration.service", () => {
       expect(result).toEqual(regs);
       expect(mockPrisma.registration.findMany).toHaveBeenCalledWith({
         where: { eventId: "event-1" },
-        include: { user: true },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              role: true,
+            },
+          },
+        },
         orderBy: { createdAt: "asc" },
       });
     });

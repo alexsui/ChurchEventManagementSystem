@@ -9,11 +9,11 @@ export async function GET(request: Request) {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: "未登入" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (!(await hasPermission(session.user.role, "users", "read"))) {
-      return NextResponse.json({ error: "權限不足" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: "取得使用者列表失敗" },
+      { error: "Failed to fetch users" },
       { status: 500 }
     );
   }

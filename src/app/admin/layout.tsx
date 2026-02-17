@@ -12,6 +12,7 @@ import {
   Users,
   Menu,
   LogOut,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   module: string;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -38,7 +40,7 @@ const navItems: NavItem[] = [
   { href: "/admin/registrations", label: "報名管理", icon: ClipboardList, module: "registrations" },
   { href: "/admin/attendance", label: "出席管理", icon: UserCheck, module: "attendance" },
   { href: "/admin/assignments", label: "作業管理", icon: BookCheck, module: "assignments" },
-  { href: "/admin/users", label: "使用者管理", icon: Users, module: "users" },
+  { href: "/admin/users", label: "使用者管理", icon: Users, module: "users", adminOnly: true },
 ];
 
 const roleLabels: Record<string, string> = {
@@ -80,6 +82,7 @@ function useRolePermissions(role?: string) {
 
   const visibleItems = navItems.filter((item) => {
     if (isAdmin) return true;
+    if (item.adminOnly) return false;
     if (!permissions) return false;
     return permissions[item.module]?.read ?? false;
   });
@@ -134,13 +137,23 @@ export default function AdminLayout({
   const userRole = session?.user?.role ?? "MEMBER";
   const { isAdmin, permissions, loaded, visibleItems } = useRolePermissions(userRole);
 
+  const pathname = usePathname();
+
   useEffect(() => {
     if (!loaded) return;
     if (status !== "authenticated") return;
     if (visibleItems.length === 0) {
       router.replace("/events");
+      return;
     }
-  }, [loaded, status, visibleItems, router]);
+    // If the current path doesn't match any permitted module, redirect
+    const isPermitted =
+      pathname === "/admin" ||
+      visibleItems.some((item) => pathname.startsWith(item.href));
+    if (!isPermitted) {
+      router.replace(visibleItems[0].href);
+    }
+  }, [loaded, status, visibleItems, pathname, router]);
 
   if (status === "loading" || !loaded) {
     return (
@@ -158,7 +171,11 @@ export default function AdminLayout({
     );
   }
 
-  if (visibleItems.length === 0) {
+  const isPermittedPath =
+    pathname === "/admin" ||
+    visibleItems.some((item) => pathname.startsWith(item.href));
+
+  if (visibleItems.length === 0 || !isPermittedPath) {
     return (
       <div className="flex h-screen items-center justify-center">
         <p className="text-muted-foreground">重新導向中...</p>
@@ -211,6 +228,14 @@ export default function AdminLayout({
 
           {/* User info + logout */}
           <div className="flex items-center gap-3">
+            <Link
+              href="/events"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Home className="size-4" />
+              <span className="hidden sm:inline">回到前台</span>
+            </Link>
+            <Separator orientation="vertical" className="h-6" />
             <span className="text-sm font-medium">{user.name ?? "使用者"}</span>
             <Badge variant="secondary">
               {roleLabels[userRole] ?? userRole}

@@ -26,7 +26,7 @@ export default function LoginPage() {
 
 function LoginContent() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/admin/events";
+  const callbackUrl = searchParams.get("callbackUrl") || "/events";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-warm-cream px-4 relative overflow-hidden">

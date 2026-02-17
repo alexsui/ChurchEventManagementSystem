@@ -4,6 +4,16 @@ import {
   EventStatus,
 } from "@/generated/prisma/client";
 
+export class RegistrationServiceError extends Error {
+  constructor(
+    message: string,
+    public code: string
+  ) {
+    super(message);
+    this.name = "RegistrationServiceError";
+  }
+}
+
 /**
  * Register a user for an event.
  *
@@ -15,11 +25,11 @@ export async function registerForEvent(userId: string, eventId: string) {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
 
   if (!event) {
-    throw new Error("Event not found");
+    throw new RegistrationServiceError("Event not found", "EVENT_NOT_FOUND");
   }
 
   if (event.status !== EventStatus.OPEN) {
-    throw new Error("Event is not open for registration");
+    throw new RegistrationServiceError("Event is not open for registration", "EVENT_NOT_OPEN");
   }
 
   // Check for an existing active registration (REGISTERED or WAITLISTED)
@@ -28,7 +38,7 @@ export async function registerForEvent(userId: string, eventId: string) {
   });
 
   if (existing && existing.status !== RegistrationStatus.CANCELLED) {
-    throw new Error("User is already registered for this event");
+    throw new RegistrationServiceError("User is already registered for this event", "ALREADY_REGISTERED");
   }
 
   // Determine status based on capacity
@@ -76,11 +86,11 @@ export async function cancelRegistration(userId: string, eventId: string) {
   });
 
   if (!registration) {
-    throw new Error("Registration not found");
+    throw new RegistrationServiceError("Registration not found", "REGISTRATION_NOT_FOUND");
   }
 
   if (registration.status === RegistrationStatus.CANCELLED) {
-    throw new Error("Registration is already cancelled");
+    throw new RegistrationServiceError("Registration is already cancelled", "ALREADY_CANCELLED");
   }
 
   const cancelled = await prisma.registration.update({
@@ -115,7 +125,11 @@ export async function cancelRegistration(userId: string, eventId: string) {
 export async function getRegistrationsByEvent(eventId: string) {
   return prisma.registration.findMany({
     where: { eventId },
-    include: { user: true },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, phone: true, role: true },
+      },
+    },
     orderBy: { createdAt: "asc" },
   });
 }

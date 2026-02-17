@@ -72,4 +72,18 @@ export function invalidatePermissionCache(): void {
   cache.clear();
 }
 
+/**
+ * Assert that the current user is active.
+ * Call after auth check in API routes that perform write operations.
+ * Returns a 403 NextResponse if inactive, or null if active.
+ */
+export function assertActive(user: {
+  isActive?: boolean;
+}): Response | null {
+  if (user.isActive === false) {
+    return Response.json({ error: "Account is inactive" }, { status: 403 });
+  }
+  return null;
+}
+
 export type { Module, Action };

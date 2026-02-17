@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
+import { hasPermission, assertActive } from "@/lib/authorization";
 import {
   getEventById,
   updateEvent,
   updateEventStatus,
   deleteEvent,
 } from "@/services/event.service";
-import type { EventStatus } from "@/generated/prisma/client";
+import { EventStatus } from "@/generated/prisma/client";
+import type { UpdateEventInput } from "@/services/event.service";
 
 type RouteParams = { params: Promise<{ eventId: string }> };
 
@@ -45,23 +46,38 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const inactiveResponse = assertActive(session.user);
+    if (inactiveResponse) return inactiveResponse;
+
     if (!(await hasPermission(session.user.role, "events", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { eventId } = await params;
-    const body = await request.json();
+
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
     const existingEvent = await getEventById(eventId);
     if (!existingEvent) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    const updateData = {
-      ...body,
+    const updateData: UpdateEventInput = {
+      title: body.title as string | undefined,
+      description: body.description as string | undefined,
+      location: body.location as string | undefined,
+      category: body.category as UpdateEventInput["category"],
+      type: body.type as UpdateEventInput["type"],
+      registrationMode: body.registrationMode as UpdateEventInput["registrationMode"],
+      maxParticipants: body.maxParticipants as number | null | undefined,
       minAssignmentRate:
         body.minAssignmentRate != null
-          ? body.minAssignmentRate / 100
+          ? (body.minAssignmentRate as number) / 100
           : undefined,
     };
 
@@ -88,6 +104,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const inactiveResponse = assertActive(session.user);
+    if (inactiveResponse) return inactiveResponse;
+
     if (!(await hasPermission(session.user.role, "events", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -95,9 +114,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const { eventId } = await params;
     const body = await request.json();
 
-    if (!body.status) {
+    if (
+      !body.status ||
+      !Object.values(EventStatus).includes(body.status as EventStatus)
+    ) {
       return NextResponse.json(
-        { error: "Status is required" },
+        { error: "A valid status is required" },
         { status: 400 }
       );
     }
@@ -129,6 +151,9 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const inactiveResponse = assertActive(session.user);
+    if (inactiveResponse) return inactiveResponse;
+
     if (!(await hasPermission(session.user.role, "events", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -141,7 +166,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     }
 
     await deleteEvent(eventId);
-    return NextResponse.json({ message: "Event deleted successfully" });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/events/[eventId] error:", error);
     return NextResponse.json(

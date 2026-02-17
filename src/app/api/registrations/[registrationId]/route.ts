@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
 import { prisma } from "@/lib/prisma";
-import { cancelRegistration } from "@/services/registration.service";
+import {
+  cancelRegistration,
+  RegistrationServiceError,
+} from "@/services/registration.service";
 
 /**
  * DELETE /api/registrations/[registrationId]
@@ -46,20 +49,22 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const cancelled = await cancelRegistration(
-      registration.userId,
-      registration.eventId
-    );
+    await cancelRegistration(registration.userId, registration.eventId);
 
-    return NextResponse.json(cancelled);
+    return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof RegistrationServiceError) {
+      const statusMap: Record<string, number> = {
+        REGISTRATION_NOT_FOUND: 404,
+        ALREADY_CANCELLED: 400,
+      };
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: statusMap[error.code] || 400 }
+      );
+    }
     const message =
       error instanceof Error ? error.message : "Internal server error";
-
-    if (message === "Registration is already cancelled") {
-      return NextResponse.json({ error: message }, { status: 400 });
-    }
-
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

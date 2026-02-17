@@ -25,34 +25,40 @@ export async function GET(request: NextRequest) {
   const userId = searchParams.get("userId");
   const eventId = searchParams.get("eventId");
 
-  // List attendance by session (admin/staff use case)
-  if (eventSessionId) {
-    if (!(await hasPermission(session.user.role, "attendance", "read"))) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  try {
+    // List attendance by session (admin/staff use case)
+    if (eventSessionId) {
+      if (!(await hasPermission(session.user.role, "attendance", "read"))) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      const attendance = await getAttendanceBySession(eventSessionId);
+      return NextResponse.json(attendance);
     }
 
-    const attendance = await getAttendanceBySession(eventSessionId);
-    return NextResponse.json(attendance);
-  }
+    // List own attendance by user and event
+    if (userId && eventId) {
+      // Members can only view their own attendance
+      if (
+        userId !== session.user.id &&
+        !(await hasPermission(session.user.role, "attendance", "write"))
+      ) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
 
-  // List own attendance by user and event
-  if (userId && eventId) {
-    // Members can only view their own attendance
-    if (
-      userId !== session.user.id &&
-      !(await hasPermission(session.user.role, "attendance", "write"))
-    ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      const attendance = await getAttendanceByUser(userId, eventId);
+      return NextResponse.json(attendance);
     }
 
-    const attendance = await getAttendanceByUser(userId, eventId);
-    return NextResponse.json(attendance);
+    return NextResponse.json(
+      { error: "Missing required query parameters: eventSessionId, or userId and eventId" },
+      { status: 400 }
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json(
-    { error: "Missing required query parameters: eventSessionId, or userId and eventId" },
-    { status: 400 }
-  );
 }
 
 /**
@@ -66,6 +72,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Intentionally checks "read" not "write": this endpoint is for member self-check-in
+  // via QR code. All authenticated members with attendance:read can check themselves in.
+  // Admin bulk-check-in operations use separate endpoints requiring attendance:write.
   if (!(await hasPermission(session.user.role, "attendance", "read"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

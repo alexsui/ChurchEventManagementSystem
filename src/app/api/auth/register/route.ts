@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "姓名、Email 和密碼為必填" },
+        { error: "Name, email, and password are required" },
         { status: 400 }
       );
     }
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "此 Email 已被註冊" },
+        { error: "This email is already registered" },
         { status: 409 }
       );
     }
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       });
       if (existingPhone) {
         return NextResponse.json(
-          { error: "此電話號碼已被註冊" },
+          { error: "This phone number is already registered" },
           { status: 409 }
         );
       }
@@ -48,11 +48,11 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      { message: "註冊成功", userId: user.id },
+      { message: "Registration successful", userId: user.id },
       { status: 201 }
     );
   } catch (error) {
     console.error("Registration error:", error);
-    return NextResponse.json({ error: "註冊失敗，請稍後再試" }, { status: 500 });
+    return NextResponse.json({ error: "Registration failed, please try again later" }, { status: 500 });
   }
 }

@@ -24,6 +24,12 @@ export async function GET() {
     return NextResponse.json({ isAdmin: true });
   }
 
-  const permissions = await getPermissionsForRole(role);
-  return NextResponse.json({ isAdmin: false, permissions: permissions ?? {} });
+  try {
+    const permissions = await getPermissionsForRole(role);
+    return NextResponse.json({ isAdmin: false, permissions: permissions ?? {} });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

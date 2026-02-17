@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
-import { createEvent, getEvents } from "@/services/event.service";
-import type { EventStatus, EventType } from "@/generated/prisma/client";
+import { hasPermission, assertActive } from "@/lib/authorization";
+import {
+  createEvent,
+  getEvents,
+  type CreateEventInput,
+} from "@/services/event.service";
+import { EventStatus } from "@/generated/prisma/client";
+import type { EventType } from "@/generated/prisma/client";
 
 /**
  * GET /api/events
@@ -41,11 +46,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const inactiveResponse = assertActive(session.user);
+    if (inactiveResponse) return inactiveResponse;
+
     if (!(await hasPermission(session.user.role, "events", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
 
     if (!body.title) {
       return NextResponse.json(
@@ -55,11 +68,19 @@ export async function POST(request: Request) {
     }
 
     const eventData = {
-      ...body,
+      title: body.title as string,
+      description: body.description as string | undefined,
+      location: body.location as string | undefined,
+      category: body.category as CreateEventInput["category"],
+      type: body.type as CreateEventInput["type"],
+      registrationMode: body.registrationMode as CreateEventInput["registrationMode"],
+      maxParticipants: body.maxParticipants as number | undefined,
       minAssignmentRate:
         body.minAssignmentRate != null
-          ? body.minAssignmentRate / 100
+          ? (body.minAssignmentRate as number) / 100
           : undefined,
+      session: body.session as CreateEventInput["session"],
+      sessions: body.sessions as CreateEventInput["sessions"],
     };
 
     const event = await createEvent(eventData);

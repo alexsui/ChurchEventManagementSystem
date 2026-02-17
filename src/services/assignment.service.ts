@@ -89,6 +89,21 @@ export async function getAssignmentsByEvent(eventId: string) {
 }
 
 /**
+ * Get all completions for an assignment, with user info.
+ */
+export async function getCompletionsByAssignment(assignmentId: string) {
+  return prisma.assignmentCompletion.findMany({
+    where: { assignmentId },
+    include: {
+      user: {
+        select: { id: true, name: true, phone: true },
+      },
+    },
+    orderBy: { completedAt: "asc" },
+  });
+}
+
+/**
  * Mark an assignment as complete for one or more users.
  * Skips users who have already completed the assignment.
  * Returns { created, skipped } counts.

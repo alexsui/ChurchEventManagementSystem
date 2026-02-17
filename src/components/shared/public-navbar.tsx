@@ -31,8 +31,12 @@ export function PublicNavbar() {
           return;
         }
         const perms = data.permissions ?? {};
-        const hasAny = Object.values(perms).some(
-          (mod) => (mod as { read: boolean }).read
+        // "users" module is admin-only — exclude from the check
+        const ADMIN_ONLY_MODULES = ["users"];
+        const hasAny = Object.entries(perms).some(
+          ([mod, val]) =>
+            !ADMIN_ONLY_MODULES.includes(mod) &&
+            (val as { read: boolean }).read
         );
         setHasAdminAccess(hasAny);
       })
@@ -50,7 +54,7 @@ export function PublicNavbar() {
             </svg>
           </div>
           <span className="font-display text-xl font-bold text-warm-dark tracking-tight">
-            教會活動
+            土城真理堂
           </span>
         </Link>
 

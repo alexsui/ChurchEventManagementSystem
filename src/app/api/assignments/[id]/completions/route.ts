@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
-import { prisma } from "@/lib/prisma";
 import {
+  getCompletionsByAssignment,
   markComplete,
   AssignmentServiceError,
 } from "@/services/assignment.service";
@@ -27,17 +27,14 @@ export async function GET(
 
   const { id } = await params;
 
-  const completions = await prisma.assignmentCompletion.findMany({
-    where: { assignmentId: id },
-    include: {
-      user: {
-        select: { id: true, name: true, phone: true },
-      },
-    },
-    orderBy: { completedAt: "asc" },
-  });
-
-  return NextResponse.json(completions);
+  try {
+    const completions = await getCompletionsByAssignment(id);
+    return NextResponse.json(completions);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 /**

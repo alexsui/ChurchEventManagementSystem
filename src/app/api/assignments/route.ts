@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
+import { hasPermission, assertActive } from "@/lib/authorization";
 import {
   getAssignmentsBySession,
   createAssignment,
@@ -30,8 +30,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const assignments = await getAssignmentsBySession(eventSessionId);
-  return NextResponse.json(assignments);
+  try {
+    const assignments = await getAssignmentsBySession(eventSessionId);
+    return NextResponse.json(assignments);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 /**
@@ -45,6 +51,9 @@ export async function POST(request: NextRequest) {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const inactiveResponse = assertActive(session.user);
+  if (inactiveResponse) return inactiveResponse;
 
   if (!(await hasPermission(session.user.role, "assignments", "write"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

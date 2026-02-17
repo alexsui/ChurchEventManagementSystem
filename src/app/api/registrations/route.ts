@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
+import { hasPermission, assertActive } from "@/lib/authorization";
 import {
   registerForEvent,
   getRegistrationsByEvent,
   getRegistrationsByUser,
+  RegistrationServiceError,
 } from "@/services/registration.service";
 
 /**
@@ -58,6 +59,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const inactiveResponse = assertActive(session.user);
+  if (inactiveResponse) return inactiveResponse;
+
   let body: { eventId?: string };
   try {
     body = await request.json();
@@ -76,17 +80,19 @@ export async function POST(request: NextRequest) {
     const registration = await registerForEvent(session.user.id, body.eventId);
     return NextResponse.json(registration, { status: 201 });
   } catch (error) {
+    if (error instanceof RegistrationServiceError) {
+      const statusMap: Record<string, number> = {
+        EVENT_NOT_FOUND: 404,
+        EVENT_NOT_OPEN: 400,
+        ALREADY_REGISTERED: 409,
+      };
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: statusMap[error.code] || 400 }
+      );
+    }
     const message =
       error instanceof Error ? error.message : "Internal server error";
-
-    if (
-      message === "Event not found" ||
-      message === "Event is not open for registration" ||
-      message === "User is already registered for this event"
-    ) {
-      return NextResponse.json({ error: message }, { status: 400 });
-    }
-
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
