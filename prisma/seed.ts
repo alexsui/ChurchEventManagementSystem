@@ -21,6 +21,7 @@ async function main() {
   await prisma.session.deleteMany();
   await prisma.user.deleteMany();
   await prisma.team.deleteMany();
+  await prisma.rolePermission.deleteMany();
 
   console.log("  Cleared existing data");
 
@@ -342,6 +343,92 @@ async function main() {
   console.log("   Members:  ming@example.com, meiling@example.com,");
   console.log("             dahua@example.com, yating@example.com,");
   console.log("             zhiwei@example.com");
+
+  // ==================== RolePermission ====================
+  // Seed RolePermission table
+  const modules = [
+    "events", "registrations", "attendance", "assignments",
+    "users", "teams", "budget", "reports",
+  ] as const;
+  const actions = ["read", "write"] as const;
+
+  // Current default permissions (excluding ADMIN who always has full access)
+  const defaultPermissions: Record<string, Record<string, string[]>> = {
+    STAFF_ADMIN: {
+      events: ["read", "write"],
+      registrations: ["read", "write"],
+      attendance: ["read", "write"],
+      assignments: ["read"],
+      users: ["read"],
+      teams: ["read"],
+      reports: ["read"],
+    },
+    STAFF_GENERAL: {
+      events: ["read"],
+      registrations: ["read"],
+      budget: ["read", "write"],
+      reports: ["read"],
+    },
+    STAFF_FINANCE: {
+      events: ["read"],
+      registrations: ["read"],
+      budget: ["read", "write"],
+      reports: ["read"],
+    },
+    PASTOR: {
+      events: ["read"],
+      registrations: ["read"],
+      attendance: ["read"],
+      assignments: ["read"],
+      users: ["read"],
+      teams: ["read"],
+      reports: ["read"],
+    },
+    STAFF_MEDIA: {
+      events: ["read"],
+      teams: ["read"],
+    },
+    TEAM_LEADER: {
+      events: ["read"],
+      registrations: ["read"],
+      attendance: ["read"],
+      assignments: ["read"],
+      teams: ["read"],
+    },
+    MEMBER: {
+      events: ["read"],
+      registrations: ["read"],
+      attendance: ["read"],
+      assignments: ["read"],
+      users: ["read"],
+    },
+  };
+
+  for (const [role, modulePerms] of Object.entries(defaultPermissions)) {
+    for (const mod of modules) {
+      for (const action of actions) {
+        const allowed = modulePerms[mod]?.includes(action) ?? false;
+        await prisma.rolePermission.upsert({
+          where: {
+            role_module_action: {
+              role: role as any,
+              module: mod,
+              action,
+            },
+          },
+          update: { allowed },
+          create: {
+            role: role as any,
+            module: mod,
+            action,
+            allowed,
+          },
+        });
+      }
+    }
+  }
+
+  console.log("RolePermission seed complete");
 }
 
 main()
