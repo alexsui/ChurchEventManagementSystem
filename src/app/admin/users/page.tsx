@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Users, Search } from "lucide-react";
+import { Users, Search, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -113,6 +115,8 @@ function getProviderDisplay(accounts?: UserAccount[]): string {
 // ---------------------------------------------------------------------------
 
 export default function UsersPage() {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -241,6 +245,15 @@ export default function UsersPage() {
             </p>
           </div>
         </div>
+        {session?.user?.role === "ADMIN" && (
+          <Button
+            variant="outline"
+            onClick={() => router.push("/admin/users/roles")}
+          >
+            <Shield className="size-4 mr-2" />
+            角色權限設定
+          </Button>
+        )}
       </div>
 
       {/* Search bar */}
