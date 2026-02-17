@@ -10,6 +10,7 @@ import {
   UserCheck,
   BookCheck,
   Users,
+  UsersRound,
   Wallet,
   Menu,
   LogOut,
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   { href: "/admin/assignments", label: "作業管理", icon: BookCheck, module: "assignments" },
   { href: "/admin/budget", label: "預算管理", icon: Wallet, module: "budget" },
   { href: "/admin/users", label: "使用者管理", icon: Users, module: "users", adminOnly: true },
+  { href: "/admin/teams", label: "組別管理", icon: UsersRound, module: "teams" },
 ];
 
 const roleLabels: Record<string, string> = {
