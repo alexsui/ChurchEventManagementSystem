@@ -137,6 +137,7 @@ model Event {
 
   eventSessions EventSession[]
   registrations Registration[]
+  budgetItems   BudgetItem[]
 }
 
 model EventSession {
@@ -219,4 +220,18 @@ model AssignmentCompletion {
   completedBy User       @relation("assignmentCompletedBy", fields: [completedById], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, userId])
+}
+
+model BudgetItem {
+  id             String   @id @default(cuid())
+  eventId        String
+  category       String   // MEAL, SNACK, VENUE, MATERIAL, EQUIPMENT, OTHER
+  customCategory String?
+  estimated      Float
+  actual         Float    @default(0)
+  note           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
