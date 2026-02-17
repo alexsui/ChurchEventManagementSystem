@@ -8,6 +8,7 @@ import {
   CalendarDays,
   ClipboardList,
   UserCheck,
+  BookCheck,
   Users,
   Menu,
   LogOut,
@@ -36,6 +37,7 @@ const navItems: NavItem[] = [
   { href: "/admin/events", label: "活動管理", icon: CalendarDays, module: "events" },
   { href: "/admin/registrations", label: "報名管理", icon: ClipboardList, module: "registrations" },
   { href: "/admin/attendance", label: "出席管理", icon: UserCheck, module: "attendance" },
+  { href: "/admin/assignments", label: "作業管理", icon: BookCheck, module: "assignments" },
   { href: "/admin/users", label: "使用者管理", icon: Users, module: "users" },
 ];
 
