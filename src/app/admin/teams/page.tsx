@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { Fragment, useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import {
   UsersRound,
@@ -387,9 +387,8 @@ export default function TeamsPage() {
             </TableHeader>
             <TableBody>
               {templates.map((t) => (
-                <>
+                <Fragment key={t.id}>
                   <TableRow
-                    key={t.id}
                     className="cursor-pointer"
                     onClick={() => toggleExpand(t.id)}
                   >
@@ -441,7 +440,7 @@ export default function TeamsPage() {
 
                   {/* Expanded detail */}
                   {expandedId === t.id && (
-                    <TableRow key={`${t.id}-detail`}>
+                    <TableRow>
                       <TableCell colSpan={canWrite ? 6 : 5} className="bg-muted/30 p-4">
                         {loadingDetail ? (
                           <p className="text-muted-foreground text-sm py-4 text-center">
@@ -564,7 +563,7 @@ export default function TeamsPage() {
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               ))}
             </TableBody>
           </Table>
