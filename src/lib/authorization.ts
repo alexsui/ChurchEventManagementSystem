@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/prisma";
+
 type Module =
   | "events"
   | "registrations"
@@ -10,78 +12,64 @@ type Module =
 
 type Action = "read" | "write";
 
-const ROLE_PERMISSIONS: Record<string, Partial<Record<Module, Action[]>>> = {
-  ADMIN: {
-    events: ["read", "write"],
-    registrations: ["read", "write"],
-    attendance: ["read", "write"],
-    assignments: ["read", "write"],
-    users: ["read", "write"],
-    teams: ["read", "write"],
-    budget: ["read", "write"],
-    reports: ["read", "write"],
-  },
-  STAFF_ADMIN: {
-    events: ["read", "write"],
-    registrations: ["read", "write"],
-    attendance: ["read", "write"],
-    assignments: ["read"],
-    users: ["read"],
-    teams: ["read"],
-    reports: ["read"],
-  },
-  STAFF_GENERAL: {
-    events: ["read"],
-    registrations: ["read"],
-    budget: ["read", "write"],
-    reports: ["read"],
-  },
-  STAFF_FINANCE: {
-    events: ["read"],
-    registrations: ["read"],
-    budget: ["read", "write"],
-    reports: ["read"],
-  },
-  PASTOR: {
-    events: ["read"],
-    registrations: ["read"],
-    attendance: ["read"],
-    assignments: ["read"],
-    users: ["read"],
-    teams: ["read"],
-    reports: ["read"],
-  },
-  STAFF_MEDIA: {
-    events: ["read"],
-    teams: ["read"],
-  },
-  TEAM_LEADER: {
-    events: ["read"],
-    registrations: ["read"],
-    attendance: ["read"],
-    assignments: ["read"],
-    teams: ["read"],
-  },
-  MEMBER: {
-    events: ["read"],
-    registrations: ["read"],
-    attendance: ["read"],
-    assignments: ["read"],
-    users: ["read"],
-  },
-};
+// In-memory cache: role -> { permissions map, expiry timestamp }
+const cache = new Map<
+  string,
+  { permissions: Map<string, boolean>; expiresAt: number }
+>();
 
-export function hasPermission(
+const CACHE_TTL_MS = 60_000; // 60 seconds
+
+function cacheKey(module: string, action: string): string {
+  return `${module}:${action}`;
+}
+
+/**
+ * Load permissions for a role from DB, with in-memory caching.
+ */
+async function getPermissionsForRole(
+  role: string
+): Promise<Map<string, boolean>> {
+  const now = Date.now();
+  const cached = cache.get(role);
+  if (cached && cached.expiresAt > now) {
+    return cached.permissions;
+  }
+
+  const rows = await prisma.rolePermission.findMany({
+    where: { role: role as any },
+  });
+
+  const permissions = new Map<string, boolean>();
+  for (const row of rows) {
+    permissions.set(cacheKey(row.module, row.action), row.allowed);
+  }
+
+  cache.set(role, { permissions, expiresAt: now + CACHE_TTL_MS });
+  return permissions;
+}
+
+/**
+ * Check if a role has permission for a module/action.
+ * ADMIN always has full access (not stored in DB).
+ */
+export async function hasPermission(
   role: string,
   module: Module,
   action: Action
-): boolean {
-  const permissions = ROLE_PERMISSIONS[role];
-  if (!permissions) return false;
-  const moduleActions = permissions[module];
-  if (!moduleActions) return false;
-  return moduleActions.includes(action);
+): Promise<boolean> {
+  if (role === "ADMIN") return true;
+
+  const permissions = await getPermissionsForRole(role);
+  return permissions.get(cacheKey(module, action)) ?? false;
 }
 
-export { ROLE_PERMISSIONS };
+/**
+ * Invalidate the in-memory permission cache.
+ * Call after updating permissions via API.
+ */
+export function invalidatePermissionCache(): void {
+  cache.clear();
+}
+
 export type { Module, Action };
