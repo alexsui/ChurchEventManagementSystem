@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -28,14 +28,14 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ElementType;
-  adminOnly?: boolean;
+  module: string;
 }
 
 const navItems: NavItem[] = [
-  { href: "/admin/events", label: "活動管理", icon: CalendarDays },
-  { href: "/admin/registrations", label: "報名管理", icon: ClipboardList },
-  { href: "/admin/attendance", label: "出席管理", icon: UserCheck },
-  { href: "/admin/users", label: "使用者管理", icon: Users, adminOnly: true },
+  { href: "/admin/events", label: "活動管理", icon: CalendarDays, module: "events" },
+  { href: "/admin/registrations", label: "報名管理", icon: ClipboardList, module: "registrations" },
+  { href: "/admin/attendance", label: "出席管理", icon: UserCheck, module: "attendance" },
+  { href: "/admin/users", label: "使用者管理", icon: Users, module: "users" },
 ];
 
 const roleLabels: Record<string, string> = {
@@ -57,10 +57,25 @@ function SidebarNav({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const [permissions, setPermissions] = useState<Record<string, { read: boolean; write: boolean }> | null>(null);
 
-  const visibleItems = navItems.filter(
-    (item) => !item.adminOnly || role === "ADMIN"
-  );
+  useEffect(() => {
+    if (role === "ADMIN") return;
+    fetch("/api/role-permissions")
+      .then((res) => res.json())
+      .then((matrix) => {
+        if (role && matrix[role]) {
+          setPermissions(matrix[role]);
+        }
+      })
+      .catch(() => {});
+  }, [role]);
+
+  const visibleItems = navItems.filter((item) => {
+    if (role === "ADMIN") return true;
+    if (!permissions) return false;
+    return permissions[item.module]?.read ?? false;
+  });
 
   return (
     <nav className="flex flex-col gap-1">
