@@ -35,6 +35,7 @@ import {
 } from "@/components/shared/event-form";
 import { cn } from "@/lib/utils";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
+import { EventTeamsSection } from "@/components/shared/event-teams-section";
 
 interface EventSession {
   id: string;
@@ -88,6 +89,7 @@ export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const router = useRouter();
   const { canWrite } = useAdminPermissions("events");
+  const { canRead: canReadTeams, canWrite: canWriteTeams } = useAdminPermissions("teams");
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -365,6 +367,11 @@ export default function EventDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Event Teams */}
+      {canReadTeams && (
+        <EventTeamsSection eventId={eventId} canWrite={canWriteTeams} />
+      )}
 
       <Separator />
 
