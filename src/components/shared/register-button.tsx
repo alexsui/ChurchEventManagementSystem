@@ -11,6 +11,7 @@ interface RegisterButtonProps {
   eventId: string;
   isLoggedIn: boolean;
   isRegistered: boolean;
+  registrationId?: string | null;
   registrationStatus?: RegistrationStatus | null;
   eventStatus: EventStatus;
   isFull: boolean;
@@ -20,6 +21,7 @@ export function RegisterButton({
   eventId,
   isLoggedIn,
   isRegistered,
+  registrationId,
   registrationStatus,
   eventStatus,
   isFull,
@@ -31,10 +33,46 @@ export function RegisterButton({
   if (isRegistered && registrationStatus) {
     const label =
       registrationStatus === "WAITLISTED" ? "候補中" : "已報名";
+
+    async function handleCancel() {
+      if (!registrationId) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/registrations/${registrationId}`, {
+          method: "DELETE",
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          toast.error(data.error || "取消報名失敗");
+          return;
+        }
+
+        toast.success("已取消報名");
+        router.refresh();
+      } catch {
+        toast.error("取消報名失敗，請稍後再試");
+      } finally {
+        setLoading(false);
+      }
+    }
+
     return (
-      <Badge variant="secondary" className="text-base px-6 py-2">
-        {label}
-      </Badge>
+      <div className="flex flex-col items-center gap-3">
+        <Badge variant="secondary" className="text-base px-6 py-2">
+          {label}
+        </Badge>
+        {registrationId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCancel}
+            disabled={loading}
+          >
+            {loading ? "取消中..." : "取消報名"}
+          </Button>
+        )}
+      </div>
     );
   }
 

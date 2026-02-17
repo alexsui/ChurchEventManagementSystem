@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -16,10 +16,22 @@ import {
   EventForm,
   type EventFormSubmitData,
 } from "@/components/shared/event-form";
+import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 export default function NewEventPage() {
   const router = useRouter();
+  const { canWrite } = useAdminPermissions("events");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!canWrite) {
+      router.replace("/admin/events");
+    }
+  }, [canWrite, router]);
+
+  if (!canWrite) {
+    return null;
+  }
 
   async function handleSubmit(data: EventFormSubmitData) {
     try {

@@ -291,6 +291,9 @@ describe("Event Service", () => {
       expect(mockedPrisma.event.findMany).toHaveBeenCalledWith({
         where: {},
         include: {
+          eventSessions: {
+            orderBy: { sessionNo: "asc" },
+          },
           _count: {
             select: {
               eventSessions: true,

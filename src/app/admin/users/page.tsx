@@ -33,6 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -117,6 +118,7 @@ function getProviderDisplay(accounts?: UserAccount[]): string {
 export default function UsersPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { canWrite } = useAdminPermissions("users");
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -245,7 +247,7 @@ export default function UsersPage() {
             </p>
           </div>
         </div>
-        {session?.user?.role === "ADMIN" && (
+        {session?.user?.role === "ADMIN" && canWrite && (
           <Button
             variant="outline"
             onClick={() => router.push("/admin/users/roles")}
@@ -308,8 +310,8 @@ export default function UsersPage() {
               {filteredUsers.map((user) => (
                 <TableRow
                   key={user.id}
-                  className="cursor-pointer"
-                  onClick={() => handleRowClick(user)}
+                  className={canWrite ? "cursor-pointer" : undefined}
+                  onClick={canWrite ? () => handleRowClick(user) : undefined}
                 >
                   <TableCell className="font-medium">
                     {user.name ?? "-"}

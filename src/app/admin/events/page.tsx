@@ -14,10 +14,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 interface EventItem {
   id: string;
   title: string;
+  category: "COURSE" | "LECTURE" | "CAMP" | null;
   type: "SINGLE" | "SERIES";
   status: "PLANNING" | "OPEN" | "IN_PROGRESS" | "COMPLETED";
   createdAt: string;
@@ -56,6 +58,12 @@ const typeLabels: Record<string, string> = {
   SERIES: "系列",
 };
 
+const categoryLabels: Record<string, string> = {
+  COURSE: "課程",
+  LECTURE: "講座",
+  CAMP: "營會",
+};
+
 function formatDate(dateStr: string): string {
   return new Intl.DateTimeFormat("zh-TW", {
     year: "numeric",
@@ -66,6 +74,7 @@ function formatDate(dateStr: string): string {
 
 export default function EventsPage() {
   const router = useRouter();
+  const { canWrite } = useAdminPermissions("events");
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,10 +109,12 @@ export default function EventsPage() {
             管理所有教會活動
           </p>
         </div>
-        <Button onClick={() => router.push("/admin/events/new")}>
-          <Plus className="size-4" />
-          新增活動
-        </Button>
+        {canWrite && (
+          <Button onClick={() => router.push("/admin/events/new")}>
+            <Plus className="size-4" />
+            新增活動
+          </Button>
+        )}
       </div>
 
       {loading && (
@@ -121,10 +132,12 @@ export default function EventsPage() {
       {!loading && !error && events.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12">
           <p className="text-muted-foreground mb-4">尚無活動</p>
-          <Button onClick={() => router.push("/admin/events/new")}>
-            <Plus className="size-4" />
-            新增第一個活動
-          </Button>
+          {canWrite && (
+            <Button onClick={() => router.push("/admin/events/new")}>
+              <Plus className="size-4" />
+              新增第一個活動
+            </Button>
+          )}
         </div>
       )}
 
@@ -134,6 +147,7 @@ export default function EventsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>活動名稱</TableHead>
+                <TableHead>類別</TableHead>
                 <TableHead>類型</TableHead>
                 <TableHead>狀態</TableHead>
                 <TableHead className="text-right">報名人數</TableHead>
@@ -154,6 +168,15 @@ export default function EventsPage() {
                   >
                     <TableCell className="font-medium">
                       {event.title}
+                    </TableCell>
+                    <TableCell>
+                      {event.category ? (
+                        <Badge variant="outline">
+                          {categoryLabels[event.category] ?? event.category}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">

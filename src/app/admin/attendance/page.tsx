@@ -31,6 +31,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
+import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -114,6 +115,8 @@ function formatSessionLabel(session: EventSession): string {
 // ── Component ──────────────────────────────────────────────────────
 
 export default function AttendancePage() {
+  const { canWrite } = useAdminPermissions("attendance");
+
   // Event selector state
   const [events, setEvents] = useState<EventItem[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
@@ -515,7 +518,7 @@ export default function AttendancePage() {
                         已報到 {checkedInCount} / 已報名 {totalCount} 人
                       </span>
                     </div>
-                    {selectedUserIds.size > 0 && (
+                    {canWrite && selectedUserIds.size > 0 && (
                       <Button
                         onClick={handleBulkCheckIn}
                         disabled={bulkCheckInLoading}
@@ -542,14 +545,16 @@ export default function AttendancePage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-12">
-                            <Checkbox
-                              checked={allUncheckedSelected}
-                              onCheckedChange={toggleSelectAll}
-                              aria-label="全選未報到人員"
-                              disabled={uncheckedRows.length === 0}
-                            />
-                          </TableHead>
+                          {canWrite && (
+                            <TableHead className="w-12">
+                              <Checkbox
+                                checked={allUncheckedSelected}
+                                onCheckedChange={toggleSelectAll}
+                                aria-label="全選未報到人員"
+                                disabled={uncheckedRows.length === 0}
+                              />
+                            </TableHead>
+                          )}
                           <TableHead>姓名</TableHead>
                           <TableHead>報到狀態</TableHead>
                           <TableHead>報到時間</TableHead>
@@ -559,17 +564,19 @@ export default function AttendancePage() {
                       <TableBody>
                         {combinedRows.map((row) => (
                           <TableRow key={row.userId}>
-                            <TableCell>
-                              {!row.checkedIn && (
-                                <Checkbox
-                                  checked={selectedUserIds.has(row.userId)}
-                                  onCheckedChange={() =>
-                                    toggleUserSelection(row.userId)
-                                  }
-                                  aria-label={`選取 ${row.userName}`}
-                                />
-                              )}
-                            </TableCell>
+                            {canWrite && (
+                              <TableCell>
+                                {!row.checkedIn && (
+                                  <Checkbox
+                                    checked={selectedUserIds.has(row.userId)}
+                                    onCheckedChange={() =>
+                                      toggleUserSelection(row.userId)
+                                    }
+                                    aria-label={`選取 ${row.userName}`}
+                                  />
+                                )}
+                              </TableCell>
+                            )}
                             <TableCell className="font-medium">
                               {row.userName}
                             </TableCell>

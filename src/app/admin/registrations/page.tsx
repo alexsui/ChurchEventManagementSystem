@@ -27,6 +27,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 interface EventItem {
   id: string;
@@ -79,6 +80,7 @@ function formatDateTime(dateStr: string): string {
 }
 
 export default function RegistrationsPage() {
+  const { canWrite } = useAdminPermissions("registrations");
   const [events, setEvents] = useState<EventItem[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState<string | null>(null);
@@ -306,7 +308,9 @@ export default function RegistrationsPage() {
                         <TableHead>電話</TableHead>
                         <TableHead>狀態</TableHead>
                         <TableHead>報名時間</TableHead>
-                        <TableHead className="text-right">操作</TableHead>
+                        {canWrite && (
+                          <TableHead className="text-right">操作</TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -332,22 +336,24 @@ export default function RegistrationsPage() {
                             <TableCell>
                               {formatDateTime(reg.createdAt)}
                             </TableCell>
-                            <TableCell className="text-right">
-                              {reg.status !== "CANCELLED" && (
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  disabled={cancellingId === reg.id}
-                                  onClick={() =>
-                                    handleCancel(reg.id, reg.user.name)
-                                  }
-                                >
-                                  {cancellingId === reg.id
-                                    ? "取消中..."
-                                    : "取消報名"}
-                                </Button>
-                              )}
-                            </TableCell>
+                            {canWrite && (
+                              <TableCell className="text-right">
+                                {reg.status !== "CANCELLED" && (
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    disabled={cancellingId === reg.id}
+                                    onClick={() =>
+                                      handleCancel(reg.id, reg.user.name)
+                                    }
+                                  >
+                                    {cancellingId === reg.id
+                                      ? "取消中..."
+                                      : "取消報名"}
+                                  </Button>
+                                )}
+                              </TableCell>
+                            )}
                           </TableRow>
                         );
                       })}

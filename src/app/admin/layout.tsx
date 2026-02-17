@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
   CalendarDays,
@@ -23,6 +23,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { AdminPermissionsProvider } from "@/contexts/admin-permissions";
 
 interface NavItem {
   href: string;
@@ -49,33 +50,49 @@ const roleLabels: Record<string, string> = {
   MEMBER: "會員",
 };
 
-function SidebarNav({
-  role,
-  onNavigate,
-}: {
-  role?: string;
-  onNavigate?: () => void;
-}) {
-  const pathname = usePathname();
-  const [permissions, setPermissions] = useState<Record<string, { read: boolean; write: boolean }> | null>(null);
+type RolePermissions = Record<string, { read: boolean; write: boolean }>;
+
+function useRolePermissions(role?: string) {
+  const [permissions, setPermissions] = useState<RolePermissions | null>(null);
+  const [isAdmin, setIsAdmin] = useState(role === "ADMIN");
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (role === "ADMIN") return;
-    fetch("/api/role-permissions")
-      .then((res) => res.json())
-      .then((matrix) => {
-        if (role && matrix[role]) {
-          setPermissions(matrix[role]);
+    if (!role) {
+      setLoaded(true);
+      return;
+    }
+    fetch("/api/me/permissions")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return;
+        if (data.isAdmin) {
+          setIsAdmin(true);
+        } else {
+          setPermissions(data.permissions ?? null);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, [role]);
 
   const visibleItems = navItems.filter((item) => {
-    if (role === "ADMIN") return true;
+    if (isAdmin) return true;
     if (!permissions) return false;
     return permissions[item.module]?.read ?? false;
   });
+
+  return { isAdmin, permissions, loaded, visibleItems };
+}
+
+function SidebarNav({
+  visibleItems,
+  onNavigate,
+}: {
+  visibleItems: NavItem[];
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
 
   return (
     <nav className="flex flex-col gap-1">
@@ -109,9 +126,21 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  if (status === "loading") {
+  const userRole = session?.user?.role ?? "MEMBER";
+  const { isAdmin, permissions, loaded, visibleItems } = useRolePermissions(userRole);
+
+  useEffect(() => {
+    if (!loaded) return;
+    if (status !== "authenticated") return;
+    if (visibleItems.length === 0) {
+      router.replace("/events");
+    }
+  }, [loaded, status, visibleItems, router]);
+
+  if (status === "loading" || !loaded) {
     return (
       <div className="flex h-screen items-center justify-center">
         <p className="text-muted-foreground">載入中...</p>
@@ -127,8 +156,15 @@ export default function AdminLayout({
     );
   }
 
+  if (visibleItems.length === 0) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-muted-foreground">重新導向中...</p>
+      </div>
+    );
+  }
+
   const user = session.user;
-  const userRole = user.role ?? "MEMBER";
 
   return (
     <div className="flex h-screen">
@@ -140,7 +176,7 @@ export default function AdminLayout({
           </Link>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
-          <SidebarNav role={userRole} />
+          <SidebarNav visibleItems={visibleItems} />
         </div>
       </aside>
 
@@ -162,7 +198,7 @@ export default function AdminLayout({
               </SheetHeader>
               <div className="p-4">
                 <SidebarNav
-                  role={userRole}
+                  visibleItems={visibleItems}
                   onNavigate={() => setSheetOpen(false)}
                 />
               </div>
@@ -190,7 +226,11 @@ export default function AdminLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <AdminPermissionsProvider isAdmin={isAdmin} permissions={permissions}>
+            {children}
+          </AdminPermissionsProvider>
+        </main>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,6 @@ const MODULES = [
   { value: "registrations", label: "報名管理" },
   { value: "attendance", label: "出席管理" },
   { value: "assignments", label: "任務分配" },
-  { value: "users", label: "使用者管理" },
   { value: "teams", label: "小組管理" },
   { value: "budget", label: "預算管理" },
   { value: "reports", label: "報表" },
@@ -52,11 +52,16 @@ type PermissionMatrix = Record<
 export default function RolesPermissionPage() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { canWrite } = useAdminPermissions("users");
   const [matrix, setMatrix] = useState<PermissionMatrix>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!canWrite) {
+      router.replace("/admin/users");
+      return;
+    }
     fetch("/api/role-permissions")
       .then((res) => {
         if (!res.ok) throw new Error("無法載入權限設定");
@@ -65,7 +70,7 @@ export default function RolesPermissionPage() {
       .then(setMatrix)
       .catch((err) => toast.error(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [canWrite, router]);
 
   if (session?.user?.role !== "ADMIN") {
     return (
@@ -73,6 +78,10 @@ export default function RolesPermissionPage() {
         <p className="text-muted-foreground">無權限存取此頁面</p>
       </div>
     );
+  }
+
+  if (!canWrite) {
+    return null;
   }
 
   function toggle(role: string, module: string, action: "read" | "write") {

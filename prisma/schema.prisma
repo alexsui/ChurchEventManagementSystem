@@ -37,6 +37,12 @@ enum RegistrationMode {
   FULL_SERIES // 整期報名
 }
 
+enum EventCategory {
+  COURSE  // 課程
+  LECTURE // 講座
+  CAMP    // 營會
+}
+
 enum RegistrationStatus {
   REGISTERED // 已報名
   CANCELLED  // 已取消
@@ -118,6 +124,7 @@ model Event {
   title            String
   description      String?          @db.Text
   location         String?
+  category         EventCategory?
   type             EventType        @default(SINGLE)
   status           EventStatus      @default(PLANNING)
   registrationMode RegistrationMode @default(FULL_SERIES)

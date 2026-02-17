@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -10,6 +11,33 @@ export function PublicNavbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
+
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setHasAdminAccess(false);
+      return;
+    }
+    fetch("/api/me/permissions")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) {
+          setHasAdminAccess(false);
+          return;
+        }
+        if (data.isAdmin) {
+          setHasAdminAccess(true);
+          return;
+        }
+        const perms = data.permissions ?? {};
+        const hasAny = Object.values(perms).some(
+          (mod) => (mod as { read: boolean }).read
+        );
+        setHasAdminAccess(hasAny);
+      })
+      .catch(() => setHasAdminAccess(false));
+  }, [isLoggedIn]);
 
   return (
     <header className="border-b bg-white">
@@ -37,6 +65,19 @@ export function PublicNavbar() {
               )}
             >
               我的報名紀錄
+            </Link>
+          )}
+          {hasAdminAccess && (
+            <Link
+              href="/admin/events"
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-foreground",
+                pathname.startsWith("/admin")
+                  ? "text-foreground"
+                  : "text-muted-foreground"
+              )}
+            >
+              管理後台
             </Link>
           )}
         </nav>

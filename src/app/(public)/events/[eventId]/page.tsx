@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getEventById } from "@/services/event.service";
@@ -5,7 +7,7 @@ import {
   getRegistrationCount,
   getUserRegistrationForEvent,
 } from "@/services/registration.service";
-import { EventStatus, EventType } from "@/generated/prisma/client";
+import { EventCategory, EventStatus, EventType } from "@/generated/prisma/client";
 import {
   Card,
   CardContent,
@@ -66,6 +68,15 @@ function getStatusVariant(
   return map[status];
 }
 
+function getCategoryLabel(category: EventCategory): string {
+  const map: Record<EventCategory, string> = {
+    COURSE: "課程",
+    LECTURE: "講座",
+    CAMP: "營會",
+  };
+  return map[category];
+}
+
 export default async function EventDetailPage({
   params,
 }: {
@@ -97,14 +108,22 @@ export default async function EventDetailPage({
     event.maxParticipants !== null &&
     registrationCount.registered >= event.maxParticipants;
 
-  const eventUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/events/${eventId}`
-      : `/events/${eventId}`;
+  const headersList = await headers();
+  const host = headersList.get("host") ?? "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") ?? "http";
+  const eventUrl = `${protocol}://${host}/events/${eventId}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        {/* Back link */}
+        <Link
+          href="/events"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← 返回活動列表
+        </Link>
+
         {/* Event Header */}
         <Card>
           <CardHeader>
@@ -130,6 +149,16 @@ export default async function EventDetailPage({
                   地點：
                 </span>
                 <span>{event.location}</span>
+              </div>
+            )}
+
+            {/* Category */}
+            {event.category && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-medium text-muted-foreground">
+                  類別：
+                </span>
+                <span>{getCategoryLabel(event.category)}</span>
               </div>
             )}
 
@@ -227,6 +256,7 @@ export default async function EventDetailPage({
                 eventId={eventId}
                 isLoggedIn={isLoggedIn}
                 isRegistered={isRegistered}
+                registrationId={userRegistration?.id ?? null}
                 registrationStatus={userRegistration?.status ?? null}
                 eventStatus={event.status}
                 isFull={isFull}

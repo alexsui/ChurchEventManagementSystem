@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import {
   EventType,
   EventStatus,
+  EventCategory,
   RegistrationMode,
 } from "@/generated/prisma/client";
 
@@ -19,6 +20,7 @@ export interface CreateEventInput {
   title: string;
   description?: string;
   location?: string;
+  category?: EventCategory;
   type?: EventType;
   status?: EventStatus;
   registrationMode?: RegistrationMode;
@@ -33,6 +35,7 @@ export interface UpdateEventInput {
   title?: string;
   description?: string;
   location?: string;
+  category?: EventCategory | null;
   type?: EventType;
   registrationMode?: RegistrationMode;
   maxParticipants?: number | null;
@@ -75,6 +78,7 @@ export async function createEvent(data: CreateEventInput) {
       title: data.title,
       description: data.description,
       location: data.location,
+      category: data.category,
       type: eventType,
       status: data.status ?? EventStatus.PLANNING,
       registrationMode: data.registrationMode ?? RegistrationMode.FULL_SERIES,
@@ -112,6 +116,9 @@ export async function getEvents(filters?: EventFilters) {
   const events = await prisma.event.findMany({
     where,
     include: {
+      eventSessions: {
+        orderBy: { sessionNo: "asc" },
+      },
       _count: {
         select: {
           eventSessions: true,
@@ -162,6 +169,7 @@ export async function updateEvent(id: string, data: UpdateEventInput) {
       title: data.title,
       description: data.description,
       location: data.location,
+      category: data.category,
       type: data.type,
       registrationMode: data.registrationMode,
       maxParticipants: data.maxParticipants,

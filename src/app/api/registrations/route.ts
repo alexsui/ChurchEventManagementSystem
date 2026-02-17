@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   try {
     // If eventId is provided, check for admin-level permission
     if (eventId) {
-      if (!(await hasPermission(session.user.role, "registrations", "write"))) {
+      if (!(await hasPermission(session.user.role, "registrations", "read"))) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
@@ -49,16 +49,13 @@ export async function GET(request: NextRequest) {
  *
  * Body: { eventId: string }
  * Registers the current authenticated user for the given event.
+ * Any logged-in user can register themselves — no admin permission needed.
  */
 export async function POST(request: NextRequest) {
   const session = await auth();
 
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!(await hasPermission(session.user.role, "registrations", "read"))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let body: { eventId?: string };

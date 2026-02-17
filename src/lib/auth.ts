@@ -46,9 +46,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // On initial sign-in, set sub from user.id
       if (user) {
+        token.sub = user.id;
+      }
+      // Always refresh role and isActive from DB so admin changes take effect immediately
+      if (token.sub) {
         const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
+          where: { id: token.sub },
         });
         if (dbUser) {
           token.role = dbUser.role;

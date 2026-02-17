@@ -48,6 +48,7 @@ const eventFormSchema = z
     title: z.string().min(1, "請輸入活動名稱"),
     description: z.string().optional(),
     location: z.string().optional(),
+    category: z.enum(["COURSE", "LECTURE", "CAMP"], { error: "請選擇活動類別" }),
     type: z.enum(["SINGLE", "SERIES"]),
     registrationMode: z.enum(["PER_SESSION", "FULL_SERIES"]),
     maxParticipants: z.number().int().positive().optional(),
@@ -84,6 +85,7 @@ interface EventFormValues {
   title: string;
   description?: string;
   location?: string;
+  category?: "COURSE" | "LECTURE" | "CAMP";
   type: "SINGLE" | "SERIES";
   registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants?: number;
@@ -107,6 +109,7 @@ export interface EventFormDefaultValues {
   title?: string;
   description?: string;
   location?: string;
+  category?: "COURSE" | "LECTURE" | "CAMP"; // optional for defaults since edit may pre-fill
   type?: "SINGLE" | "SERIES";
   registrationMode?: "PER_SESSION" | "FULL_SERIES";
   maxParticipants?: number | null;
@@ -128,6 +131,7 @@ export interface EventFormSubmitData {
   title: string;
   description?: string;
   location?: string;
+  category: "COURSE" | "LECTURE" | "CAMP";
   type: "SINGLE" | "SERIES";
   registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants?: number;
@@ -168,6 +172,7 @@ export function EventForm({
       title: defaultValues?.title ?? "",
       description: defaultValues?.description ?? "",
       location: defaultValues?.location ?? "",
+      category: defaultValues?.category ?? undefined,
       type: defaultValues?.type ?? "SINGLE",
       registrationMode: defaultValues?.registrationMode ?? "FULL_SERIES",
       maxParticipants: defaultValues?.maxParticipants ?? undefined,
@@ -201,6 +206,7 @@ export function EventForm({
       title: values.title,
       description: values.description || undefined,
       location: values.location || undefined,
+      category: values.category!,
       type: values.type,
       registrationMode: values.registrationMode,
       maxParticipants,
@@ -277,6 +283,32 @@ export function EventForm({
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>活動類別 *</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="選擇活動類別" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="COURSE">課程</SelectItem>
+                    <SelectItem value="LECTURE">講座</SelectItem>
+                    <SelectItem value="CAMP">營會</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

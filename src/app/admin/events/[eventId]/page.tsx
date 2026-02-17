@@ -34,6 +34,7 @@ import {
   type EventFormDefaultValues,
 } from "@/components/shared/event-form";
 import { cn } from "@/lib/utils";
+import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 interface EventSession {
   id: string;
@@ -49,6 +50,7 @@ interface EventDetail {
   title: string;
   description: string | null;
   location: string | null;
+  category: "COURSE" | "LECTURE" | "CAMP" | null;
   type: "SINGLE" | "SERIES";
   status: "PLANNING" | "OPEN" | "IN_PROGRESS" | "COMPLETED";
   registrationMode: "PER_SESSION" | "FULL_SERIES";
@@ -65,6 +67,12 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   COMPLETED: { label: "已結束", className: "bg-slate-100 text-slate-700" },
 };
 
+const categoryLabels: Record<string, string> = {
+  COURSE: "課程",
+  LECTURE: "講座",
+  CAMP: "營會",
+};
+
 const statusFlow = ["PLANNING", "OPEN", "IN_PROGRESS", "COMPLETED"] as const;
 
 function formatDate(dateStr: string): string {
@@ -78,6 +86,7 @@ function formatDate(dateStr: string): string {
 export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const router = useRouter();
+  const { canWrite } = useAdminPermissions("events");
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -104,7 +113,7 @@ export default function EventDetailPage() {
   async function handleStatusChange(newStatus: string) {
     try {
       const res = await fetch(`/api/events/${eventId}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -166,6 +175,7 @@ export default function EventDetailPage() {
     title: event.title,
     description: event.description ?? undefined,
     location: event.location ?? undefined,
+    category: event.category ?? undefined,
     type: event.type,
     registrationMode: event.registrationMode,
     maxParticipants: event.maxParticipants,
@@ -213,6 +223,11 @@ export default function EventDetailPage() {
             <Badge variant="secondary" className={cn(statusInfo.className)}>
               {statusInfo.label}
             </Badge>
+            {event.category && (
+              <Badge variant="outline">
+                {categoryLabels[event.category] ?? event.category}
+              </Badge>
+            )}
             <Badge variant="outline">
               {event.type === "SINGLE" ? "單場" : "系列"}
             </Badge>
@@ -222,10 +237,12 @@ export default function EventDetailPage() {
             </span>
           </div>
         </div>
-        <Button variant="outline" onClick={() => setEditOpen(true)}>
-          <Pencil className="size-4" />
-          編輯
-        </Button>
+        {canWrite && (
+          <Button variant="outline" onClick={() => setEditOpen(true)}>
+            <Pencil className="size-4" />
+            編輯
+          </Button>
+        )}
       </div>
 
       {/* Event Info */}
@@ -268,36 +285,38 @@ export default function EventDetailPage() {
       </Card>
 
       {/* Status Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>狀態管理</CardTitle>
-          <CardDescription>變更活動狀態</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {statusFlow.map((s) => {
-              const info = statusConfig[s];
-              const isCurrent = event.status === s;
-              return (
-                <Button
-                  key={s}
-                  variant={isCurrent ? "default" : "outline"}
-                  size="sm"
-                  disabled={isCurrent}
-                  onClick={() => handleStatusChange(s)}
-                >
-                  {info.label}
-                </Button>
-              );
-            })}
-          </div>
-          {nextStatus && (
-            <p className="text-sm text-muted-foreground mt-2">
-              下一步：{statusConfig[nextStatus].label}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {canWrite && (
+        <Card>
+          <CardHeader>
+            <CardTitle>狀態管理</CardTitle>
+            <CardDescription>變更活動狀態</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {statusFlow.map((s) => {
+                const info = statusConfig[s];
+                const isCurrent = event.status === s;
+                return (
+                  <Button
+                    key={s}
+                    variant={isCurrent ? "default" : "outline"}
+                    size="sm"
+                    disabled={isCurrent}
+                    onClick={() => handleStatusChange(s)}
+                  >
+                    {info.label}
+                  </Button>
+                );
+              })}
+            </div>
+            {nextStatus && (
+              <p className="text-sm text-muted-foreground mt-2">
+                下一步：{statusConfig[nextStatus].label}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sessions */}
       <Card>
@@ -345,19 +364,21 @@ export default function EventDetailPage() {
       <Separator />
 
       {/* Edit Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>編輯活動</DialogTitle>
-          </DialogHeader>
-          <EventForm
-            mode="edit"
-            defaultValues={editDefaults}
-            onSubmit={handleEdit}
-            isSubmitting={isSubmitting}
-          />
-        </DialogContent>
-      </Dialog>
+      {canWrite && (
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>編輯活動</DialogTitle>
+            </DialogHeader>
+            <EventForm
+              mode="edit"
+              defaultValues={editDefaults}
+              onSubmit={handleEdit}
+              isSubmitting={isSubmitting}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
