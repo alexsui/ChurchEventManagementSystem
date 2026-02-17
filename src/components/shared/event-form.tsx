@@ -26,12 +26,22 @@ import { Separator } from "@/components/ui/separator";
 
 // ==================== Schema ====================
 
-const sessionSchema = z.object({
-  sessionDate: z.string().min(1, "請選擇日期"),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
-  topic: z.string().optional(),
-});
+const sessionSchema = z
+  .object({
+    sessionDate: z.string(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    topic: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.startTime && data.endTime) {
+        return data.endTime > data.startTime;
+      }
+      return true;
+    },
+    { message: "結束時間必須晚於開始時間", path: ["endTime"] }
+  );
 
 const eventFormSchema = z
   .object({
@@ -53,16 +63,20 @@ const eventFormSchema = z
       }
       return true;
     },
-    { message: "單場活動需要填寫場次資訊", path: ["session.sessionDate"] }
+    { message: "單場活動需要填寫場次日期", path: ["session", "sessionDate"] }
   )
   .refine(
     (data) => {
       if (data.type === "SERIES") {
-        return data.sessions && data.sessions.length > 0;
+        return (
+          data.sessions &&
+          data.sessions.length > 0 &&
+          data.sessions.every((s) => s.sessionDate.length > 0)
+        );
       }
       return true;
     },
-    { message: "系列活動至少需要一個場次", path: ["sessions"] }
+    { message: "系列活動每個場次都需要填寫日期", path: ["sessions"] }
   );
 
 // Manual type definition to avoid zod v4 inference issues with @hookform/resolvers
@@ -257,7 +271,11 @@ export function EventForm({
               <FormItem>
                 <FormLabel>地點</FormLabel>
                 <FormControl>
-                  <Input placeholder="請輸入活動地點" {...field} />
+                  <Textarea
+                    placeholder="請輸入活動地點（可多行，一行一個地點）"
+                    rows={2}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -329,8 +347,14 @@ export function EventForm({
                     type="number"
                     min={1}
                     placeholder="不限制人數"
-                    {...field}
                     value={field.value ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? undefined : Number(val));
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
                   />
                 </FormControl>
                 <FormMessage />
