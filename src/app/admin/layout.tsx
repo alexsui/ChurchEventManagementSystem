@@ -10,6 +10,7 @@ import {
   UserCheck,
   BookCheck,
   Users,
+  Wallet,
   Menu,
   LogOut,
 } from "lucide-react";
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { href: "/admin/registrations", label: "報名管理", icon: ClipboardList, module: "registrations" },
   { href: "/admin/attendance", label: "出席管理", icon: UserCheck, module: "attendance" },
   { href: "/admin/assignments", label: "作業管理", icon: BookCheck, module: "assignments" },
+  { href: "/admin/budget", label: "預算管理", icon: Wallet, module: "budget" },
   { href: "/admin/users", label: "使用者管理", icon: Users, module: "users" },
 ];
 
