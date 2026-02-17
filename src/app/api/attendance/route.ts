@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   // List attendance by session (admin/staff use case)
   if (eventSessionId) {
-    if (!hasPermission(session.user.role, "attendance", "read")) {
+    if (!(await hasPermission(session.user.role, "attendance", "read"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     // Members can only view their own attendance
     if (
       userId !== session.user.id &&
-      !hasPermission(session.user.role, "attendance", "write")
+      !(await hasPermission(session.user.role, "attendance", "write"))
     ) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!hasPermission(session.user.role, "attendance", "read")) {
+  if (!(await hasPermission(session.user.role, "attendance", "read"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -115,7 +115,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!hasPermission(session.user.role, "attendance", "write")) {
+  if (!(await hasPermission(session.user.role, "attendance", "write"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

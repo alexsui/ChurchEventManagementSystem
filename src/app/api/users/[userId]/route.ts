@@ -19,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: "未登入" }, { status: 401 });
     }
 
-    if (!hasPermission(session.user.role, "users", "read")) {
+    if (!(await hasPermission(session.user.role, "users", "read"))) {
       return NextResponse.json({ error: "權限不足" }, { status: 403 });
     }
 
@@ -54,7 +54,7 @@ export async function PATCH(
       return NextResponse.json({ error: "未登入" }, { status: 401 });
     }
 
-    if (!hasPermission(session.user.role, "users", "write")) {
+    if (!(await hasPermission(session.user.role, "users", "write"))) {
       return NextResponse.json({ error: "權限不足" }, { status: 403 });
     }
 

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   try {
     // If eventId is provided, check for admin-level permission
     if (eventId) {
-      if (!hasPermission(session.user.role, "registrations", "write")) {
+      if (!(await hasPermission(session.user.role, "registrations", "write"))) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!hasPermission(session.user.role, "registrations", "read")) {
+  if (!(await hasPermission(session.user.role, "registrations", "read"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

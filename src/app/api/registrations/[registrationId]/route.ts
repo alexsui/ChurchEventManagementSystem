@@ -36,7 +36,7 @@ export async function DELETE(
     }
 
     const isOwner = registration.userId === session.user.id;
-    const isAdmin = hasPermission(
+    const isAdmin = await hasPermission(
       session.user.role,
       "registrations",
       "write"

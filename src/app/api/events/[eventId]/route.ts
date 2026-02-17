@@ -45,7 +45,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!hasPermission(session.user.role, "events", "write")) {
+    if (!(await hasPermission(session.user.role, "events", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -80,7 +80,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!hasPermission(session.user.role, "events", "write")) {
+    if (!(await hasPermission(session.user.role, "events", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -121,7 +121,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!hasPermission(session.user.role, "events", "write")) {
+    if (!(await hasPermission(session.user.role, "events", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
