@@ -13,7 +13,62 @@ export class TeamServiceError extends Error {
 export async function getTeamTemplates() {
   return prisma.team.findMany({
     orderBy: { name: "asc" },
+    include: {
+      _count: { select: { defaultMembers: true, defaultTasks: true } },
+    },
   });
+}
+
+export async function getTeamTemplateWithDefaults(teamId: string) {
+  const template = await prisma.team.findUnique({
+    where: { id: teamId },
+    include: {
+      defaultMembers: {
+        include: { user: { select: { id: true, name: true, phone: true } } },
+        orderBy: { createdAt: "asc" },
+      },
+      defaultTasks: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+  if (!template) {
+    throw new TeamServiceError("Team template not found", "TEMPLATE_NOT_FOUND");
+  }
+  return template;
+}
+
+// ==================== Default Members ====================
+
+export async function addDefaultMember(teamId: string, userId: string, role?: string) {
+  const template = await prisma.team.findUnique({ where: { id: teamId } });
+  if (!template) throw new TeamServiceError("Team template not found", "TEMPLATE_NOT_FOUND");
+
+  return prisma.teamDefaultMember.create({
+    data: { teamId, userId, role: role ?? null },
+  });
+}
+
+export async function removeDefaultMember(teamId: string, userId: string) {
+  const existing = await prisma.teamDefaultMember.findUnique({
+    where: { teamId_userId: { teamId, userId } },
+  });
+  if (!existing) throw new TeamServiceError("Default member not found", "DEFAULT_MEMBER_NOT_FOUND");
+  return prisma.teamDefaultMember.delete({ where: { id: existing.id } });
+}
+
+// ==================== Default Tasks ====================
+
+export async function addDefaultTask(teamId: string, title: string) {
+  const template = await prisma.team.findUnique({ where: { id: teamId } });
+  if (!template) throw new TeamServiceError("Team template not found", "TEMPLATE_NOT_FOUND");
+  return prisma.teamDefaultTask.create({ data: { teamId, title } });
+}
+
+export async function removeDefaultTask(taskId: string) {
+  const existing = await prisma.teamDefaultTask.findUnique({ where: { id: taskId } });
+  if (!existing) throw new TeamServiceError("Default task not found", "DEFAULT_TASK_NOT_FOUND");
+  return prisma.teamDefaultTask.delete({ where: { id: taskId } });
 }
 
 export async function createTeamTemplate(name: string) {
@@ -72,12 +127,43 @@ export async function createEventTeam(
     );
   }
 
-  return prisma.eventTeam.create({
-    data: {
-      eventId,
-      teamId: input.teamId ?? null,
-      customName: input.customName ?? null,
-    },
+  return prisma.$transaction(async (tx) => {
+    const eventTeam = await tx.eventTeam.create({
+      data: {
+        eventId,
+        teamId: input.teamId ?? null,
+        customName: input.customName ?? null,
+      },
+    });
+
+    // Copy defaults if creating from template
+    if (input.teamId) {
+      const [defaultMembers, defaultTasks] = await Promise.all([
+        tx.teamDefaultMember.findMany({ where: { teamId: input.teamId } }),
+        tx.teamDefaultTask.findMany({ where: { teamId: input.teamId } }),
+      ]);
+
+      if (defaultMembers.length > 0) {
+        await tx.eventTeamMember.createMany({
+          data: defaultMembers.map((m) => ({
+            eventTeamId: eventTeam.id,
+            userId: m.userId,
+            role: m.role,
+          })),
+        });
+      }
+
+      if (defaultTasks.length > 0) {
+        await tx.eventTeamTask.createMany({
+          data: defaultTasks.map((t) => ({
+            eventTeamId: eventTeam.id,
+            title: t.title,
+          })),
+        });
+      }
+    }
+
+    return eventTeam;
   });
 }
 

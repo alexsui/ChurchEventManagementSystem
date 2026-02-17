@@ -5,6 +5,24 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // vi.mock (which is hoisted to the top of the file) executes.
 // ---------------------------------------------------------------------------
 
+const mockTx = vi.hoisted(() => ({
+  eventTeam: {
+    create: vi.fn(),
+  },
+  teamDefaultMember: {
+    findMany: vi.fn(),
+  },
+  teamDefaultTask: {
+    findMany: vi.fn(),
+  },
+  eventTeamMember: {
+    createMany: vi.fn(),
+  },
+  eventTeamTask: {
+    createMany: vi.fn(),
+  },
+}));
+
 const mockPrisma = vi.hoisted(() => ({
   team: {
     findMany: vi.fn(),
@@ -30,6 +48,17 @@ const mockPrisma = vi.hoisted(() => ({
     update: vi.fn(),
     delete: vi.fn(),
   },
+  teamDefaultMember: {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    delete: vi.fn(),
+  },
+  teamDefaultTask: {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    delete: vi.fn(),
+  },
+  $transaction: vi.fn((cb: (tx: typeof mockTx) => Promise<unknown>) => cb(mockTx)),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -42,6 +71,11 @@ import {
   createTeamTemplate,
   updateTeamTemplate,
   deleteTeamTemplate,
+  getTeamTemplateWithDefaults,
+  addDefaultMember,
+  removeDefaultMember,
+  addDefaultTask,
+  removeDefaultTask,
   getEventTeams,
   createEventTeam,
   updateEventTeam,
@@ -66,10 +100,10 @@ describe("team.service", () => {
   // --- getTeamTemplates ---------------------------------------------------
 
   describe("getTeamTemplates", () => {
-    it("should return all team templates ordered by name", async () => {
+    it("should return all team templates ordered by name with counts", async () => {
       const templates = [
-        { id: "t1", name: "影音組", createdAt: new Date(), updatedAt: new Date() },
-        { id: "t2", name: "敬拜組", createdAt: new Date(), updatedAt: new Date() },
+        { id: "t1", name: "影音組", createdAt: new Date(), updatedAt: new Date(), _count: { defaultMembers: 2, defaultTasks: 3 } },
+        { id: "t2", name: "敬拜組", createdAt: new Date(), updatedAt: new Date(), _count: { defaultMembers: 0, defaultTasks: 0 } },
       ];
       mockPrisma.team.findMany.mockResolvedValue(templates);
 
@@ -78,6 +112,9 @@ describe("team.service", () => {
       expect(result).toEqual(templates);
       expect(mockPrisma.team.findMany).toHaveBeenCalledWith({
         orderBy: { name: "asc" },
+        include: {
+          _count: { select: { defaultMembers: true, defaultTasks: true } },
+        },
       });
     });
   });
@@ -149,6 +186,162 @@ describe("team.service", () => {
     });
   });
 
+  // ==================== Template Defaults ======================================
+
+  describe("getTeamTemplateWithDefaults", () => {
+    it("should return template with default members and tasks", async () => {
+      const template = {
+        id: "t1",
+        name: "影音組",
+        defaultMembers: [
+          { id: "dm1", teamId: "t1", userId: "u1", role: "組長", user: { id: "u1", name: "Alice", phone: "123" } },
+        ],
+        defaultTasks: [
+          { id: "dt1", teamId: "t1", title: "Setup mic" },
+        ],
+      };
+      mockPrisma.team.findUnique.mockResolvedValue(template);
+
+      const result = await getTeamTemplateWithDefaults("t1");
+
+      expect(result).toEqual(template);
+      expect(mockPrisma.team.findUnique).toHaveBeenCalledWith({
+        where: { id: "t1" },
+        include: {
+          defaultMembers: {
+            include: { user: { select: { id: true, name: true, phone: true } } },
+            orderBy: { createdAt: "asc" },
+          },
+          defaultTasks: {
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      });
+    });
+
+    it("should throw when template not found", async () => {
+      mockPrisma.team.findUnique.mockResolvedValue(null);
+
+      await expect(getTeamTemplateWithDefaults("t1")).rejects.toThrow(TeamServiceError);
+      await expect(getTeamTemplateWithDefaults("t1")).rejects.toMatchObject({
+        code: "TEMPLATE_NOT_FOUND",
+      });
+    });
+  });
+
+  describe("addDefaultMember", () => {
+    it("should add a default member to a template", async () => {
+      mockPrisma.team.findUnique.mockResolvedValue({ id: "t1" });
+      const created = { id: "dm1", teamId: "t1", userId: "u1", role: null };
+      mockPrisma.teamDefaultMember.create.mockResolvedValue(created);
+
+      const result = await addDefaultMember("t1", "u1");
+
+      expect(result).toEqual(created);
+      expect(mockPrisma.teamDefaultMember.create).toHaveBeenCalledWith({
+        data: { teamId: "t1", userId: "u1", role: null },
+      });
+    });
+
+    it("should add a default member with a role", async () => {
+      mockPrisma.team.findUnique.mockResolvedValue({ id: "t1" });
+      const created = { id: "dm2", teamId: "t1", userId: "u2", role: "組長" };
+      mockPrisma.teamDefaultMember.create.mockResolvedValue(created);
+
+      const result = await addDefaultMember("t1", "u2", "組長");
+
+      expect(result).toEqual(created);
+      expect(mockPrisma.teamDefaultMember.create).toHaveBeenCalledWith({
+        data: { teamId: "t1", userId: "u2", role: "組長" },
+      });
+    });
+
+    it("should throw when template not found", async () => {
+      mockPrisma.team.findUnique.mockResolvedValue(null);
+
+      await expect(addDefaultMember("t1", "u1")).rejects.toThrow(TeamServiceError);
+      await expect(addDefaultMember("t1", "u1")).rejects.toMatchObject({
+        code: "TEMPLATE_NOT_FOUND",
+      });
+    });
+  });
+
+  describe("removeDefaultMember", () => {
+    it("should remove a default member", async () => {
+      const existing = { id: "dm1", teamId: "t1", userId: "u1" };
+      mockPrisma.teamDefaultMember.findUnique.mockResolvedValue(existing);
+      mockPrisma.teamDefaultMember.delete.mockResolvedValue(existing);
+
+      await removeDefaultMember("t1", "u1");
+
+      expect(mockPrisma.teamDefaultMember.findUnique).toHaveBeenCalledWith({
+        where: { teamId_userId: { teamId: "t1", userId: "u1" } },
+      });
+      expect(mockPrisma.teamDefaultMember.delete).toHaveBeenCalledWith({
+        where: { id: "dm1" },
+      });
+    });
+
+    it("should throw when default member not found", async () => {
+      mockPrisma.teamDefaultMember.findUnique.mockResolvedValue(null);
+
+      await expect(removeDefaultMember("t1", "u1")).rejects.toThrow(TeamServiceError);
+      await expect(removeDefaultMember("t1", "u1")).rejects.toMatchObject({
+        code: "DEFAULT_MEMBER_NOT_FOUND",
+      });
+    });
+  });
+
+  describe("addDefaultTask", () => {
+    it("should add a default task to a template", async () => {
+      mockPrisma.team.findUnique.mockResolvedValue({ id: "t1" });
+      const created = { id: "dt1", teamId: "t1", title: "Setup mic" };
+      mockPrisma.teamDefaultTask.create.mockResolvedValue(created);
+
+      const result = await addDefaultTask("t1", "Setup mic");
+
+      expect(result).toEqual(created);
+      expect(mockPrisma.teamDefaultTask.create).toHaveBeenCalledWith({
+        data: { teamId: "t1", title: "Setup mic" },
+      });
+    });
+
+    it("should throw when template not found", async () => {
+      mockPrisma.team.findUnique.mockResolvedValue(null);
+
+      await expect(addDefaultTask("t1", "Setup mic")).rejects.toThrow(TeamServiceError);
+      await expect(addDefaultTask("t1", "Setup mic")).rejects.toMatchObject({
+        code: "TEMPLATE_NOT_FOUND",
+      });
+    });
+  });
+
+  describe("removeDefaultTask", () => {
+    it("should remove a default task", async () => {
+      const existing = { id: "dt1", teamId: "t1", title: "Setup mic" };
+      mockPrisma.teamDefaultTask.findUnique.mockResolvedValue(existing);
+      mockPrisma.teamDefaultTask.delete.mockResolvedValue(existing);
+
+      await removeDefaultTask("dt1");
+
+      expect(mockPrisma.teamDefaultTask.findUnique).toHaveBeenCalledWith({
+        where: { id: "dt1" },
+      });
+      expect(mockPrisma.teamDefaultTask.delete).toHaveBeenCalledWith({
+        where: { id: "dt1" },
+      });
+    });
+
+    it("should throw when default task not found", async () => {
+      mockPrisma.teamDefaultTask.findUnique.mockResolvedValue(null);
+
+      await expect(removeDefaultTask("dt1")).rejects.toThrow(TeamServiceError);
+      await expect(removeDefaultTask("dt1")).rejects.toMatchObject({
+        code: "DEFAULT_TASK_NOT_FOUND",
+      });
+    });
+  });
+
   // ==================== Event Teams ==========================================
 
   describe("getEventTeams", () => {
@@ -194,28 +387,57 @@ describe("team.service", () => {
   // --- createEventTeam -----------------------------------------------------
 
   describe("createEventTeam", () => {
-    it("should create an event team from a template", async () => {
+    it("should create an event team from a template and copy defaults", async () => {
       const created = { id: "et1", eventId: "e1", teamId: "t1", customName: null };
-      mockPrisma.eventTeam.create.mockResolvedValue(created);
+      mockTx.eventTeam.create.mockResolvedValue(created);
+      mockTx.teamDefaultMember.findMany.mockResolvedValue([
+        { id: "dm1", teamId: "t1", userId: "u1", role: "組長" },
+      ]);
+      mockTx.teamDefaultTask.findMany.mockResolvedValue([
+        { id: "dt1", teamId: "t1", title: "Setup mic" },
+      ]);
+      mockTx.eventTeamMember.createMany.mockResolvedValue({ count: 1 });
+      mockTx.eventTeamTask.createMany.mockResolvedValue({ count: 1 });
 
       const result = await createEventTeam("e1", { teamId: "t1" });
 
       expect(result).toEqual(created);
-      expect(mockPrisma.eventTeam.create).toHaveBeenCalledWith({
+      expect(mockTx.eventTeam.create).toHaveBeenCalledWith({
         data: { eventId: "e1", teamId: "t1", customName: null },
+      });
+      expect(mockTx.eventTeamMember.createMany).toHaveBeenCalledWith({
+        data: [{ eventTeamId: "et1", userId: "u1", role: "組長" }],
+      });
+      expect(mockTx.eventTeamTask.createMany).toHaveBeenCalledWith({
+        data: [{ eventTeamId: "et1", title: "Setup mic" }],
       });
     });
 
-    it("should create an event team with a custom name", async () => {
+    it("should create an event team with a custom name (no defaults copied)", async () => {
       const created = { id: "et2", eventId: "e1", teamId: null, customName: "特別組" };
-      mockPrisma.eventTeam.create.mockResolvedValue(created);
+      mockTx.eventTeam.create.mockResolvedValue(created);
 
       const result = await createEventTeam("e1", { customName: "特別組" });
 
       expect(result).toEqual(created);
-      expect(mockPrisma.eventTeam.create).toHaveBeenCalledWith({
+      expect(mockTx.eventTeam.create).toHaveBeenCalledWith({
         data: { eventId: "e1", teamId: null, customName: "特別組" },
       });
+      expect(mockTx.teamDefaultMember.findMany).not.toHaveBeenCalled();
+      expect(mockTx.teamDefaultTask.findMany).not.toHaveBeenCalled();
+    });
+
+    it("should skip creating members/tasks when template has no defaults", async () => {
+      const created = { id: "et3", eventId: "e1", teamId: "t1", customName: null };
+      mockTx.eventTeam.create.mockResolvedValue(created);
+      mockTx.teamDefaultMember.findMany.mockResolvedValue([]);
+      mockTx.teamDefaultTask.findMany.mockResolvedValue([]);
+
+      const result = await createEventTeam("e1", { teamId: "t1" });
+
+      expect(result).toEqual(created);
+      expect(mockTx.eventTeamMember.createMany).not.toHaveBeenCalled();
+      expect(mockTx.eventTeamTask.createMany).not.toHaveBeenCalled();
     });
 
     it("should throw when neither teamId nor customName is provided", async () => {

@@ -108,8 +108,9 @@ model User {
   attendances   Attendance[]
   assignmentCompletions AssignmentCompletion[] @relation("assignmentCompletions")
   assignmentCompletedBy AssignmentCompletion[] @relation("assignmentCompletedBy")
-  eventTeamMembers EventTeamMember[]
-  assignedTasks    EventTeamTask[]
+  eventTeamMembers       EventTeamMember[]
+  assignedTasks          EventTeamTask[]
+  teamDefaultMemberships TeamDefaultMember[]
 }
 
 model Team {
@@ -118,7 +119,31 @@ model Team {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  eventTeams EventTeam[]
+  eventTeams     EventTeam[]
+  defaultMembers TeamDefaultMember[]
+  defaultTasks   TeamDefaultTask[]
+}
+
+model TeamDefaultMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      String?
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+}
+
+model TeamDefaultTask {
+  id        String   @id @default(cuid())
+  teamId    String
+  title     String
+  createdAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 model EventTeam {
