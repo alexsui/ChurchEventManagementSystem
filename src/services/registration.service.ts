@@ -132,6 +132,25 @@ export async function getRegistrationsByUser(userId: string) {
 }
 
 /**
+ * Get a user's active registration for an event, if any.
+ * Returns the registration if REGISTERED or WAITLISTED, or null.
+ */
+export async function getUserRegistrationForEvent(
+  userId: string,
+  eventId: string
+) {
+  const registration = await prisma.registration.findUnique({
+    where: { userId_eventId: { userId, eventId } },
+  });
+
+  if (!registration || registration.status === RegistrationStatus.CANCELLED) {
+    return null;
+  }
+
+  return registration;
+}
+
+/**
  * Get registration counts for an event grouped by status.
  */
 export async function getRegistrationCount(eventId: string) {
