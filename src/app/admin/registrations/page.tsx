@@ -56,14 +56,14 @@ interface Registration {
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  CONFIRMED: { label: "已報名", className: "bg-green-100 text-green-700" },
+  REGISTERED: { label: "已報名", className: "bg-green-100 text-green-700" },
   WAITLISTED: { label: "候補", className: "bg-yellow-100 text-yellow-700" },
   CANCELLED: { label: "已取消", className: "bg-red-100 text-red-700" },
 };
 
 const statusFilterOptions = [
   { value: "ALL", label: "全部" },
-  { value: "CONFIRMED", label: "已報名" },
+  { value: "REGISTERED", label: "已報名" },
   { value: "WAITLISTED", label: "候補" },
   { value: "CANCELLED", label: "已取消" },
 ];

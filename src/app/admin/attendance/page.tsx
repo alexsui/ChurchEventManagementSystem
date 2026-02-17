@@ -59,7 +59,7 @@ interface EventDetail {
 interface AttendanceRecord {
   id: string;
   userId: string;
-  checkInTime: string;
+  checkedInAt: string;
   isLate: boolean;
   lateMinutes: number;
   user: {
@@ -84,7 +84,7 @@ interface CombinedAttendanceRow {
   userName: string;
   phone: string;
   checkedIn: boolean;
-  checkInTime: string | null;
+  checkedInAt: string | null;
   isLate: boolean;
   lateMinutes: number;
   attendanceId: string | null;
@@ -240,7 +240,7 @@ export default function AttendancePage() {
 
         // Only include confirmed registrations
         const confirmedRegistrations = registrationsData.filter(
-          (r) => r.status === "CONFIRMED"
+          (r) => r.status === "REGISTERED"
         );
 
         const rows: CombinedAttendanceRow[] = confirmedRegistrations.map(
@@ -251,7 +251,7 @@ export default function AttendancePage() {
               userName: reg.user.name,
               phone: reg.user.phone,
               checkedIn: !!att,
-              checkInTime: att?.checkInTime ?? null,
+              checkedInAt: att?.checkedInAt ?? null,
               isLate: att?.isLate ?? false,
               lateMinutes: att?.lateMinutes ?? 0,
               attendanceId: att?.id ?? null,
@@ -595,8 +595,8 @@ export default function AttendancePage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              {row.checkInTime
-                                ? formatDateTime(row.checkInTime)
+                              {row.checkedInAt
+                                ? formatDateTime(row.checkedInAt)
                                 : "—"}
                             </TableCell>
                             <TableCell>
