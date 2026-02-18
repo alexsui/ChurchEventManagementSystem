@@ -67,8 +67,8 @@ function CompleteProfileContent() {
         return;
       }
 
-      // Refresh the session so middleware sees profileCompleted = true
-      // Use window.location to force a full page reload with fresh session
+      // Refresh the session/JWT cookie so middleware sees profileCompleted = true
+      await fetch("/api/auth/session");
       window.location.href = callbackUrl;
     } catch {
       setError("更新失敗，請稍後再試");
