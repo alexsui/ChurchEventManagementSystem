@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Users,
   UsersRound,
+  QrCode,
   Menu,
   LogOut,
   Home,
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
   { href: "/admin/events", label: "活動管理", icon: CalendarDays, module: "events" },
   { href: "/admin/users", label: "使用者管理", icon: Users, module: "users", adminOnly: true },
   { href: "/admin/teams", label: "組別管理", icon: UsersRound, module: "teams" },
+  { href: "/admin/share", label: "QR Code 分享", icon: QrCode, module: "events" },
 ];
 
 const roleLabels: Record<string, string> = {

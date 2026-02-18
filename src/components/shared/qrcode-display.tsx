@@ -8,9 +8,10 @@ import { generateQRCodeDataURL } from "@/lib/qrcode";
 interface QRCodeDisplayProps {
   url: string;
   label?: string;
+  downloadFileName?: string;
 }
 
-export function QRCodeDisplay({ url, label }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ url, label, downloadFileName }: QRCodeDisplayProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,6 +27,14 @@ export function QRCodeDisplay({ url, label }: QRCodeDisplayProps) {
     }
   }
 
+  function handleDownload() {
+    if (!dataUrl) return;
+    const link = document.createElement("a");
+    link.download = downloadFileName || "qrcode.png";
+    link.href = dataUrl;
+    link.click();
+  }
+
   return (
     <div className="flex flex-col items-center gap-3">
       {label && (
@@ -36,9 +45,16 @@ export function QRCodeDisplay({ url, label }: QRCodeDisplayProps) {
       ) : (
         <div className="w-[200px] h-[200px] bg-muted animate-pulse rounded" />
       )}
-      <Button variant="outline" size="sm" onClick={handleCopy}>
-        複製連結
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" onClick={handleCopy}>
+          複製連結
+        </Button>
+        {downloadFileName && dataUrl && (
+          <Button variant="outline" size="sm" onClick={handleDownload}>
+            下載 QR Code
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
