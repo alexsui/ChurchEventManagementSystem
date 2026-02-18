@@ -210,3 +210,14 @@ export async function bulkCheckIn(eventSessionId: string, userIds: string[]) {
     skipped: userIds.length - eligibleUserIds.length,
   };
 }
+
+/**
+ * Get all attendance records (userId + eventSessionId) across all sessions for an event.
+ * Used by the attendance overview to build a user × session matrix.
+ */
+export async function getAttendanceSummaryByEvent(eventId: string) {
+  return prisma.attendance.findMany({
+    where: { eventSession: { eventId } },
+    select: { userId: true, eventSessionId: true },
+  });
+}

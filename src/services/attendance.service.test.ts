@@ -40,6 +40,7 @@ import {
   getAttendanceBySession,
   getAttendanceByUser,
   bulkCheckIn,
+  getAttendanceSummaryByEvent,
 } from "./attendance.service";
 
 describe("attendance.service", () => {
@@ -223,6 +224,26 @@ describe("attendance.service", () => {
       await expect(bulkCheckIn("session-1", ["u1"])).rejects.toThrow(
         "Event session not found"
       );
+    });
+  });
+
+  describe("getAttendanceSummaryByEvent", () => {
+    it("returns all attendance records across all sessions for an event", async () => {
+      const mockRecords = [
+        { userId: "user-1", eventSessionId: "ses-1" },
+        { userId: "user-2", eventSessionId: "ses-1" },
+        { userId: "user-1", eventSessionId: "ses-2" },
+      ];
+
+      mockPrisma.attendance.findMany.mockResolvedValue(mockRecords);
+
+      const result = await getAttendanceSummaryByEvent("evt-1");
+
+      expect(result).toEqual(mockRecords);
+      expect(mockPrisma.attendance.findMany).toHaveBeenCalledWith({
+        where: { eventSession: { eventId: "evt-1" } },
+        select: { userId: true, eventSessionId: true },
+      });
     });
   });
 });
