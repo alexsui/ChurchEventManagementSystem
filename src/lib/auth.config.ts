@@ -7,6 +7,7 @@ export default {
     LINE({
       clientId: process.env.LINE_CHANNEL_ID!,
       clientSecret: process.env.LINE_CHANNEL_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: "credentials",
