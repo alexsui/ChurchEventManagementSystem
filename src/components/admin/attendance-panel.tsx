@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { QrCode, Users, Check, Clock } from "lucide-react";
+import { BarChart3, QrCode, Users, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
+import { AttendanceOverview } from "@/components/admin/attendance-overview";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -315,7 +316,24 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
   // ── Render ───────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="overview">
+      <TabsList>
+        <TabsTrigger value="overview" className="gap-1.5">
+          <BarChart3 className="size-4" />
+          總覽
+        </TabsTrigger>
+        <TabsTrigger value="session-management" className="gap-1.5">
+          <Users className="size-4" />
+          場次管理
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview">
+        <AttendanceOverview eventId={eventId} />
+      </TabsContent>
+
+      <TabsContent value="session-management">
+      <div className="space-y-6">
       {/* Session selector */}
       <Card>
         <CardHeader>
@@ -534,5 +552,7 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
         </Tabs>
       )}
     </div>
+      </TabsContent>
+    </Tabs>
   );
 }
