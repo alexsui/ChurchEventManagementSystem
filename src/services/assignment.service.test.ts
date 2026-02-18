@@ -28,6 +28,7 @@ import {
   deleteAssignment,
   getAssignmentsBySession,
   getAssignmentsByEvent,
+  getAssignmentSummaryByEvent,
   markComplete,
   removeCompletion,
   getCompletionRate,
@@ -279,6 +280,44 @@ describe("assignment.service", () => {
       const result = await getCompletionRate("user-1", "event-1");
 
       expect(result).toEqual({ completed: 0, total: 0, rate: 1 });
+    });
+  });
+
+  describe("getAssignmentSummaryByEvent", () => {
+    it("returns all assignments with completion userIds grouped by session", async () => {
+      const mockSessions = [{ id: "ses-1" }, { id: "ses-2" }];
+      const mockAssignments = [
+        {
+          id: "asgn-1",
+          eventSessionId: "ses-1",
+          title: "HW 1",
+          completions: [{ userId: "user-1" }, { userId: "user-2" }],
+        },
+        {
+          id: "asgn-2",
+          eventSessionId: "ses-2",
+          title: "HW 2",
+          completions: [{ userId: "user-1" }],
+        },
+      ];
+
+      mockPrisma.eventSession.findMany.mockResolvedValue(mockSessions);
+      mockPrisma.assignment.findMany.mockResolvedValue(mockAssignments);
+
+      const result = await getAssignmentSummaryByEvent("evt-1");
+
+      expect(result).toEqual(mockAssignments);
+      expect(mockPrisma.eventSession.findMany).toHaveBeenCalledWith({
+        where: { eventId: "evt-1" },
+        select: { id: true },
+      });
+      expect(mockPrisma.assignment.findMany).toHaveBeenCalledWith({
+        where: { eventSessionId: { in: ["ses-1", "ses-2"] } },
+        include: {
+          completions: { select: { userId: true } },
+        },
+        orderBy: { eventSession: { sessionNo: "asc" } },
+      });
     });
   });
 });

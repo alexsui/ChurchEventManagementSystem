@@ -163,6 +163,27 @@ export async function removeCompletion(assignmentId: string, userId: string) {
 }
 
 /**
+ * Get all assignments for an event with their completion userIds.
+ * Used by the assignment overview to build a user × session matrix.
+ */
+export async function getAssignmentSummaryByEvent(eventId: string) {
+  const sessions = await prisma.eventSession.findMany({
+    where: { eventId },
+    select: { id: true },
+  });
+
+  const sessionIds = sessions.map((s) => s.id);
+
+  return prisma.assignment.findMany({
+    where: { eventSessionId: { in: sessionIds } },
+    include: {
+      completions: { select: { userId: true } },
+    },
+    orderBy: { eventSession: { sessionNo: "asc" } },
+  });
+}
+
+/**
  * Get the completion rate for a user across all assignments of an event.
  * Returns { completed, total, rate }.
  * If total=0 (no assignments), rate=1 (doesn't block certificates).
