@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { getEvents } from "@/services/event.service";
 import {
