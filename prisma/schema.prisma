@@ -32,10 +32,6 @@ enum EventStatus {
   COMPLETED   // 已結束
 }
 
-enum RegistrationMode {
-  PER_SESSION // 單場報名
-  FULL_SERIES // 整期報名
-}
 
 enum EventCategory {
   COURSE  // 課程
@@ -99,6 +95,7 @@ model User {
   role                Role      @default(MEMBER)
   permissionExpiresAt DateTime?
   isActive            Boolean   @default(true)
+  profileCompleted    Boolean   @default(false)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -182,6 +179,7 @@ model EventTeamTask {
   title       String
   assigneeId  String?
   status      String   @default("PENDING")
+  deadline    DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -197,7 +195,7 @@ model Event {
   category         EventCategory?
   type             EventType        @default(SINGLE)
   status           EventStatus      @default(PLANNING)
-  registrationMode RegistrationMode @default(FULL_SERIES)
+
   maxParticipants  Int?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt

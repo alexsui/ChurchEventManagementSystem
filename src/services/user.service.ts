@@ -38,6 +38,10 @@ export async function getUsers(filters?: GetUsersFilters) {
       image: true,
       createdAt: true,
       updatedAt: true,
+      password: true,
+      accounts: {
+        select: { provider: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -106,6 +110,21 @@ export async function updateUserRole(
   });
 
   return user;
+}
+
+export async function updateOwnProfile(
+  userId: string,
+  data: { name: string; phone?: string }
+) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: data.name,
+      phone: data.phone || undefined,
+      profileCompleted: true,
+    },
+    select: { id: true, name: true, phone: true, profileCompleted: true },
+  });
 }
 
 export async function toggleUserActive(id: string) {

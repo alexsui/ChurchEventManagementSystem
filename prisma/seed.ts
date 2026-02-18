@@ -46,6 +46,7 @@ async function main() {
       password: passwordHash,
       role: "ADMIN",
       isActive: true,
+      profileCompleted: true,
     },
   });
 
@@ -57,6 +58,7 @@ async function main() {
       password: passwordHash,
       role: "STAFF_ADMIN",
       isActive: true,
+      profileCompleted: true,
     },
   });
 
@@ -68,6 +70,7 @@ async function main() {
       password: passwordHash,
       role: "PASTOR",
       isActive: true,
+      profileCompleted: true,
     },
   });
 
@@ -79,6 +82,7 @@ async function main() {
       password: passwordHash,
       role: "TEAM_LEADER",
       isActive: true,
+      profileCompleted: true,
     },
   });
 
@@ -91,6 +95,7 @@ async function main() {
         password: passwordHash,
         role: "MEMBER",
         isActive: true,
+        profileCompleted: true,
       },
     }),
     prisma.user.create({
@@ -101,6 +106,7 @@ async function main() {
         password: passwordHash,
         role: "MEMBER",
         isActive: true,
+        profileCompleted: true,
       },
     }),
     prisma.user.create({
@@ -111,6 +117,7 @@ async function main() {
         password: passwordHash,
         role: "MEMBER",
         isActive: true,
+        profileCompleted: true,
       },
     }),
     prisma.user.create({
@@ -121,6 +128,7 @@ async function main() {
         password: passwordHash,
         role: "MEMBER",
         isActive: true,
+        profileCompleted: true,
       },
     }),
     prisma.user.create({
@@ -131,6 +139,7 @@ async function main() {
         password: passwordHash,
         role: "MEMBER",
         isActive: true,
+        profileCompleted: true,
       },
     }),
   ]);
@@ -147,7 +156,7 @@ async function main() {
       location: "主堂",
       type: "SINGLE",
       status: "OPEN",
-      registrationMode: "FULL_SERIES",
+
       maxParticipants: 200,
       eventSessions: {
         create: {
@@ -171,7 +180,7 @@ async function main() {
       location: "副堂 B 教室",
       type: "SERIES",
       status: "OPEN",
-      registrationMode: "FULL_SERIES",
+
       maxParticipants: 30,
       eventSessions: {
         create: [

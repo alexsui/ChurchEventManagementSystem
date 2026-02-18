@@ -58,6 +58,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (dbUser) {
           token.role = dbUser.role;
           token.isActive = dbUser.isActive;
+          token.profileCompleted = dbUser.profileCompleted;
         }
       }
       return token;
@@ -67,6 +68,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.sub!;
         session.user.role = token.role as string;
         session.user.isActive = token.isActive as boolean;
+        session.user.profileCompleted = token.profileCompleted as boolean;
       }
       return session;
     },

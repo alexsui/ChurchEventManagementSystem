@@ -7,6 +7,20 @@ const { auth } = NextAuth(authConfig);
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
+  // Redirect incomplete profiles to /complete-profile
+  if (
+    req.auth?.user &&
+    req.auth.user.profileCompleted === false &&
+    pathname !== "/complete-profile" &&
+    !pathname.startsWith("/api/") &&
+    !pathname.startsWith("/_next/") &&
+    pathname !== "/login"
+  ) {
+    const completeUrl = new URL("/complete-profile", req.url);
+    completeUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(completeUrl);
+  }
+
   if (pathname.startsWith("/admin")) {
     if (!req.auth) {
       const loginUrl = new URL("/login", req.url);
@@ -25,5 +39,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/events/:path*", "/my/:path*", "/complete-profile"],
 };

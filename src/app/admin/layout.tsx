@@ -47,7 +47,7 @@ const roleLabels: Record<string, string> = {
   PASTOR: "傳道人",
   STAFF_MEDIA: "多媒體同工",
   TEAM_LEADER: "組長",
-  MEMBER: "會員",
+  MEMBER: "一般會員",
 };
 
 type RolePermissions = Record<string, { read: boolean; write: boolean }>;
@@ -76,10 +76,19 @@ function useRolePermissions(role?: string) {
       .finally(() => setLoaded(true));
   }, [role]);
 
+  const eventSubModules = ["registrations", "attendance", "assignments", "budget"];
+
   const visibleItems = navItems.filter((item) => {
     if (isAdmin) return true;
     if (item.adminOnly) return false;
     if (!permissions) return false;
+    if (item.module === "events") {
+      // Show events nav if user has events:read OR any sub-module read
+      return (
+        permissions.events?.read ||
+        eventSubModules.some((m) => permissions[m]?.read)
+      );
+    }
     return permissions[item.module]?.read ?? false;
   });
 
@@ -232,8 +241,8 @@ export default function AdminLayout({
               <span className="hidden sm:inline">回到前台</span>
             </Link>
             <Separator orientation="vertical" className="h-6" />
-            <span className="text-sm font-medium">{user.name ?? "使用者"}</span>
-            <Badge variant="secondary">
+            <span className="text-sm font-medium truncate max-w-[80px] sm:max-w-none">{user.name ?? "使用者"}</span>
+            <Badge variant="secondary" className="hidden sm:inline-flex">
               {roleLabels[userRole] ?? userRole}
             </Badge>
             <Separator orientation="vertical" className="h-6" />

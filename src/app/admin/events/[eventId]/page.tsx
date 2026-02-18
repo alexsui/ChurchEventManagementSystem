@@ -58,7 +58,6 @@ interface EventDetail {
   category: "COURSE" | "LECTURE" | "CAMP" | null;
   type: "SINGLE" | "SERIES";
   status: "PLANNING" | "OPEN" | "IN_PROGRESS" | "COMPLETED";
-  registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants: number | null;
   minAssignmentRate: number | null;
   createdAt: string;
@@ -191,7 +190,6 @@ export default function EventDetailPage() {
     location: event.location ?? undefined,
     category: event.category ?? undefined,
     type: event.type,
-    registrationMode: event.registrationMode,
     maxParticipants: event.maxParticipants,
     minAssignmentRate:
       event.minAssignmentRate != null
@@ -227,7 +225,7 @@ export default function EventDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <Button
           variant="ghost"
           size="icon"
@@ -235,9 +233,9 @@ export default function EventDetailPage() {
         >
           <ArrowLeft className="size-4" />
         </Button>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold">{event.title}</h1>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <Badge variant="secondary" className={cn(statusInfo.className)}>
               {statusInfo.label}
             </Badge>
@@ -265,24 +263,26 @@ export default function EventDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="info">
-        <TabsList variant="line">
-          <TabsTrigger value="info">活動資訊</TabsTrigger>
-          {canReadRegistrations && (
-            <TabsTrigger value="registrations">報名</TabsTrigger>
-          )}
-          {canReadAttendance && (
-            <TabsTrigger value="attendance">出席</TabsTrigger>
-          )}
-          {canReadAssignments && (
-            <TabsTrigger value="assignments">作業</TabsTrigger>
-          )}
-          {canReadBudget && (
-            <TabsTrigger value="budget">預算</TabsTrigger>
-          )}
-          {canReadTeams && (
-            <TabsTrigger value="teams">工作小組</TabsTrigger>
-          )}
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList variant="line" className="w-max">
+            <TabsTrigger value="info">活動資訊</TabsTrigger>
+            {canReadRegistrations && (
+              <TabsTrigger value="registrations">報名</TabsTrigger>
+            )}
+            {canReadAttendance && (
+              <TabsTrigger value="attendance">出席</TabsTrigger>
+            )}
+            {canReadAssignments && (
+              <TabsTrigger value="assignments">作業</TabsTrigger>
+            )}
+            {canReadBudget && (
+              <TabsTrigger value="budget">預算</TabsTrigger>
+            )}
+            {canReadTeams && (
+              <TabsTrigger value="teams">工作小組</TabsTrigger>
+            )}
+          </TabsList>
+        </div>
 
         {/* 活動資訊 Tab */}
         <TabsContent value="info">
@@ -307,18 +307,6 @@ export default function EventDetailPage() {
                       地點
                     </p>
                     <p>{event.location}</p>
-                  </div>
-                )}
-                {event.type === "SERIES" && (
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      報名模式
-                    </p>
-                    <p>
-                      {event.registrationMode === "PER_SESSION"
-                        ? "單場報名"
-                        : "整期報名"}
-                    </p>
                   </div>
                 )}
                 <div>

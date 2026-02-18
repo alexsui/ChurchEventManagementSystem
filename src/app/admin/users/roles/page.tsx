@@ -169,7 +169,7 @@ export default function RolesPermissionPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background min-w-[120px]">
+                  <TableHead className="sticky left-0 z-30 min-w-[120px]">
                     角色
                   </TableHead>
                   {MODULES.map((m) => (

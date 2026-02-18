@@ -13,6 +13,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!/^[\u4e00-\u9fff]{2,}$/.test(name.trim())) {
+      return NextResponse.json(
+        { error: "姓名請輸入至少兩個中文字，不接受英文或其他字元" },
+        { status: 400 }
+      );
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -44,6 +51,7 @@ export async function POST(request: Request) {
         email,
         password: hashedPassword,
         phone: phone || null,
+        profileCompleted: true,
       },
     });
 

@@ -3,7 +3,6 @@ import {
   EventType,
   EventStatus,
   EventCategory,
-  RegistrationMode,
 } from "@/generated/prisma/client";
 
 // ==================== Types ====================
@@ -23,7 +22,6 @@ export interface CreateEventInput {
   category?: EventCategory;
   type?: EventType;
   status?: EventStatus;
-  registrationMode?: RegistrationMode;
   maxParticipants?: number;
   minAssignmentRate?: number;
   /** Required for SINGLE type: single session data */
@@ -38,14 +36,51 @@ export interface UpdateEventInput {
   location?: string;
   category?: EventCategory | null;
   type?: EventType;
-  registrationMode?: RegistrationMode;
   maxParticipants?: number | null;
   minAssignmentRate?: number | null;
+  session?: CreateSessionInput;
+  sessions?: CreateSessionInput[];
 }
 
 export interface EventFilters {
   status?: EventStatus;
   type?: EventType;
+}
+
+// ==================== Helper Functions ====================
+
+export function computeEffectiveStatus(
+  storedStatus: EventStatus,
+  sessions: { sessionDate: Date; endTime?: string | null }[]
+): EventStatus {
+  if (
+    storedStatus === EventStatus.PLANNING ||
+    storedStatus === EventStatus.COMPLETED
+  ) {
+    return storedStatus;
+  }
+  if (sessions.length === 0) return storedStatus;
+
+  const now = new Date();
+  const firstDate = new Date(sessions[0].sessionDate);
+  const lastSession = sessions[sessions.length - 1];
+  const lastDate = new Date(lastSession.sessionDate);
+
+  // If the last session has an endTime, use it for the cutoff.
+  // Otherwise, fall back to the day after the last session date.
+  let completedCutoff: Date;
+  if (lastSession.endTime) {
+    const [hours, minutes] = lastSession.endTime.split(":").map(Number);
+    completedCutoff = new Date(lastDate);
+    completedCutoff.setHours(hours, minutes, 0, 0);
+  } else {
+    completedCutoff = new Date(lastDate);
+    completedCutoff.setDate(completedCutoff.getDate() + 1);
+  }
+
+  if (now >= completedCutoff) return EventStatus.COMPLETED;
+  if (now >= firstDate) return EventStatus.IN_PROGRESS;
+  return storedStatus;
 }
 
 // ==================== Service Functions ====================
@@ -83,7 +118,6 @@ export async function createEvent(data: CreateEventInput) {
       category: data.category,
       type: eventType,
       status: data.status ?? EventStatus.PLANNING,
-      registrationMode: data.registrationMode ?? RegistrationMode.FULL_SERIES,
       maxParticipants: data.maxParticipants,
       minAssignmentRate: data.minAssignmentRate,
       eventSessions: {
@@ -136,7 +170,10 @@ export async function getEvents(filters?: EventFilters) {
     },
   });
 
-  return events;
+  return events.map((event) => ({
+    ...event,
+    status: computeEffectiveStatus(event.status, event.eventSessions),
+  }));
 }
 
 /**
@@ -159,28 +196,94 @@ export async function getEventById(id: string) {
     },
   });
 
-  return event;
+  if (!event) return null;
+
+  return {
+    ...event,
+    status: computeEffectiveStatus(event.status, event.eventSessions),
+  };
 }
 
 /**
- * Update event details.
+ * Update event details. If session/sessions data is provided,
+ * upserts sessions by eventId+sessionNo and removes any excess sessions.
  */
 export async function updateEvent(id: string, data: UpdateEventInput) {
-  const event = await prisma.event.update({
-    where: { id },
-    data: {
-      title: data.title,
-      description: data.description,
-      location: data.location,
-      category: data.category,
-      type: data.type,
-      registrationMode: data.registrationMode,
-      maxParticipants: data.maxParticipants,
-      minAssignmentRate: data.minAssignmentRate,
-    },
-    include: {
-      eventSessions: true,
-    },
+  const sessionsInput =
+    data.sessions ?? (data.session ? [data.session] : undefined);
+
+  if (!sessionsInput) {
+    // No session changes — simple update
+    const event = await prisma.event.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        category: data.category,
+        type: data.type,
+        maxParticipants: data.maxParticipants,
+        minAssignmentRate: data.minAssignmentRate,
+      },
+      include: {
+        eventSessions: true,
+      },
+    });
+    return event;
+  }
+
+  // Use transaction to update event + upsert sessions atomically
+  const event = await prisma.$transaction(async (tx) => {
+    const updated = await tx.event.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        category: data.category,
+        type: data.type,
+        maxParticipants: data.maxParticipants,
+        minAssignmentRate: data.minAssignmentRate,
+      },
+    });
+
+    // Upsert each session by unique (eventId, sessionNo)
+    for (const s of sessionsInput) {
+      await tx.eventSession.upsert({
+        where: {
+          eventId_sessionNo: { eventId: id, sessionNo: s.sessionNo },
+        },
+        update: {
+          sessionDate: new Date(s.sessionDate),
+          startTime: s.startTime,
+          endTime: s.endTime,
+          topic: s.topic,
+        },
+        create: {
+          eventId: id,
+          sessionNo: s.sessionNo,
+          sessionDate: new Date(s.sessionDate),
+          startTime: s.startTime,
+          endTime: s.endTime,
+          topic: s.topic,
+        },
+      });
+    }
+
+    // Remove sessions beyond the new count
+    const maxSessionNo = Math.max(...sessionsInput.map((s) => s.sessionNo));
+    await tx.eventSession.deleteMany({
+      where: {
+        eventId: id,
+        sessionNo: { gt: maxSessionNo },
+      },
+    });
+
+    // Return the updated event with sessions
+    return tx.event.findUniqueOrThrow({
+      where: { id: updated.id },
+      include: { eventSessions: true },
+    });
   });
 
   return event;

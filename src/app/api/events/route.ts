@@ -73,7 +73,6 @@ export async function POST(request: Request) {
       location: body.location as string | undefined,
       category: body.category as CreateEventInput["category"],
       type: body.type as CreateEventInput["type"],
-      registrationMode: body.registrationMode as CreateEventInput["registrationMode"],
       maxParticipants: body.maxParticipants as number | undefined,
       minAssignmentRate:
         body.minAssignmentRate != null

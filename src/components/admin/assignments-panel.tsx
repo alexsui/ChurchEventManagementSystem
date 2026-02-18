@@ -421,10 +421,19 @@ export function AssignmentsPanel({ eventId }: AssignmentsPanelProps) {
     (a) => a.id === selectedAssignmentId
   );
 
+  // -- Overview refresh ------------------------------------------------------
+
+  const [overviewKey, setOverviewKey] = useState(0);
+
   // -- Render ---------------------------------------------------------------
 
   return (
-    <Tabs defaultValue="overview">
+    <Tabs
+      defaultValue="overview"
+      onValueChange={(value) => {
+        if (value === "overview") setOverviewKey((k) => k + 1);
+      }}
+    >
       <TabsList>
         <TabsTrigger value="overview" className="gap-1.5">
           <BarChart3 className="size-4" />
@@ -437,7 +446,7 @@ export function AssignmentsPanel({ eventId }: AssignmentsPanelProps) {
       </TabsList>
 
       <TabsContent value="overview">
-        <AssignmentOverview eventId={eventId} />
+        <AssignmentOverview eventId={eventId} key={overviewKey} />
       </TabsContent>
 
       <TabsContent value="session-management">
@@ -480,7 +489,7 @@ export function AssignmentsPanel({ eventId }: AssignmentsPanelProps) {
             <div className="space-y-4">
               {/* Summary bar */}
               <Card>
-                <CardContent className="flex items-center justify-between py-4">
+                <CardContent className="flex items-center justify-between flex-wrap gap-2 py-4">
                   <div className="flex items-center gap-2">
                     <Users className="text-muted-foreground size-5" />
                     <span className="text-sm font-medium">
@@ -676,7 +685,7 @@ export function AssignmentsPanel({ eventId }: AssignmentsPanelProps) {
                   <CardContent>
                     {/* Inline new assignment input */}
                     {canWrite && showNewInput && (
-                      <div className="mb-4 flex items-center gap-2">
+                      <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <Input
                           placeholder="作業名稱"
                           value={newTitle}
@@ -691,24 +700,26 @@ export function AssignmentsPanel({ eventId }: AssignmentsPanelProps) {
                           disabled={createLoading}
                           autoFocus
                         />
-                        <Button
-                          size="sm"
-                          onClick={handleCreateAssignment}
-                          disabled={createLoading || !newTitle.trim()}
-                        >
-                          {createLoading ? "新增中..." : "確認"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setShowNewInput(false);
-                            setNewTitle("");
-                          }}
-                          disabled={createLoading}
-                        >
-                          取消
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handleCreateAssignment}
+                            disabled={createLoading || !newTitle.trim()}
+                          >
+                            {createLoading ? "新增中..." : "確認"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setShowNewInput(false);
+                              setNewTitle("");
+                            }}
+                            disabled={createLoading}
+                          >
+                            取消
+                          </Button>
+                        </div>
                       </div>
                     )}
 

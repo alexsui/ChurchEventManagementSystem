@@ -26,7 +26,8 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const task = await createEventTeamTask(eventTeamId, body.title, body.assigneeId);
+    const deadline = body.deadline ? new Date(body.deadline) : undefined;
+    const task = await createEventTeamTask(eventTeamId, body.title, body.assigneeId, deadline);
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
     console.error("POST task error:", error);

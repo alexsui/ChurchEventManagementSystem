@@ -73,12 +73,13 @@ export async function PUT(request: Request, { params }: RouteParams) {
       location: body.location as string | undefined,
       category: body.category as UpdateEventInput["category"],
       type: body.type as UpdateEventInput["type"],
-      registrationMode: body.registrationMode as UpdateEventInput["registrationMode"],
       maxParticipants: body.maxParticipants as number | null | undefined,
       minAssignmentRate:
         body.minAssignmentRate != null
           ? (body.minAssignmentRate as number) / 100
           : undefined,
+      session: body.session as UpdateEventInput["session"],
+      sessions: body.sessions as UpdateEventInput["sessions"],
     };
 
     const event = await updateEvent(eventId, updateData);

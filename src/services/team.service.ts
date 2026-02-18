@@ -217,20 +217,22 @@ export async function removeEventTeamMember(
 export async function createEventTeamTask(
   eventTeamId: string,
   title: string,
-  assigneeId?: string
+  assigneeId?: string,
+  deadline?: Date
 ) {
   return prisma.eventTeamTask.create({
     data: {
       eventTeamId,
       title,
       assigneeId: assigneeId ?? null,
+      deadline: deadline ?? null,
     },
   });
 }
 
 export async function updateEventTeamTask(
   id: string,
-  data: { title?: string; assigneeId?: string | null; status?: string }
+  data: { title?: string; assigneeId?: string | null; status?: string; deadline?: Date | null }
 ) {
   const existing = await prisma.eventTeamTask.findUnique({ where: { id } });
   if (!existing) {

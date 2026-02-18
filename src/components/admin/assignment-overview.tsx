@@ -135,7 +135,16 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
     }
   }
 
-  const allSessionsPast = sessions.every((s) => isSessionPast(s));
+  // Sessions with assignments are considered "resolved"
+  const sessionsWithAssignments = new Set(
+    assignments.map((a) => a.eventSessionId)
+  );
+
+  // A session is "resolved" if it's past OR has assignments already
+  const isSessionResolved = (s: EventSession) =>
+    isSessionPast(s) || sessionsWithAssignments.has(s.id);
+
+  const allSessionsResolved = sessions.every(isSessionResolved);
   const showResult = minAssignmentRate != null;
 
   return (
@@ -145,7 +154,7 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 bg-background z-10">姓名</TableHead>
+                <TableHead className="sticky left-0 z-30">姓名</TableHead>
                 {sessions.map((s) => (
                   <TableHead key={s.id} className="text-center whitespace-nowrap">
                     {formatSessionColumnHeader(s)}
@@ -163,8 +172,8 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
                 let totalCompleted = 0;
 
                 const cells = sessions.map((s) => {
-                  const past = isSessionPast(s);
-                  if (!past) {
+                  const resolved = isSessionResolved(s);
+                  if (!resolved) {
                     return { sessionId: s.id, display: "N/A", style: "text-muted-foreground" };
                   }
 
@@ -191,7 +200,7 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
                   };
                 });
 
-                const canShowRate = allSessionsPast;
+                const canShowRate = allSessionsResolved;
                 const rate =
                   canShowRate && totalAssignments > 0
                     ? totalCompleted / totalAssignments

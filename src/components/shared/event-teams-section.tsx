@@ -10,6 +10,7 @@ import {
   Users,
   Search,
   ChevronRight,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ interface EventTeamData {
     title: string;
     assigneeId: string | null;
     status: string;
+    deadline: string | null;
     assignee: { id: string; name: string | null } | null;
   }[];
 }
@@ -129,6 +131,9 @@ export function EventTeamsSection({
 
   // New task input per team
   const [newTaskTitles, setNewTaskTitles] = useState<Record<string, string>>(
+    {}
+  );
+  const [newTaskDeadlines, setNewTaskDeadlines] = useState<Record<string, string>>(
     {}
   );
 
@@ -343,18 +348,21 @@ export function EventTeamsSection({
     const title = newTaskTitles[eventTeamId]?.trim();
     if (!title) return;
 
+    const deadline = newTaskDeadlines[eventTeamId] || undefined;
+
     try {
       const res = await fetch(
         `/api/events/${eventId}/teams/${eventTeamId}/tasks`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title }),
+          body: JSON.stringify({ title, deadline }),
         }
       );
       if (!res.ok) throw new Error("新增任務失敗");
       toast.success("已新增任務");
       setNewTaskTitles((prev) => ({ ...prev, [eventTeamId]: "" }));
+      setNewTaskDeadlines((prev) => ({ ...prev, [eventTeamId]: "" }));
       fetchTeams();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "新增任務失敗");
@@ -642,6 +650,15 @@ export function EventTeamsSection({
                                   <span className="text-sm truncate">
                                     {task.title}
                                   </span>
+                                  {task.deadline && (() => {
+                                    const isOverdue = task.status !== "COMPLETED" && new Date(task.deadline) < new Date();
+                                    return (
+                                      <span className={`text-xs flex items-center gap-0.5 ${isOverdue ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
+                                        <Calendar className="size-3" />
+                                        {new Date(task.deadline).toLocaleDateString("zh-TW")}
+                                      </span>
+                                    );
+                                  })()}
                                   {task.assignee && (
                                     <span className="text-xs text-muted-foreground">
                                       ({task.assignee.name ?? "未知"})
@@ -666,7 +683,7 @@ export function EventTeamsSection({
                         </div>
                       )}
                       {canWrite && (
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Input
                             placeholder="輸入新任務標題..."
                             className="text-sm"
@@ -682,14 +699,32 @@ export function EventTeamsSection({
                                 handleCreateTask(team.id);
                             }}
                           />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleCreateTask(team.id)}
-                            disabled={!newTaskTitles[team.id]?.trim()}
-                          >
-                            新增
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 shrink-0">
+                              <label className="text-xs text-muted-foreground whitespace-nowrap">
+                                截止日期
+                              </label>
+                              <Input
+                                type="date"
+                                className="text-sm w-36"
+                                value={newTaskDeadlines[team.id] ?? ""}
+                                onChange={(e) =>
+                                  setNewTaskDeadlines((prev) => ({
+                                    ...prev,
+                                    [team.id]: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCreateTask(team.id)}
+                              disabled={!newTaskTitles[team.id]?.trim()}
+                            >
+                              新增
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -720,7 +755,7 @@ export function EventTeamsSection({
               ) : templates.length === 0 ? (
                 <p className="text-sm text-muted-foreground">尚無範本</p>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {templates.map((t) => (
                     <Button
                       key={t.id}

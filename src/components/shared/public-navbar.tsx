@@ -4,13 +4,22 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 export function PublicNavbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
@@ -45,7 +54,7 @@ export function PublicNavbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-warm-cream/90 backdrop-blur-md border-b border-warm-sand">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link href="/events" className="flex items-center gap-2.5 group">
           <div className="w-9 h-9 bg-warm-green rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
@@ -81,6 +90,49 @@ export function PublicNavbar() {
           )}
         </nav>
 
+        {/* Mobile hamburger menu */}
+        <div className="flex items-center gap-2">
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="sm:hidden">
+                <Menu className="size-5" />
+                <span className="sr-only">開啟選單</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-64 p-0">
+              <SheetHeader className="border-b px-4 py-3">
+                <SheetTitle>選單</SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col gap-1 p-4">
+                <MobileNavLink
+                  href="/events"
+                  active={pathname === "/events"}
+                  onNavigate={() => setSheetOpen(false)}
+                >
+                  活動列表
+                </MobileNavLink>
+                {isLoggedIn && (
+                  <MobileNavLink
+                    href="/my/registrations"
+                    active={pathname === "/my/registrations"}
+                    onNavigate={() => setSheetOpen(false)}
+                  >
+                    我的報名
+                  </MobileNavLink>
+                )}
+                {hasAdminAccess && (
+                  <MobileNavLink
+                    href="/admin/events"
+                    active={pathname.startsWith("/admin")}
+                    onNavigate={() => setSheetOpen(false)}
+                  >
+                    管理後台
+                  </MobileNavLink>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
+
         {/* Auth */}
         <div>
           {isLoggedIn ? (
@@ -102,8 +154,36 @@ export function PublicNavbar() {
             </Button>
           )}
         </div>
+        </div>
       </div>
     </header>
+  );
+}
+
+function MobileNavLink({
+  href,
+  active,
+  children,
+  onNavigate,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+  onNavigate: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      className={cn(
+        "px-3 py-2 rounded-md text-sm font-semibold transition-colors",
+        active
+          ? "bg-warm-dark text-white"
+          : "text-warm-dark/60 hover:text-warm-dark hover:bg-warm-sand/60"
+      )}
+    >
+      {children}
+    </Link>
   );
 }
 

@@ -115,7 +115,16 @@ export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
     attendanceRecords.map((r) => `${r.userId}:${r.eventSessionId}`)
   );
 
-  const allSessionsPast = sessions.every((s) => isSessionPast(s));
+  // Sessions that have any attendance data recorded
+  const sessionsWithData = new Set(
+    attendanceRecords.map((r) => r.eventSessionId)
+  );
+
+  // A session is "resolved" if it's past OR has attendance data already
+  const isSessionResolved = (s: EventSession) =>
+    isSessionPast(s) || sessionsWithData.has(s.id);
+
+  const allSessionsResolved = sessions.every(isSessionResolved);
 
   return (
     <Card>
@@ -124,7 +133,7 @@ export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 bg-background z-10">姓名</TableHead>
+                <TableHead className="sticky left-0 z-30">姓名</TableHead>
                 {sessions.map((s) => (
                   <TableHead key={s.id} className="text-center whitespace-nowrap">
                     {formatSessionColumnHeader(s)}
@@ -136,14 +145,14 @@ export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
             <TableBody>
               {registrations.map((reg) => {
                 let attendedCount = 0;
-                let pastSessionCount = 0;
+                let resolvedSessionCount = 0;
 
                 const cells = sessions.map((s) => {
-                  const past = isSessionPast(s);
-                  if (!past) {
+                  const resolved = isSessionResolved(s);
+                  if (!resolved) {
                     return { sessionId: s.id, display: "N/A", style: "text-muted-foreground" };
                   }
-                  pastSessionCount++;
+                  resolvedSessionCount++;
                   const attended = attendanceSet.has(`${reg.user.id}:${s.id}`);
                   if (attended) attendedCount++;
                   return {
@@ -156,8 +165,8 @@ export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
                 });
 
                 const rate =
-                  allSessionsPast && pastSessionCount > 0
-                    ? `${Math.round((attendedCount / pastSessionCount) * 100)}%`
+                  allSessionsResolved && resolvedSessionCount > 0
+                    ? `${Math.round((attendedCount / resolvedSessionCount) * 100)}%`
                     : "N/A";
 
                 return (

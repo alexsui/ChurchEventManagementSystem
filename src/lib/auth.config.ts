@@ -17,6 +17,20 @@ export default {
       authorize: () => null, // Actual logic is in auth.ts
     }),
   ],
+  callbacks: {
+    async jwt({ token }) {
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub!;
+        session.user.role = token.role as string;
+        session.user.isActive = token.isActive as boolean;
+        session.user.profileCompleted = token.profileCompleted as boolean;
+      }
+      return session;
+    },
+  },
   pages: {
     signIn: "/login",
   },

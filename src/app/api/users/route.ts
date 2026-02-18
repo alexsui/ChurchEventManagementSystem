@@ -43,7 +43,13 @@ export async function GET(request: Request) {
       Object.keys(filters).length > 0 ? filters : undefined
     );
 
-    return NextResponse.json(users);
+    // Strip password hash, expose only a boolean flag
+    const sanitized = users.map(({ password, ...rest }) => ({
+      ...rest,
+      hasPassword: !!password,
+    }));
+
+    return NextResponse.json(sanitized);
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(

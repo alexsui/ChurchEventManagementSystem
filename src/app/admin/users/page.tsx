@@ -51,6 +51,7 @@ interface UserItem {
   role: string;
   isActive: boolean;
   image: string | null;
+  hasPassword?: boolean;
   accounts?: UserAccount[];
 }
 
@@ -61,12 +62,12 @@ interface UserItem {
 const roleLabels: Record<string, string> = {
   ADMIN: "管理員",
   STAFF_ADMIN: "行政同工",
-  STAFF_GENERAL: "一般同工",
+  STAFF_GENERAL: "總務同工",
   STAFF_FINANCE: "財務同工",
   PASTOR: "傳道人",
   STAFF_MEDIA: "媒體同工",
   TEAM_LEADER: "小組長",
-  MEMBER: "會員",
+  MEMBER: "一般會員",
 };
 
 const allRoles = [
@@ -104,11 +105,20 @@ function getRoleBadgeClass(role: string): string {
   }
 }
 
-function getProviderDisplay(accounts?: UserAccount[]): string {
-  if (!accounts || accounts.length === 0) return "-";
-  return accounts
-    .map((a) => providerLabels[a.provider] ?? a.provider)
-    .join(", ");
+function getProviderDisplay(
+  accounts?: UserAccount[],
+  hasPassword?: boolean
+): string {
+  const methods: string[] = [];
+  if (accounts && accounts.length > 0) {
+    methods.push(
+      ...accounts.map((a) => providerLabels[a.provider] ?? a.provider)
+    );
+  }
+  if (hasPassword) {
+    methods.push(providerLabels.credentials);
+  }
+  return methods.length > 0 ? methods.join(", ") : "-";
 }
 
 // ---------------------------------------------------------------------------
@@ -124,6 +134,7 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
 
   // Edit dialog state
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
@@ -157,14 +168,20 @@ export default function UsersPage() {
   // ---------- Client-side filtering ----------
 
   const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return users;
-    const q = searchQuery.trim().toLowerCase();
-    return users.filter(
-      (u) =>
-        (u.name && u.name.toLowerCase().includes(q)) ||
-        (u.email && u.email.toLowerCase().includes(q))
-    );
-  }, [users, searchQuery]);
+    let result = users;
+    if (roleFilter !== "ALL") {
+      result = result.filter((u) => u.role === roleFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (u) =>
+          (u.name && u.name.toLowerCase().includes(q)) ||
+          (u.email && u.email.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [users, searchQuery, roleFilter]);
 
   // ---------- Open edit dialog ----------
 
@@ -237,7 +254,7 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <Users className="size-6 text-muted-foreground" />
           <div>
@@ -258,15 +275,30 @@ export default function UsersPage() {
         )}
       </div>
 
-      {/* Search bar */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="搜尋姓名或 Email..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
+      {/* Search & Filter */}
+      <div className="flex gap-3 flex-wrap">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="搜尋姓名或 Email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="篩選角色" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">全部角色</SelectItem>
+            {allRoles.map((role) => (
+              <SelectItem key={role} value={role}>
+                {roleLabels[role]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Loading */}
@@ -338,7 +370,7 @@ export default function UsersPage() {
                       {user.isActive ? "啟用" : "停用"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{getProviderDisplay(user.accounts)}</TableCell>
+                  <TableCell>{getProviderDisplay(user.accounts, user.hasPassword)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

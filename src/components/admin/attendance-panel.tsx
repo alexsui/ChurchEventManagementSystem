@@ -313,10 +313,19 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
     uncheckedRows.length > 0 &&
     uncheckedRows.every((r) => selectedUserIds.has(r.userId));
 
+  // ── Overview refresh ─────────────────────────────────────────────
+
+  const [overviewKey, setOverviewKey] = useState(0);
+
   // ── Render ───────────────────────────────────────────────────────
 
   return (
-    <Tabs defaultValue="overview">
+    <Tabs
+      defaultValue="overview"
+      onValueChange={(value) => {
+        if (value === "overview") setOverviewKey((k) => k + 1);
+      }}
+    >
       <TabsList>
         <TabsTrigger value="overview" className="gap-1.5">
           <BarChart3 className="size-4" />
@@ -329,7 +338,7 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
       </TabsList>
 
       <TabsContent value="overview">
-        <AttendanceOverview eventId={eventId} />
+        <AttendanceOverview eventId={eventId} key={overviewKey} />
       </TabsContent>
 
       <TabsContent value="session-management">
@@ -433,7 +442,7 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
               <div className="space-y-4">
                 {/* Summary bar */}
                 <Card>
-                  <CardContent className="flex items-center justify-between py-4">
+                  <CardContent className="flex items-center justify-between flex-wrap gap-2 py-4">
                     <div className="flex items-center gap-2">
                       <Users className="text-muted-foreground size-5" />
                       <span className="text-sm font-medium">

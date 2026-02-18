@@ -543,27 +543,40 @@ describe("team.service", () => {
   // ==================== Event Team Tasks =====================================
 
   describe("createEventTeamTask", () => {
-    it("should create a task without assignee", async () => {
-      const created = { id: "tk1", eventTeamId: "et1", title: "Setup mic", assigneeId: null };
+    it("should create a task without assignee or deadline", async () => {
+      const created = { id: "tk1", eventTeamId: "et1", title: "Setup mic", assigneeId: null, deadline: null };
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
       const result = await createEventTeamTask("et1", "Setup mic");
 
       expect(result).toEqual(created);
       expect(mockPrisma.eventTeamTask.create).toHaveBeenCalledWith({
-        data: { eventTeamId: "et1", title: "Setup mic", assigneeId: null },
+        data: { eventTeamId: "et1", title: "Setup mic", assigneeId: null, deadline: null },
       });
     });
 
     it("should create a task with an assignee", async () => {
-      const created = { id: "tk2", eventTeamId: "et1", title: "Test sound", assigneeId: "u1" };
+      const created = { id: "tk2", eventTeamId: "et1", title: "Test sound", assigneeId: "u1", deadline: null };
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
       const result = await createEventTeamTask("et1", "Test sound", "u1");
 
       expect(result).toEqual(created);
       expect(mockPrisma.eventTeamTask.create).toHaveBeenCalledWith({
-        data: { eventTeamId: "et1", title: "Test sound", assigneeId: "u1" },
+        data: { eventTeamId: "et1", title: "Test sound", assigneeId: "u1", deadline: null },
+      });
+    });
+
+    it("should create a task with a deadline", async () => {
+      const deadline = new Date("2026-03-15");
+      const created = { id: "tk3", eventTeamId: "et1", title: "Prepare slides", assigneeId: null, deadline };
+      mockPrisma.eventTeamTask.create.mockResolvedValue(created);
+
+      const result = await createEventTeamTask("et1", "Prepare slides", undefined, deadline);
+
+      expect(result).toEqual(created);
+      expect(mockPrisma.eventTeamTask.create).toHaveBeenCalledWith({
+        data: { eventTeamId: "et1", title: "Prepare slides", assigneeId: null, deadline },
       });
     });
   });

@@ -51,7 +51,7 @@ export default async function MyRegistrationsPage() {
 
   return (
     <div className="min-h-screen bg-warm-cream">
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Header */}
         <div className="space-y-1">
           <h1 className="font-display text-3xl font-bold text-warm-dark">

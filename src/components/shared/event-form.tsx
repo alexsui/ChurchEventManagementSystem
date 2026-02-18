@@ -50,7 +50,6 @@ const eventFormSchema = z
     location: z.string().optional(),
     category: z.enum(["COURSE", "LECTURE", "CAMP"], { error: "請選擇活動類別" }),
     type: z.enum(["SINGLE", "SERIES"]),
-    registrationMode: z.enum(["PER_SESSION", "FULL_SERIES"]),
     maxParticipants: z.number().int().positive().optional(),
     minAssignmentRate: z.number().min(0).max(100).optional(),
     // SINGLE event session
@@ -88,7 +87,6 @@ interface EventFormValues {
   location?: string;
   category?: "COURSE" | "LECTURE" | "CAMP";
   type: "SINGLE" | "SERIES";
-  registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants?: number;
   minAssignmentRate?: number;
   session?: {
@@ -113,7 +111,6 @@ export interface EventFormDefaultValues {
   location?: string;
   category?: "COURSE" | "LECTURE" | "CAMP"; // optional for defaults since edit may pre-fill
   type?: "SINGLE" | "SERIES";
-  registrationMode?: "PER_SESSION" | "FULL_SERIES";
   minAssignmentRate?: number | null;
   maxParticipants?: number | null;
   session?: {
@@ -136,7 +133,6 @@ export interface EventFormSubmitData {
   location?: string;
   category: "COURSE" | "LECTURE" | "CAMP";
   type: "SINGLE" | "SERIES";
-  registrationMode: "PER_SESSION" | "FULL_SERIES";
   maxParticipants?: number;
   minAssignmentRate?: number;
   session?: {
@@ -178,7 +174,6 @@ export function EventForm({
       location: defaultValues?.location ?? "",
       category: defaultValues?.category ?? undefined,
       type: defaultValues?.type ?? "SINGLE",
-      registrationMode: defaultValues?.registrationMode ?? "FULL_SERIES",
       maxParticipants: defaultValues?.maxParticipants ?? undefined,
       minAssignmentRate: defaultValues?.minAssignmentRate ?? undefined,
       session: defaultValues?.session ?? {
@@ -219,7 +214,6 @@ export function EventForm({
       location: values.location || undefined,
       category: values.category!,
       type: values.type,
-      registrationMode: values.registrationMode,
       maxParticipants,
       minAssignmentRate,
     };
@@ -352,32 +346,6 @@ export function EventForm({
               )}
             />
 
-            {eventType === "SERIES" && (
-              <FormField
-                control={form.control}
-                name="registrationMode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>報名模式</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="選擇報名模式" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PER_SESSION">單場報名</SelectItem>
-                        <SelectItem value="FULL_SERIES">整期報名</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
           </div>
 
           <FormField
