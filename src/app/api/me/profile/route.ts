@@ -25,10 +25,28 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const user = await updateOwnProfile(session.user.id, {
-    name: name.trim(),
-    phone: phone?.trim() || undefined,
-  });
+  try {
+    const user = await updateOwnProfile(session.user.id, {
+      name: name.trim(),
+      phone: phone?.trim() || undefined,
+    });
 
-  return NextResponse.json(user);
+    return NextResponse.json(user);
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code: string }).code === "P2002"
+    ) {
+      return NextResponse.json(
+        { error: "此電話號碼已被使用" },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json(
+      { error: "更新失敗，請稍後再試" },
+      { status: 500 }
+    );
+  }
 }
