@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowLeft, Users, Check, BookCheck } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Users, Check, BookCheck, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,8 +29,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
+import { AssignmentOverview } from "@/components/admin/assignment-overview";
 
 // -- Types ------------------------------------------------------------------
 
@@ -422,7 +424,24 @@ export function AssignmentsPanel({ eventId }: AssignmentsPanelProps) {
   // -- Render ---------------------------------------------------------------
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="overview">
+      <TabsList>
+        <TabsTrigger value="overview" className="gap-1.5">
+          <BarChart3 className="size-4" />
+          總覽
+        </TabsTrigger>
+        <TabsTrigger value="session-management" className="gap-1.5">
+          <BookCheck className="size-4" />
+          場次管理
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview">
+        <AssignmentOverview eventId={eventId} />
+      </TabsContent>
+
+      <TabsContent value="session-management">
+      <div className="space-y-6">
       {/* View 2: Completion Detail */}
       {selectedAssignmentId ? (
         <div className="space-y-4">
@@ -758,5 +777,7 @@ export function AssignmentsPanel({ eventId }: AssignmentsPanelProps) {
         </>
       )}
     </div>
+      </TabsContent>
+    </Tabs>
   );
 }
