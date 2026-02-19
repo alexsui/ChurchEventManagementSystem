@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { AdminPermissionsProvider } from "@/contexts/admin-permissions";
+import { roleLabels } from "@/lib/constants";
 
 interface NavItem {
   href: string;
@@ -40,17 +41,6 @@ const navItems: NavItem[] = [
   { href: "/admin/teams", label: "組別管理", icon: UsersRound, module: "teams" },
   { href: "/admin/share", label: "QR Code 分享", icon: QrCode, module: "events" },
 ];
-
-const roleLabels: Record<string, string> = {
-  ADMIN: "統籌者",
-  STAFF_ADMIN: "行政同工",
-  STAFF_GENERAL: "總務同工",
-  STAFF_FINANCE: "財務同工",
-  PASTOR: "傳道人",
-  STAFF_MEDIA: "多媒體同工",
-  TEAM_LEADER: "組長",
-  MEMBER: "一般會員",
-};
 
 type RolePermissions = Record<string, { read: boolean; write: boolean }>;
 
