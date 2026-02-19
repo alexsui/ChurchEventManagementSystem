@@ -6,15 +6,8 @@ import {
   deleteBudgetItem,
   BudgetServiceError,
 } from "@/services/budget.service";
+import { validBudgetCategories } from "@/lib/constants";
 
-const VALID_CATEGORIES = [
-  "MEAL",
-  "SNACK",
-  "VENUE",
-  "MATERIAL",
-  "EQUIPMENT",
-  "OTHER",
-] as const;
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -38,10 +31,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { category, customCategory, estimated, actual, note } = body;
 
     // Validate category if provided
-    if (category !== undefined && !VALID_CATEGORIES.includes(category)) {
+    if (category !== undefined && !validBudgetCategories.includes(category)) {
       return NextResponse.json(
         {
-          error: `category must be one of: ${VALID_CATEGORIES.join(", ")}`,
+          error: `category must be one of: ${validBudgetCategories.join(", ")}`,
         },
         { status: 400 }
       );

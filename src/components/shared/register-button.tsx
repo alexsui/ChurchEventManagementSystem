@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { EventStatus, RegistrationStatus } from "@/generated/prisma/client";
+import { registrationStatusLabels } from "@/lib/constants";
 
 interface RegisterButtonProps {
   eventId: string;
@@ -31,8 +32,7 @@ export function RegisterButton({
 
   // Already registered
   if (isRegistered && registrationStatus) {
-    const label =
-      registrationStatus === "WAITLISTED" ? "候補中" : "已報名";
+    const label = registrationStatusLabels[registrationStatus];
 
     async function handleCancel() {
       if (!registrationId) return;

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
+import { roleLabels, moduleLabels } from "@/lib/constants";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,25 +25,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const ROLES = [
-  { value: "STAFF_ADMIN", label: "行政同工" },
-  { value: "STAFF_GENERAL", label: "總務同工" },
-  { value: "STAFF_FINANCE", label: "財務同工" },
-  { value: "PASTOR", label: "傳道人" },
-  { value: "STAFF_MEDIA", label: "多媒體同工" },
-  { value: "TEAM_LEADER", label: "組長" },
-  { value: "MEMBER", label: "一般會員" },
-] as const;
+const ROLES = Object.entries(roleLabels)
+  .filter(([key]) => key !== "ADMIN")
+  .map(([value, label]) => ({ value, label }));
 
-const MODULES = [
-  { value: "events", label: "活動管理" },
-  { value: "registrations", label: "報名管理" },
-  { value: "attendance", label: "出席管理" },
-  { value: "assignments", label: "任務分配" },
-  { value: "teams", label: "小組管理" },
-  { value: "budget", label: "預算管理" },
-  { value: "reports", label: "報表" },
-] as const;
+const MODULES = Object.entries(moduleLabels).map(([value, label]) => ({ value, label }));
 
 type PermissionMatrix = Record<
   string,

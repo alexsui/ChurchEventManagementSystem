@@ -34,6 +34,7 @@ import {
   type EventFormDefaultValues,
 } from "@/components/shared/event-form";
 import { cn } from "@/lib/utils";
+import { eventStatusLabels, eventStatusFlow, eventCategoryLabels } from "@/lib/constants";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { EventTeamsSection } from "@/components/shared/event-teams-section";
 import { RegistrationsPanel } from "@/components/admin/registrations-panel";
@@ -65,20 +66,12 @@ interface EventDetail {
   _count: { registrations: number };
 }
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  PLANNING: { label: "企劃中", className: "bg-gray-100 text-gray-700" },
-  OPEN: { label: "報名中", className: "bg-green-100 text-green-700" },
-  IN_PROGRESS: { label: "進行中", className: "bg-blue-100 text-blue-700" },
-  COMPLETED: { label: "已結束", className: "bg-slate-100 text-slate-700" },
+const statusClassNames: Record<string, string> = {
+  PLANNING: "bg-gray-100 text-gray-700",
+  OPEN: "bg-green-100 text-green-700",
+  IN_PROGRESS: "bg-blue-100 text-blue-700",
+  COMPLETED: "bg-slate-100 text-slate-700",
 };
-
-const categoryLabels: Record<string, string> = {
-  COURSE: "課程",
-  LECTURE: "講座",
-  CAMP: "營會",
-};
-
-const statusFlow = ["PLANNING", "OPEN", "IN_PROGRESS", "COMPLETED"] as const;
 
 function formatDate(dateStr: string): string {
   return new Intl.DateTimeFormat("zh-TW", {
@@ -176,12 +169,12 @@ export default function EventDetailPage() {
     );
   }
 
-  const currentStatusIndex = statusFlow.indexOf(
-    event.status as (typeof statusFlow)[number]
+  const currentStatusIndex = eventStatusFlow.indexOf(
+    event.status as (typeof eventStatusFlow)[number]
   );
   const nextStatus =
-    currentStatusIndex < statusFlow.length - 1
-      ? statusFlow[currentStatusIndex + 1]
+    currentStatusIndex < eventStatusFlow.length - 1
+      ? eventStatusFlow[currentStatusIndex + 1]
       : null;
 
   const editDefaults: EventFormDefaultValues = {
@@ -217,9 +210,9 @@ export default function EventDetailPage() {
       : {}),
   };
 
-  const statusInfo = statusConfig[event.status] ?? {
-    label: event.status,
-    className: "",
+  const statusInfo = {
+    label: eventStatusLabels[event.status] ?? event.status,
+    className: statusClassNames[event.status] ?? "",
   };
 
   return (
@@ -241,7 +234,7 @@ export default function EventDetailPage() {
             </Badge>
             {event.category && (
               <Badge variant="outline">
-                {categoryLabels[event.category] ?? event.category}
+                {eventCategoryLabels[event.category] ?? event.category}
               </Badge>
             )}
             <Badge variant="outline">
@@ -327,8 +320,7 @@ export default function EventDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {statusFlow.map((s) => {
-                      const info = statusConfig[s];
+                    {eventStatusFlow.map((s) => {
                       const isCurrent = event.status === s;
                       return (
                         <Button
@@ -338,14 +330,14 @@ export default function EventDetailPage() {
                           disabled={isCurrent}
                           onClick={() => handleStatusChange(s)}
                         >
-                          {info.label}
+                          {eventStatusLabels[s]}
                         </Button>
                       );
                     })}
                   </div>
                   {nextStatus && (
                     <p className="text-sm text-muted-foreground mt-2">
-                      下一步：{statusConfig[nextStatus].label}
+                      下一步：{eventStatusLabels[nextStatus]}
                     </p>
                   )}
                 </CardContent>

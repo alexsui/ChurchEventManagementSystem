@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { eventStatusLabels, eventCategoryLabels, eventTypeLabels } from "@/lib/constants";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 interface EventItem {
@@ -29,39 +30,11 @@ interface EventItem {
   };
 }
 
-const statusConfig: Record<
-  string,
-  { label: string; className: string }
-> = {
-  PLANNING: {
-    label: "企劃中",
-    className: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-  },
-  OPEN: {
-    label: "報名中",
-    className:
-      "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-  },
-  IN_PROGRESS: {
-    label: "進行中",
-    className: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  },
-  COMPLETED: {
-    label: "已結束",
-    className:
-      "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  },
-};
-
-const typeLabels: Record<string, string> = {
-  SINGLE: "單場",
-  SERIES: "系列",
-};
-
-const categoryLabels: Record<string, string> = {
-  COURSE: "課程",
-  LECTURE: "講座",
-  CAMP: "營會",
+const statusClassNames: Record<string, string> = {
+  PLANNING: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  OPEN: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  IN_PROGRESS: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+  COMPLETED: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
 };
 
 function formatDate(dateStr: string): string {
@@ -156,10 +129,6 @@ export default function EventsPage() {
             </TableHeader>
             <TableBody>
               {events.map((event) => {
-                const statusInfo = statusConfig[event.status] ?? {
-                  label: event.status,
-                  className: "",
-                };
                 return (
                   <TableRow
                     key={event.id}
@@ -172,7 +141,7 @@ export default function EventsPage() {
                     <TableCell>
                       {event.category ? (
                         <Badge variant="outline">
-                          {categoryLabels[event.category] ?? event.category}
+                          {eventCategoryLabels[event.category] ?? event.category}
                         </Badge>
                       ) : (
                         <span className="text-muted-foreground">-</span>
@@ -180,15 +149,15 @@ export default function EventsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {typeLabels[event.type] ?? event.type}
+                        {eventTypeLabels[event.type] ?? event.type}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"
-                        className={cn(statusInfo.className)}
+                        className={cn(statusClassNames[event.status])}
                       >
-                        {statusInfo.label}
+                        {eventStatusLabels[event.status] ?? event.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

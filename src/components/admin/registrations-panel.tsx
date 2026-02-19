@@ -26,6 +26,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { registrationStatusLabels } from "@/lib/constants";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 interface Registration {
@@ -43,17 +44,15 @@ interface Registration {
   };
 }
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  REGISTERED: { label: "已報名", className: "bg-green-100 text-green-700" },
-  WAITLISTED: { label: "候補", className: "bg-yellow-100 text-yellow-700" },
-  CANCELLED: { label: "已取消", className: "bg-red-100 text-red-700" },
+const statusClassNames: Record<string, string> = {
+  REGISTERED: "bg-green-100 text-green-700",
+  WAITLISTED: "bg-yellow-100 text-yellow-700",
+  CANCELLED: "bg-red-100 text-red-700",
 };
 
 const statusFilterOptions = [
   { value: "ALL", label: "全部" },
-  { value: "REGISTERED", label: "已報名" },
-  { value: "WAITLISTED", label: "候補" },
-  { value: "CANCELLED", label: "已取消" },
+  ...Object.entries(registrationStatusLabels).map(([value, label]) => ({ value, label })),
 ];
 
 function formatDateTime(dateStr: string): string {
@@ -203,10 +202,6 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                   </TableHeader>
                   <TableBody>
                     {filteredRegistrations.map((reg) => {
-                      const statusInfo = statusConfig[reg.status] ?? {
-                        label: reg.status,
-                        className: "",
-                      };
                       return (
                         <TableRow key={reg.id}>
                           <TableCell className="font-medium">
@@ -216,9 +211,9 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                           <TableCell>
                             <Badge
                               variant="secondary"
-                              className={cn(statusInfo.className)}
+                              className={cn(statusClassNames[reg.status])}
                             >
-                              {statusInfo.label}
+                              {registrationStatusLabels[reg.status] ?? reg.status}
                             </Badge>
                           </TableCell>
                           <TableCell>

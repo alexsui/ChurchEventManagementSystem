@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Users, Search, Shield } from "lucide-react";
+import { roleLabels, allRoles, providerLabels } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -58,34 +59,6 @@ interface UserItem {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const roleLabels: Record<string, string> = {
-  ADMIN: "管理員",
-  STAFF_ADMIN: "行政同工",
-  STAFF_GENERAL: "總務同工",
-  STAFF_FINANCE: "財務同工",
-  PASTOR: "傳道人",
-  STAFF_MEDIA: "媒體同工",
-  TEAM_LEADER: "小組長",
-  MEMBER: "一般會員",
-};
-
-const allRoles = [
-  "ADMIN",
-  "STAFF_ADMIN",
-  "STAFF_GENERAL",
-  "STAFF_FINANCE",
-  "PASTOR",
-  "STAFF_MEDIA",
-  "TEAM_LEADER",
-  "MEMBER",
-] as const;
-
-const providerLabels: Record<string, string> = {
-  google: "Google",
-  line: "LINE",
-  credentials: "帳號密碼",
-};
 
 function getRoleBadgeClass(role: string): string {
   switch (role) {

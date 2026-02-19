@@ -45,6 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
+import { budgetCategoryLabels } from "@/lib/constants";
 
 // -- Types ------------------------------------------------------------------
 
@@ -77,16 +78,7 @@ interface BudgetFormData {
 
 // -- Constants --------------------------------------------------------------
 
-const CATEGORIES: Record<string, string> = {
-  MEAL: "午晚餐",
-  SNACK: "茶點",
-  VENUE: "場佈",
-  MATERIAL: "材料",
-  EQUIPMENT: "設備",
-  OTHER: "其他",
-};
-
-const CATEGORY_OPTIONS = Object.entries(CATEGORIES).map(([value, label]) => ({
+const CATEGORY_OPTIONS = Object.entries(budgetCategoryLabels).map(([value, label]) => ({
   value,
   label,
 }));
@@ -111,7 +103,7 @@ function getCategoryLabel(category: string, customCategory: string | null) {
   if (category === "OTHER" && customCategory) {
     return `其他 (${customCategory})`;
   }
-  return CATEGORIES[category] ?? category;
+  return budgetCategoryLabels[category] ?? category;
 }
 
 // -- Component --------------------------------------------------------------

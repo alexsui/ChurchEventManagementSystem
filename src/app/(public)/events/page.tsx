@@ -7,22 +7,13 @@ import {
   EventStatus,
   EventType,
 } from "@/generated/prisma/client";
+import { eventStatusPublicLabels } from "@/lib/constants";
 
 function formatShortDate(date: Date): string {
   return new Date(date).toLocaleDateString("zh-TW", {
     month: "short",
     day: "numeric",
   });
-}
-
-function getStatusLabel(status: EventStatus): string {
-  const map: Record<EventStatus, string> = {
-    PLANNING: "籌備中",
-    OPEN: "開放報名",
-    IN_PROGRESS: "進行中",
-    COMPLETED: "已結束",
-  };
-  return map[status];
 }
 
 function getCategoryIcon(category: EventCategory | null): string {
@@ -121,12 +112,12 @@ export default async function EventsListingPage() {
                             </h3>
                             {event.status === EventStatus.OPEN && (
                               <span className="badge-pulse inline-flex items-center bg-warm-green text-white text-xs font-display font-bold px-2.5 py-0.5 rounded-full">
-                                {getStatusLabel(event.status)}
+                                {eventStatusPublicLabels[event.status]}
                               </span>
                             )}
                             {event.status === EventStatus.IN_PROGRESS && (
                               <span className="inline-flex items-center bg-warm-gold text-warm-dark text-xs font-display font-bold px-2.5 py-0.5 rounded-full">
-                                {getStatusLabel(event.status)}
+                                {eventStatusPublicLabels[event.status]}
                               </span>
                             )}
                           </div>

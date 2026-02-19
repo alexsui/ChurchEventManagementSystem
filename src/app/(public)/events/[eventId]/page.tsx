@@ -14,6 +14,7 @@ import {
   EventStatus,
   EventType,
 } from "@/generated/prisma/client";
+import { eventStatusPublicLabels, eventCategoryLabels } from "@/lib/constants";
 import { RegisterButton } from "@/components/shared/register-button";
 import { QRCodeDisplay } from "@/components/shared/qrcode-display";
 
@@ -32,16 +33,6 @@ function formatTime(start?: string | null, end?: string | null): string {
   return start || end || "-";
 }
 
-function getStatusLabel(status: EventStatus): string {
-  const map: Record<EventStatus, string> = {
-    PLANNING: "籌備中",
-    OPEN: "開放報名",
-    IN_PROGRESS: "進行中",
-    COMPLETED: "已結束",
-  };
-  return map[status];
-}
-
 function getStatusColor(status: EventStatus): string {
   const map: Record<EventStatus, string> = {
     PLANNING: "bg-warm-sand text-warm-dark/70",
@@ -50,15 +41,6 @@ function getStatusColor(status: EventStatus): string {
     COMPLETED: "bg-warm-dark/20 text-warm-dark/60",
   };
   return map[status];
-}
-
-function getCategoryLabel(category: EventCategory): string {
-  const map: Record<EventCategory, string> = {
-    COURSE: "課程",
-    LECTURE: "講座",
-    CAMP: "營會",
-  };
-  return map[category];
 }
 
 export default async function EventDetailPage({
@@ -159,11 +141,11 @@ export default async function EventDetailPage({
               <span
                 className={`inline-flex items-center text-sm font-display font-bold px-4 py-1.5 rounded-full shadow-md ${getStatusColor(event.status)}`}
               >
-                {getStatusLabel(event.status)}
+                {eventStatusPublicLabels[event.status]}
               </span>
               {event.category && (
                 <span className="inline-flex items-center bg-white/25 text-white text-sm font-semibold px-3 py-1 rounded-full backdrop-blur-sm">
-                  {getCategoryLabel(event.category)}
+                  {eventCategoryLabels[event.category]}
                 </span>
               )}
               <span className="inline-flex items-center bg-white/25 text-white text-sm font-semibold px-3 py-1 rounded-full backdrop-blur-sm">

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { getRegistrationsByUser } from "@/services/registration.service";
+import { registrationStatusLabels } from "@/lib/constants";
 
 function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("zh-TW", {
@@ -11,15 +12,6 @@ function formatDate(date: Date): string {
     month: "long",
     day: "numeric",
   });
-}
-
-function getStatusLabel(status: string): string {
-  const map: Record<string, string> = {
-    REGISTERED: "已報名",
-    WAITLISTED: "候補中",
-    CANCELLED: "已取消",
-  };
-  return map[status] ?? status;
 }
 
 function getStatusStyle(status: string): string {
@@ -139,7 +131,7 @@ export default async function MyRegistrationsPage() {
                     <span
                       className={`inline-flex items-center text-xs font-display font-bold px-3 py-1 rounded-full shrink-0 ${getStatusStyle(reg.status)}`}
                     >
-                      {getStatusLabel(reg.status)}
+                      {registrationStatusLabels[reg.status] ?? reg.status}
                     </span>
 
                     {/* Arrow */}

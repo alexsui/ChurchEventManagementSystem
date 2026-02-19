@@ -7,15 +7,8 @@ import {
   getBudgetSummary,
   BudgetServiceError,
 } from "@/services/budget.service";
+import { validBudgetCategories } from "@/lib/constants";
 
-const VALID_CATEGORIES = [
-  "MEAL",
-  "SNACK",
-  "VENUE",
-  "MATERIAL",
-  "EQUIPMENT",
-  "OTHER",
-] as const;
 
 /**
  * GET /api/budget?eventId=xxx
@@ -83,10 +76,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!category || !VALID_CATEGORIES.includes(category)) {
+    if (!category || !validBudgetCategories.includes(category)) {
       return NextResponse.json(
         {
-          error: `category must be one of: ${VALID_CATEGORIES.join(", ")}`,
+          error: `category must be one of: ${validBudgetCategories.join(", ")}`,
         },
         { status: 400 }
       );

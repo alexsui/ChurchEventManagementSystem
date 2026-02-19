@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { eventCategoryLabels, eventTypeLabels } from "@/lib/constants";
 
 // ==================== Schema ====================
 
@@ -310,9 +311,9 @@ export function EventForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="COURSE">課程</SelectItem>
-                    <SelectItem value="LECTURE">講座</SelectItem>
-                    <SelectItem value="CAMP">營會</SelectItem>
+                    {Object.entries(eventCategoryLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -337,8 +338,9 @@ export function EventForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="SINGLE">單場活動</SelectItem>
-                      <SelectItem value="SERIES">系列活動</SelectItem>
+                      {Object.entries(eventTypeLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>{label}活動</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
