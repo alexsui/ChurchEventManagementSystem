@@ -14,7 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { eventStatusLabels, eventCategoryLabels, eventTypeLabels } from "@/lib/constants";
+import { eventStatusLabels, eventCategoryLabels, eventTypeLabels, eventStatusClassNames } from "@/lib/constants";
+import { formatAdminDate } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 interface EventItem {
@@ -28,21 +29,6 @@ interface EventItem {
     eventSessions: number;
     registrations: number;
   };
-}
-
-const statusClassNames: Record<string, string> = {
-  PLANNING: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-  OPEN: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-  IN_PROGRESS: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  COMPLETED: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-};
-
-function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(dateStr));
 }
 
 export default function EventsPage() {
@@ -155,7 +141,7 @@ export default function EventsPage() {
                     <TableCell>
                       <Badge
                         variant="secondary"
-                        className={cn(statusClassNames[event.status])}
+                        className={cn(eventStatusClassNames[event.status])}
                       >
                         {eventStatusLabels[event.status] ?? event.status}
                       </Badge>
@@ -163,7 +149,7 @@ export default function EventsPage() {
                     <TableCell className="text-right">
                       {event._count.registrations}
                     </TableCell>
-                    <TableCell>{formatDate(event.createdAt)}</TableCell>
+                    <TableCell>{formatAdminDate(event.createdAt)}</TableCell>
                   </TableRow>
                 );
               })}

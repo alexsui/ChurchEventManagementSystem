@@ -31,6 +31,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
+import { formatDateTime, formatSessionLabel } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { AttendanceOverview } from "@/components/admin/attendance-overview";
 
@@ -83,27 +84,6 @@ interface CombinedAttendanceRow {
   isLate: boolean;
   lateMinutes: number;
   attendanceId: string | null;
-}
-
-// ── Helpers ────────────────────────────────────────────────────────
-
-function formatDateTime(dateStr: string): string {
-  return new Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateStr));
-}
-
-function formatSessionLabel(session: EventSession): string {
-  const date = new Intl.DateTimeFormat("zh-TW", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(session.sessionDate));
-  const topic = session.topic ? ` - ${session.topic}` : "";
-  return `第 ${session.sessionNo} 堂 (${date})${topic}`;
 }
 
 // ── Component ──────────────────────────────────────────────────────

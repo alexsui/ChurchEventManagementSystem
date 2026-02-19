@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn, isSessionPast } from "@/lib/utils";
+import { formatSessionColumnHeader } from "@/lib/formatters";
 
 interface EventSession {
   id: string;
@@ -38,14 +39,6 @@ interface AssignmentSummaryRecord {
 
 interface AssignmentOverviewProps {
   eventId: string;
-}
-
-function formatSessionColumnHeader(session: EventSession): string {
-  const date = new Intl.DateTimeFormat("zh-TW", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(session.sessionDate));
-  return `第${session.sessionNo}堂 (${date})`;
 }
 
 export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {

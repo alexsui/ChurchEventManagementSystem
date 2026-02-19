@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
+import { formatAdminDate } from "@/lib/formatters";
 
 interface TeamTemplate {
   id: string;
@@ -315,13 +316,6 @@ export default function TeamsPage() {
     }
   }
 
-  function formatDate(dateStr: string): string {
-    return new Intl.DateTimeFormat("zh-TW", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date(dateStr));
-  }
 
   // Filter out already-added members from search results
   const filteredSearchResults = memberSearchResults.filter(
@@ -412,7 +406,7 @@ export default function TeamsPage() {
                         {t._count.defaultTasks}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDate(t.createdAt)}</TableCell>
+                    <TableCell>{formatAdminDate(t.createdAt)}</TableCell>
                     {canWrite && (
                       <TableCell>
                         <div className="flex gap-1">

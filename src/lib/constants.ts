@@ -71,3 +71,16 @@ export const providerLabels: Record<string, string> = {
   line: "LINE",
   credentials: "帳號密碼",
 };
+
+export const eventStatusClassNames: Record<string, string> = {
+  PLANNING: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  OPEN: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  IN_PROGRESS: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+  COMPLETED: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+};
+
+export const registrationStatusClassNames: Record<string, string> = {
+  REGISTERED: "bg-green-100 text-green-700",
+  WAITLISTED: "bg-yellow-100 text-yellow-700",
+  CANCELLED: "bg-red-100 text-red-700",
+};

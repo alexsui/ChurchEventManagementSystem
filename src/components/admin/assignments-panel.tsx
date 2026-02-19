@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { formatSessionLabel } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { AssignmentOverview } from "@/components/admin/assignment-overview";
 
@@ -87,17 +88,6 @@ interface CombinedCompletionRow {
   phone: string;
   completed: boolean;
   completedAt: string | null;
-}
-
-// -- Helpers ----------------------------------------------------------------
-
-function formatSessionLabel(session: EventSession): string {
-  const date = new Intl.DateTimeFormat("zh-TW", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(session.sessionDate));
-  const topic = session.topic ? ` - ${session.topic}` : "";
-  return `第 ${session.sessionNo} 堂 (${date})${topic}`;
 }
 
 // -- Component --------------------------------------------------------------

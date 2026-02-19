@@ -5,14 +5,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { getRegistrationsByUser } from "@/services/registration.service";
 import { registrationStatusLabels } from "@/lib/constants";
-
-function formatDate(date: Date): string {
-  return new Date(date).toLocaleDateString("zh-TW", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
+import { formatLongDateNoWeekday } from "@/lib/formatters";
 
 function getStatusStyle(status: string): string {
   const map: Record<string, string> = {
@@ -123,7 +116,7 @@ export default async function MyRegistrationsPage() {
                         {reg.event.title}
                       </h3>
                       <p className="text-warm-dark/50 text-sm">
-                        報名日期：{formatDate(reg.createdAt)}
+                        報名日期：{formatLongDateNoWeekday(reg.createdAt)}
                       </p>
                     </div>
 

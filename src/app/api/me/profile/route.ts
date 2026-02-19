@@ -5,7 +5,7 @@ import { updateOwnProfile } from "@/services/user.service";
 export async function PATCH(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "未授權，請先登入" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -40,7 +40,7 @@ export async function PATCH(request: Request) {
       (error as { code: string }).code === "P2002"
     ) {
       return NextResponse.json(
-        { error: "此電話號碼已被使用" },
+        { error: "更新失敗，請確認資料後重試" },
         { status: 409 }
       );
     }

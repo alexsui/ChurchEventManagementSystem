@@ -26,7 +26,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { registrationStatusLabels } from "@/lib/constants";
+import { registrationStatusLabels, registrationStatusClassNames } from "@/lib/constants";
+import { formatDateTime } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 interface Registration {
@@ -44,26 +45,10 @@ interface Registration {
   };
 }
 
-const statusClassNames: Record<string, string> = {
-  REGISTERED: "bg-green-100 text-green-700",
-  WAITLISTED: "bg-yellow-100 text-yellow-700",
-  CANCELLED: "bg-red-100 text-red-700",
-};
-
 const statusFilterOptions = [
   { value: "ALL", label: "全部" },
   ...Object.entries(registrationStatusLabels).map(([value, label]) => ({ value, label })),
 ];
-
-function formatDateTime(dateStr: string): string {
-  return new Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(dateStr));
-}
 
 interface RegistrationsPanelProps {
   eventId: string;
@@ -211,7 +196,7 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                           <TableCell>
                             <Badge
                               variant="secondary"
-                              className={cn(statusClassNames[reg.status])}
+                              className={cn(registrationStatusClassNames[reg.status])}
                             >
                               {registrationStatusLabels[reg.status] ?? reg.status}
                             </Badge>

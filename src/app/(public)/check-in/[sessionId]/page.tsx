@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatLongDate, formatTime } from "@/lib/formatters";
 
 interface SessionInfo {
   id: string;
@@ -52,21 +53,6 @@ type PageState =
   | "checking-in"
   | "success"
   | "error";
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("zh-TW", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-}
-
-function formatTime(start: string | null, end: string | null): string {
-  if (!start && !end) return "";
-  if (start && end) return `${start} - ${end}`;
-  return start || end || "";
-}
 
 function formatCheckInTime(dateStr: string): string {
   return new Date(dateStr).toLocaleTimeString("zh-TW", {
@@ -234,13 +220,13 @@ export default function CheckInPage() {
                 <>
                   <div className="flex items-center gap-2">
                     <Clock className="size-4 text-muted-foreground shrink-0" />
-                    <span>{formatDate(sessionInfo.sessionDate)}</span>
+                    <span>{formatLongDate(sessionInfo.sessionDate)}</span>
                   </div>
                   {(sessionInfo.startTime || sessionInfo.endTime) && (
                     <div className="flex items-center gap-2">
                       <Clock className="size-4 text-muted-foreground shrink-0 invisible" />
                       <span>
-                        {formatTime(sessionInfo.startTime, sessionInfo.endTime)}
+                        {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
                       </span>
                     </div>
                   )}
@@ -324,7 +310,7 @@ export default function CheckInPage() {
               {sessionInfo && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">日期</span>
-                  <span>{formatDate(sessionInfo.sessionDate)}</span>
+                  <span>{formatLongDate(sessionInfo.sessionDate)}</span>
                 </div>
               )}
               {sessionInfo &&
@@ -332,7 +318,7 @@ export default function CheckInPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">時間</span>
                     <span>
-                      {formatTime(sessionInfo.startTime, sessionInfo.endTime)}
+                      {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
                     </span>
                   </div>
                 )}
@@ -411,7 +397,7 @@ export default function CheckInPage() {
               {sessionInfo && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">日期</span>
-                  <span>{formatDate(sessionInfo.sessionDate)}</span>
+                  <span>{formatLongDate(sessionInfo.sessionDate)}</span>
                 </div>
               )}
               {sessionInfo &&
@@ -419,7 +405,7 @@ export default function CheckInPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">時間</span>
                     <span>
-                      {formatTime(sessionInfo.startTime, sessionInfo.endTime)}
+                      {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
                     </span>
                   </div>
                 )}
@@ -504,7 +490,7 @@ export default function CheckInPage() {
             {sessionInfo && (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">日期</span>
-                <span>{formatDate(sessionInfo.sessionDate)}</span>
+                <span>{formatLongDate(sessionInfo.sessionDate)}</span>
               </div>
             )}
             {sessionInfo &&
@@ -512,7 +498,7 @@ export default function CheckInPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">時間</span>
                   <span>
-                    {formatTime(sessionInfo.startTime, sessionInfo.endTime)}
+                    {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
                   </span>
                 </div>
               )}

@@ -34,7 +34,8 @@ import {
   type EventFormDefaultValues,
 } from "@/components/shared/event-form";
 import { cn } from "@/lib/utils";
-import { eventStatusLabels, eventStatusFlow, eventCategoryLabels } from "@/lib/constants";
+import { eventStatusLabels, eventStatusFlow, eventCategoryLabels, eventStatusClassNames } from "@/lib/constants";
+import { formatAdminDate } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { EventTeamsSection } from "@/components/shared/event-teams-section";
 import { RegistrationsPanel } from "@/components/admin/registrations-panel";
@@ -66,20 +67,6 @@ interface EventDetail {
   _count: { registrations: number };
 }
 
-const statusClassNames: Record<string, string> = {
-  PLANNING: "bg-gray-100 text-gray-700",
-  OPEN: "bg-green-100 text-green-700",
-  IN_PROGRESS: "bg-blue-100 text-blue-700",
-  COMPLETED: "bg-slate-100 text-slate-700",
-};
-
-function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(dateStr));
-}
 
 export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -212,7 +199,7 @@ export default function EventDetailPage() {
 
   const statusInfo = {
     label: eventStatusLabels[event.status] ?? event.status,
-    className: statusClassNames[event.status] ?? "",
+    className: eventStatusClassNames[event.status] ?? "",
   };
 
   return (
@@ -306,7 +293,7 @@ export default function EventDetailPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     建立日期
                   </p>
-                  <p>{formatDate(event.createdAt)}</p>
+                  <p>{formatAdminDate(event.createdAt)}</p>
                 </div>
               </CardContent>
             </Card>
@@ -370,7 +357,7 @@ export default function EventDetailPage() {
                           <TableRow key={session.id}>
                             <TableCell>第 {session.sessionNo} 堂</TableCell>
                             <TableCell>
-                              {formatDate(session.sessionDate)}
+                              {formatAdminDate(session.sessionDate)}
                             </TableCell>
                             <TableCell>
                               {session.startTime && session.endTime

@@ -15,23 +15,9 @@ import {
   EventType,
 } from "@/generated/prisma/client";
 import { eventStatusPublicLabels, eventCategoryLabels } from "@/lib/constants";
+import { formatLongDate, formatTime } from "@/lib/formatters";
 import { RegisterButton } from "@/components/shared/register-button";
 import { QRCodeDisplay } from "@/components/shared/qrcode-display";
-
-function formatDate(date: Date): string {
-  return new Date(date).toLocaleDateString("zh-TW", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "short",
-  });
-}
-
-function formatTime(start?: string | null, end?: string | null): string {
-  if (!start && !end) return "-";
-  if (start && end) return `${start} - ${end}`;
-  return start || end || "-";
-}
 
 function getStatusColor(status: EventStatus): string {
   const map: Record<EventStatus, string> = {
@@ -226,7 +212,7 @@ export default async function EventDetailPage({
                           日期
                         </p>
                         <p className="text-warm-dark font-semibold">
-                          {formatDate(event.eventSessions[0].sessionDate)}
+                          {formatLongDate(event.eventSessions[0].sessionDate)}
                         </p>
                       </div>
                     </div>
@@ -360,7 +346,7 @@ export default async function EventDetailPage({
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm text-warm-dark">
-                          {formatDate(s.sessionDate)}
+                          {formatLongDate(s.sessionDate)}
                         </td>
                         <td className="py-3 px-4 text-sm text-warm-dark/70">
                           {formatTime(s.startTime, s.endTime)}

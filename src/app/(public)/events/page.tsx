@@ -8,13 +8,7 @@ import {
   EventType,
 } from "@/generated/prisma/client";
 import { eventStatusPublicLabels } from "@/lib/constants";
-
-function formatShortDate(date: Date): string {
-  return new Date(date).toLocaleDateString("zh-TW", {
-    month: "short",
-    day: "numeric",
-  });
-}
+import { formatShortDate } from "@/lib/formatters";
 
 function getCategoryIcon(category: EventCategory | null): string {
   if (!category) return "📋";

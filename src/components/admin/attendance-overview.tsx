@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { isSessionPast } from "@/lib/utils";
+import { formatSessionColumnHeader } from "@/lib/formatters";
 
 interface EventSession {
   id: string;
@@ -35,14 +36,6 @@ interface AttendanceSummaryRecord {
 
 interface AttendanceOverviewProps {
   eventId: string;
-}
-
-function formatSessionColumnHeader(session: EventSession): string {
-  const date = new Intl.DateTimeFormat("zh-TW", {
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date(session.sessionDate));
-  return `第${session.sessionNo}堂 (${date})`;
 }
 
 export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
