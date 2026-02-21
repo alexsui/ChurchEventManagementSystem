@@ -10,6 +10,8 @@ export default defineConfig({
     seed: "npx tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Prefer direct connection for migrate/introspect operations (e.g., Neon non-pooler).
+    // Fall back to DATABASE_URL for local setups where both URLs are the same.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

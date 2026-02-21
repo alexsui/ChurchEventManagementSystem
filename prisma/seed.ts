@@ -1,7 +1,8 @@
 import "dotenv/config";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaClient, Role } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
+import { assertSafeForSeed } from "./db-safety";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -10,7 +11,10 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("🌱 Seeding database...");
+  const target = assertSafeForSeed("prisma/seed.ts");
+  console.log(
+    `🌱 Seeding database (host: ${target.host ?? "unknown"}, local: ${target.isLocal})...`
+  );
 
   // Clean existing data (order matters for FK constraints)
   await prisma.attendance.deleteMany();
@@ -26,10 +30,10 @@ async function main() {
   console.log("  Cleared existing data");
 
   // ==================== Teams ====================
-  const worshipTeam = await prisma.team.create({
+  await prisma.team.create({
     data: { name: "敬拜組" },
   });
-  const mediaTeam = await prisma.team.create({
+  await prisma.team.create({
     data: { name: "影音組" },
   });
 
@@ -38,7 +42,7 @@ async function main() {
   // ==================== Users ====================
   const passwordHash = await hash("password123", 10);
 
-  const admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: "王統籌",
       email: "admin@church.org",
@@ -50,7 +54,7 @@ async function main() {
     },
   });
 
-  const staffAdmin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: "李行政",
       email: "staff@church.org",
@@ -403,30 +407,25 @@ async function main() {
       assignments: ["read"],
       teams: ["read"],
     },
-    MEMBER: {
-      events: ["read"],
-      registrations: ["read"],
-      attendance: ["read"],
-      assignments: ["read"],
-      users: ["read"],
-    },
+    MEMBER: {},
   };
 
   for (const [role, modulePerms] of Object.entries(defaultPermissions)) {
+    const typedRole = role as Role;
     for (const mod of modules) {
       for (const action of actions) {
         const allowed = modulePerms[mod]?.includes(action) ?? false;
         await prisma.rolePermission.upsert({
           where: {
             role_module_action: {
-              role: role as any,
+              role: typedRole,
               module: mod,
               action,
             },
           },
           update: { allowed },
           create: {
-            role: role as any,
+            role: typedRole,
             module: mod,
             action,
             allowed,
