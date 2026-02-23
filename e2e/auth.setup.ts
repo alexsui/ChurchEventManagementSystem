@@ -3,7 +3,7 @@ import { test as setup, expect } from "@playwright/test";
 const ADMIN_FILE = "e2e/.auth/admin.json";
 
 setup("authenticate as admin", async ({ page }) => {
-  await page.goto("/login");
+  await page.goto("/login?callbackUrl=%2Fadmin%2Fevents");
 
   // Fill login form
   await page.getByLabel("Email").fill("admin@church.org");

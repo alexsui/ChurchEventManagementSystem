@@ -13,17 +13,13 @@ test.describe("Auth flows", () => {
     await expect(page.getByText("註冊成功")).toBeVisible();
   });
 
-  test("login with existing credentials → admin dashboard", async ({
-    page,
-  }) => {
+  test("login with existing credentials → events page", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel("Email").fill("admin@church.org");
     await page.getByLabel("密碼").fill("password123");
     await page.getByRole("button", { name: "登入", exact: true }).click();
-    await page.waitForURL("/admin/events");
-    await expect(
-      page.getByRole("heading", { name: "活動管理" })
-    ).toBeVisible();
+    await page.waitForURL("/events");
+    await expect(page.getByRole("heading", { name: "所有活動" })).toBeVisible();
   });
 
   test("login with wrong password → error message", async ({ page }) => {
@@ -39,7 +35,10 @@ test.describe("Auth flows", () => {
     await page.getByLabel("Email").fill("admin@church.org");
     await page.getByLabel("密碼").fill("password123");
     await page.getByRole("button", { name: "登入", exact: true }).click();
-    await page.waitForURL("/admin/events");
+    await page.waitForURL("/events");
+    // Navigate to admin area where logout button is in the header
+    await page.goto("/admin/events");
+    await expect(page.getByRole("heading", { name: "活動管理" })).toBeVisible({ timeout: 5000 });
     await page.getByRole("button", { name: /登出/ }).click();
     await page.waitForURL(/\/login/);
   });
