@@ -13,6 +13,7 @@
 ## Task 1: Schema Migration — Remove User.teamId, Add EventTeam Models
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Update the Prisma schema**
@@ -89,14 +90,17 @@ Expected: Migration created and applied. Prisma client regenerated.
 **Step 3: Fix references to User.teamId in existing code**
 
 Update `src/services/user.service.ts`:
+
 - In `getUsers()`: remove `teamId: true` from select, remove `team: { select: ... }`
 - In `getUserById()`: remove `teamId: true` from select, remove `team: { select: ... }`
 - In `updateUserRole()`: remove `teamId` parameter and logic, remove `team` from select
 
 Update `src/app/api/users/[userId]/route.ts`:
+
 - Remove `teamId` from the PATCH handler body parsing (line 92)
 
 Update `src/app/admin/users/page.tsx`:
+
 - Remove any UI references to `user.team` or `user.teamId` (team dropdown in edit dialog, team column in table)
 
 **Step 4: Run existing tests to verify no regressions**
@@ -119,6 +123,7 @@ git commit -m "feat: add EventTeam schema, remove User.teamId"
 ## Task 2: Team Template Service — CRUD
 
 **Files:**
+
 - Create: `src/services/team.service.ts`
 - Create: `src/services/team.service.test.ts`
 
@@ -329,6 +334,7 @@ git commit -m "feat: add team template CRUD service with tests"
 ## Task 3: Event Team Service — CRUD, Members, Tasks
 
 **Files:**
+
 - Modify: `src/services/team.service.ts`
 - Modify: `src/services/team.service.test.ts`
 
@@ -458,7 +464,13 @@ describe("removeEventTeamMember", () => {
 
 describe("createEventTeamTask", () => {
   it("should create a task for an event team", async () => {
-    const task = { id: "task1", eventTeamId: "et1", title: "準備投影機", assigneeId: null, status: "PENDING" };
+    const task = {
+      id: "task1",
+      eventTeamId: "et1",
+      title: "準備投影機",
+      assigneeId: null,
+      status: "PENDING",
+    };
     mockPrisma.eventTeamTask.create.mockResolvedValue(task);
 
     const result = await createEventTeamTask("et1", "準備投影機");
@@ -467,7 +479,13 @@ describe("createEventTeamTask", () => {
   });
 
   it("should create a task with assignee", async () => {
-    const task = { id: "task1", eventTeamId: "et1", title: "準備投影機", assigneeId: "u1", status: "PENDING" };
+    const task = {
+      id: "task1",
+      eventTeamId: "et1",
+      title: "準備投影機",
+      assigneeId: "u1",
+      status: "PENDING",
+    };
     mockPrisma.eventTeamTask.create.mockResolvedValue(task);
 
     const result = await createEventTeamTask("et1", "準備投影機", "u1");
@@ -490,7 +508,9 @@ describe("updateEventTeamTask", () => {
   it("should throw when task not found", async () => {
     mockPrisma.eventTeamTask.findUnique.mockResolvedValue(null);
 
-    await expect(updateEventTeamTask("t1", { status: "COMPLETED" })).rejects.toThrow(TeamServiceError);
+    await expect(updateEventTeamTask("t1", { status: "COMPLETED" })).rejects.toThrow(
+      TeamServiceError
+    );
   });
 });
 
@@ -544,10 +564,7 @@ export async function createEventTeam(
   input: { teamId?: string; customName?: string }
 ) {
   if (!input.teamId && !input.customName) {
-    throw new TeamServiceError(
-      "Either teamId or customName is required",
-      "INVALID_INPUT"
-    );
+    throw new TeamServiceError("Either teamId or customName is required", "INVALID_INPUT");
   }
 
   return prisma.eventTeam.create({
@@ -585,20 +602,13 @@ export async function deleteEventTeam(id: string) {
 
 // ==================== Event Team Members ====================
 
-export async function addEventTeamMember(
-  eventTeamId: string,
-  userId: string,
-  role?: string
-) {
+export async function addEventTeamMember(eventTeamId: string, userId: string, role?: string) {
   return prisma.eventTeamMember.create({
     data: { eventTeamId, userId, role: role ?? null },
   });
 }
 
-export async function removeEventTeamMember(
-  eventTeamId: string,
-  userId: string
-) {
+export async function removeEventTeamMember(eventTeamId: string, userId: string) {
   return prisma.eventTeamMember.deleteMany({
     where: { eventTeamId, userId },
   });
@@ -606,11 +616,7 @@ export async function removeEventTeamMember(
 
 // ==================== Event Team Tasks ====================
 
-export async function createEventTeamTask(
-  eventTeamId: string,
-  title: string,
-  assigneeId?: string
-) {
+export async function createEventTeamTask(eventTeamId: string, title: string, assigneeId?: string) {
   return prisma.eventTeamTask.create({
     data: {
       eventTeamId,
@@ -665,6 +671,7 @@ git commit -m "feat: add event team, member, and task service functions with tes
 ## Task 4: API Routes — Team Templates
 
 **Files:**
+
 - Create: `src/app/api/teams/route.ts`
 - Create: `src/app/api/teams/[teamId]/route.ts`
 
@@ -734,11 +741,7 @@ Create `src/app/api/teams/[teamId]/route.ts`:
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
-import {
-  updateTeamTemplate,
-  deleteTeamTemplate,
-  TeamServiceError,
-} from "@/services/team.service";
+import { updateTeamTemplate, deleteTeamTemplate, TeamServiceError } from "@/services/team.service";
 
 type RouteParams = { params: Promise<{ teamId: string }> };
 
@@ -813,6 +816,7 @@ git commit -m "feat: add team template API routes (GET/POST/PATCH/DELETE)"
 ## Task 5: API Routes — Event Teams, Members, Tasks
 
 **Files:**
+
 - Create: `src/app/api/events/[eventId]/teams/route.ts`
 - Create: `src/app/api/events/[eventId]/teams/[eventTeamId]/route.ts`
 - Create: `src/app/api/events/[eventId]/teams/[eventTeamId]/members/route.ts`
@@ -1081,7 +1085,11 @@ Create `src/app/api/events/[eventId]/teams/[eventTeamId]/tasks/[taskId]/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
-import { updateEventTeamTask, deleteEventTeamTask, TeamServiceError } from "@/services/team.service";
+import {
+  updateEventTeamTask,
+  deleteEventTeamTask,
+  TeamServiceError,
+} from "@/services/team.service";
 
 type RouteParams = {
   params: Promise<{ eventId: string; eventTeamId: string; taskId: string }>;
@@ -1158,6 +1166,7 @@ git commit -m "feat: add event team, member, and task API routes"
 ## Task 6: Admin UI — Team Templates Page
 
 **Files:**
+
 - Create: `src/app/admin/teams/page.tsx`
 - Modify: `src/app/admin/layout.tsx` (add nav item)
 
@@ -1207,6 +1216,7 @@ git commit -m "feat: add team templates admin page with CRUD"
 ## Task 7: Admin UI — Event Teams Tab in Event Detail Page
 
 **Files:**
+
 - Modify: `src/app/admin/events/[eventId]/page.tsx`
 
 **Step 1: Add a "工作小組" Card section**

@@ -13,6 +13,7 @@
 ### Task 1: Add RolePermission model to Prisma schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add the RolePermission model**
@@ -48,6 +49,7 @@ git commit -m "feat: add RolePermission model to schema"
 ### Task 2: Seed RolePermission table with current defaults
 
 **Files:**
+
 - Modify: `prisma/seed.ts`
 - Modify: `package.json` (add prisma.seed config if missing)
 
@@ -68,8 +70,14 @@ Add at the end of the `main()` function, before the closing brace. This mirrors 
 ```typescript
 // Seed RolePermission table
 const modules = [
-  "events", "registrations", "attendance", "assignments",
-  "users", "teams", "budget", "reports",
+  "events",
+  "registrations",
+  "attendance",
+  "assignments",
+  "users",
+  "teams",
+  "budget",
+  "reports",
 ] as const;
 const actions = ["read", "write"] as const;
 
@@ -169,6 +177,7 @@ git commit -m "feat: seed RolePermission table with default permissions"
 ### Task 3: Update authorization.ts — async hasPermission with DB + cache
 
 **Files:**
+
 - Modify: `src/lib/authorization.ts`
 
 **Step 1: Write the failing test first (see Task 4)**
@@ -195,10 +204,7 @@ type Module =
 type Action = "read" | "write";
 
 // In-memory cache: role -> { permissions map, expiry timestamp }
-const cache = new Map<
-  string,
-  { permissions: Map<string, boolean>; expiresAt: number }
->();
+const cache = new Map<string, { permissions: Map<string, boolean>; expiresAt: number }>();
 
 const CACHE_TTL_MS = 60_000; // 60 seconds
 
@@ -209,9 +215,7 @@ function cacheKey(module: string, action: string): string {
 /**
  * Load permissions for a role from DB, with in-memory caching.
  */
-async function getPermissionsForRole(
-  role: string
-): Promise<Map<string, boolean>> {
+async function getPermissionsForRole(role: string): Promise<Map<string, boolean>> {
   const now = Date.now();
   const cached = cache.get(role);
   if (cached && cached.expiresAt > now) {
@@ -258,6 +262,7 @@ export type { Module, Action };
 ```
 
 **Key changes:**
+
 - `hasPermission` is now `async` returning `Promise<boolean>`
 - ADMIN short-circuits to `true`
 - Other roles read from DB with 60s cache
@@ -274,6 +279,7 @@ Expected: Type errors in all API routes that call `hasPermission` without `await
 ### Task 4: Update authorization tests
 
 **Files:**
+
 - Modify: `src/lib/authorization.test.ts`
 
 **Step 1: Read the current test file to understand existing tests**
@@ -389,6 +395,7 @@ git commit -m "feat: make hasPermission async with DB-backed permissions + cache
 ### Task 5: Update all API routes to await hasPermission
 
 **Files:**
+
 - Modify: `src/app/api/events/route.ts` (1 call)
 - Modify: `src/app/api/events/[eventId]/route.ts` (3 calls)
 - Modify: `src/app/api/registrations/route.ts` (2 calls)
@@ -401,19 +408,25 @@ git commit -m "feat: make hasPermission async with DB-backed permissions + cache
 **Step 1: Add `await` to every `hasPermission` call**
 
 In every file above, change:
+
 ```typescript
 if (!hasPermission(session.user.role, "module", "action"))
 ```
+
 to:
+
 ```typescript
 if (!(await hasPermission(session.user.role, "module", "action")))
 ```
 
 And for assignment patterns:
+
 ```typescript
 const isAdmin = hasPermission(session.user.role, "registrations", "write");
 ```
+
 to:
+
 ```typescript
 const isAdmin = await hasPermission(session.user.role, "registrations", "write");
 ```
@@ -440,6 +453,7 @@ git commit -m "refactor: await async hasPermission in all API routes"
 ### Task 6: Create rolePermission service
 
 **Files:**
+
 - Create: `src/services/role-permission.service.ts`
 - Create: `src/services/role-permission.service.test.ts`
 
@@ -523,10 +537,7 @@ Create `src/services/role-permission.service.ts`:
 import { prisma } from "@/lib/prisma";
 import { invalidatePermissionCache } from "@/lib/authorization";
 
-type PermissionMatrix = Record<
-  string,
-  Record<string, { read: boolean; write: boolean }>
->;
+type PermissionMatrix = Record<string, Record<string, { read: boolean; write: boolean }>>;
 
 /**
  * Get all non-ADMIN role permissions, grouped by role > module > action.
@@ -556,9 +567,7 @@ export async function getAllRolePermissions(): Promise<PermissionMatrix> {
  * Bulk update role permissions from a full matrix.
  * Upserts all entries in a transaction, then invalidates cache.
  */
-export async function bulkUpdateRolePermissions(
-  matrix: PermissionMatrix
-): Promise<void> {
+export async function bulkUpdateRolePermissions(matrix: PermissionMatrix): Promise<void> {
   const operations = [];
 
   for (const [role, modules] of Object.entries(matrix)) {
@@ -608,6 +617,7 @@ git commit -m "feat: add rolePermission service with getAllRolePermissions and b
 ### Task 7: Create API routes for role permissions
 
 **Files:**
+
 - Create: `src/app/api/role-permissions/route.ts`
 
 **Step 1: Create the API route**
@@ -658,8 +668,7 @@ export async function PUT(request: NextRequest) {
     await bulkUpdateRolePermissions(matrix);
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -682,6 +691,7 @@ git commit -m "feat: add GET/PUT /api/role-permissions endpoints"
 ### Task 8: Create role permissions admin UI
 
 **Files:**
+
 - Create: `src/app/admin/users/roles/page.tsx`
 
 **Step 1: Create the roles management page**
@@ -704,13 +714,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ROLES = [
   { value: "STAFF_ADMIN", label: "行政同工" },
@@ -733,10 +737,7 @@ const MODULES = [
   { value: "reports", label: "報表" },
 ] as const;
 
-type PermissionMatrix = Record<
-  string,
-  Record<string, { read: boolean; write: boolean }>
->;
+type PermissionMatrix = Record<string, Record<string, { read: boolean; write: boolean }>>;
 
 export default function RolesPermissionPage() {
   const router = useRouter();
@@ -786,11 +787,7 @@ export default function RolesPermissionPage() {
     });
   }
 
-  function getPermission(
-    role: string,
-    module: string,
-    action: "read" | "write"
-  ): boolean {
+  function getPermission(role: string, module: string, action: "read" | "write"): boolean {
     return matrix[role]?.[module]?.[action] ?? false;
   }
 
@@ -822,11 +819,7 @@ export default function RolesPermissionPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.push("/admin/users")}
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/users")}>
           <ArrowLeft className="size-4" />
         </Button>
         <div>
@@ -840,18 +833,14 @@ export default function RolesPermissionPage() {
       <Card>
         <CardHeader>
           <CardTitle>權限矩陣</CardTitle>
-          <CardDescription>
-            R = 讀取，W = 寫入。勾選寫入會自動勾選讀取。
-          </CardDescription>
+          <CardDescription>R = 讀取，W = 寫入。勾選寫入會自動勾選讀取。</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background min-w-[120px]">
-                    角色
-                  </TableHead>
+                  <TableHead className="sticky left-0 bg-background min-w-[120px]">角色</TableHead>
                   {MODULES.map((m) => (
                     <TableHead key={m.value} className="text-center min-w-[100px]">
                       {m.label}
@@ -871,18 +860,14 @@ export default function RolesPermissionPage() {
                           <label className="flex items-center gap-1 text-xs">
                             <Checkbox
                               checked={getPermission(role.value, mod.value, "read")}
-                              onCheckedChange={() =>
-                                toggle(role.value, mod.value, "read")
-                              }
+                              onCheckedChange={() => toggle(role.value, mod.value, "read")}
                             />
                             R
                           </label>
                           <label className="flex items-center gap-1 text-xs">
                             <Checkbox
                               checked={getPermission(role.value, mod.value, "write")}
-                              onCheckedChange={() =>
-                                toggle(role.value, mod.value, "write")
-                              }
+                              onCheckedChange={() => toggle(role.value, mod.value, "write")}
                             />
                             W
                           </label>
@@ -939,6 +924,7 @@ git commit -m "feat: add role permissions matrix UI at /admin/users/roles"
 ### Task 9: Update admin layout — permission-driven navigation
 
 **Files:**
+
 - Modify: `src/app/admin/layout.tsx`
 
 **Step 1: Update navItems to include module mapping**
@@ -966,15 +952,12 @@ const navItems: NavItem[] = [
 In the `SidebarNav` component, fetch the user's permissions and filter:
 
 ```typescript
-function SidebarNav({
-  role,
-  onNavigate,
-}: {
-  role?: string;
-  onNavigate?: () => void;
-}) {
+function SidebarNav({ role, onNavigate }: { role?: string; onNavigate?: () => void }) {
   const pathname = usePathname();
-  const [permissions, setPermissions] = useState<Record<string, { read: boolean; write: boolean }> | null>(null);
+  const [permissions, setPermissions] = useState<Record<
+    string,
+    { read: boolean; write: boolean }
+  > | null>(null);
 
   useEffect(() => {
     if (role === "ADMIN") return; // ADMIN sees everything
@@ -1015,6 +998,7 @@ git commit -m "feat: permission-driven admin navigation"
 ### Task 10: Create public navbar and layout
 
 **Files:**
+
 - Create: `src/components/shared/public-navbar.tsx`
 - Create: `src/app/(public)/layout.tsx`
 
@@ -1042,9 +1026,7 @@ export function PublicNavbar() {
             href="/events"
             className={cn(
               "text-sm font-medium transition-colors hover:text-foreground",
-              pathname === "/events"
-                ? "text-foreground"
-                : "text-muted-foreground"
+              pathname === "/events" ? "text-foreground" : "text-muted-foreground"
             )}
           >
             活動列表
@@ -1054,9 +1036,7 @@ export function PublicNavbar() {
               href="/my/registrations"
               className={cn(
                 "text-sm font-medium transition-colors hover:text-foreground",
-                pathname === "/my/registrations"
-                  ? "text-foreground"
-                  : "text-muted-foreground"
+                pathname === "/my/registrations" ? "text-foreground" : "text-muted-foreground"
               )}
             >
               我的報名紀錄
@@ -1066,11 +1046,7 @@ export function PublicNavbar() {
 
         <div>
           {isLoggedIn ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => signOut({ callbackUrl: "/events" })}
-            >
+            <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/events" })}>
               登出
             </Button>
           ) : (
@@ -1092,11 +1068,7 @@ Create `src/app/(public)/layout.tsx`:
 ```tsx
 import { PublicNavbar } from "@/components/shared/public-navbar";
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <PublicNavbar />
@@ -1123,6 +1095,7 @@ git commit -m "feat: add public navbar with login/logout and member nav"
 ### Task 11: Create member registration history page
 
 **Files:**
+
 - Create: `src/app/(public)/my/registrations/page.tsx`
 
 **Step 1: Create the page**
@@ -1134,12 +1107,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { getRegistrationsByUser } from "@/services/registration.service";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 function formatDate(date: Date): string {
@@ -1159,9 +1127,7 @@ function getStatusLabel(status: string): string {
   return map[status] ?? status;
 }
 
-function getStatusVariant(
-  status: string
-): "default" | "secondary" | "destructive" | "outline" {
+function getStatusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   const map: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
     REGISTERED: "default",
     WAITLISTED: "secondary",
@@ -1195,17 +1161,11 @@ export default async function MyRegistrationsPage() {
           </Card>
         ) : (
           registrations.map((reg) => (
-            <Link
-              key={reg.id}
-              href={`/events/${reg.eventId}`}
-              className="block"
-            >
+            <Link key={reg.id} href={`/events/${reg.eventId}`} className="block">
               <Card className="transition-colors hover:border-primary/50">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4">
-                    <CardTitle className="text-lg">
-                      {reg.event.title}
-                    </CardTitle>
+                    <CardTitle className="text-lg">{reg.event.title}</CardTitle>
                     <Badge variant={getStatusVariant(reg.status)}>
                       {getStatusLabel(reg.status)}
                     </Badge>

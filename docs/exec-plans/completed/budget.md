@@ -13,6 +13,7 @@
 ### Task 1: Add BudgetItem to Prisma schema
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add BudgetItem model to schema**
@@ -68,6 +69,7 @@ git commit -m "feat: add BudgetItem model to Prisma schema"
 ### Task 2: Budget service layer with tests
 
 **Files:**
+
 - Create: `src/services/budget.service.ts`
 - Create: `src/services/budget.service.test.ts`
 
@@ -232,12 +234,10 @@ describe("budget.service", () => {
     it("should throw BUDGET_ITEM_NOT_FOUND when item does not exist", async () => {
       mockPrisma.budgetItem.findUnique.mockResolvedValue(null);
 
-      await expect(updateBudgetItem("bi-1", { actual: 5500 })).rejects.toThrow(
-        BudgetServiceError
-      );
-      await expect(
-        updateBudgetItem("bi-1", { actual: 5500 })
-      ).rejects.toMatchObject({ code: "BUDGET_ITEM_NOT_FOUND" });
+      await expect(updateBudgetItem("bi-1", { actual: 5500 })).rejects.toThrow(BudgetServiceError);
+      await expect(updateBudgetItem("bi-1", { actual: 5500 })).rejects.toMatchObject({
+        code: "BUDGET_ITEM_NOT_FOUND",
+      });
     });
   });
 
@@ -354,10 +354,7 @@ export async function getBudgetItemsByEvent(eventId: string) {
  * Create a new budget item for an event.
  * Validates the event exists.
  */
-export async function createBudgetItem(
-  eventId: string,
-  data: CreateBudgetItemInput
-) {
+export async function createBudgetItem(eventId: string, data: CreateBudgetItemInput) {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
   if (!event) {
     throw new BudgetServiceError("Event not found", "EVENT_NOT_FOUND");
@@ -379,16 +376,10 @@ export async function createBudgetItem(
  * Update an existing budget item.
  * Validates the item exists.
  */
-export async function updateBudgetItem(
-  id: string,
-  data: UpdateBudgetItemInput
-) {
+export async function updateBudgetItem(id: string, data: UpdateBudgetItemInput) {
   const item = await prisma.budgetItem.findUnique({ where: { id } });
   if (!item) {
-    throw new BudgetServiceError(
-      "Budget item not found",
-      "BUDGET_ITEM_NOT_FOUND"
-    );
+    throw new BudgetServiceError("Budget item not found", "BUDGET_ITEM_NOT_FOUND");
   }
 
   return prisma.budgetItem.update({
@@ -404,10 +395,7 @@ export async function updateBudgetItem(
 export async function deleteBudgetItem(id: string) {
   const item = await prisma.budgetItem.findUnique({ where: { id } });
   if (!item) {
-    throw new BudgetServiceError(
-      "Budget item not found",
-      "BUDGET_ITEM_NOT_FOUND"
-    );
+    throw new BudgetServiceError("Budget item not found", "BUDGET_ITEM_NOT_FOUND");
   }
 
   return prisma.budgetItem.delete({ where: { id } });
@@ -457,6 +445,7 @@ git commit -m "feat: add budget service layer with tests"
 ### Task 3: Budget API routes
 
 **Files:**
+
 - Create: `src/app/api/budget/route.ts`
 - Create: `src/app/api/budget/[id]/route.ts`
 
@@ -495,10 +484,7 @@ export async function GET(request: NextRequest) {
 
   const eventId = request.nextUrl.searchParams.get("eventId");
   if (!eventId) {
-    return NextResponse.json(
-      { error: "eventId is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventId is required" }, { status: 400 });
   }
 
   try {
@@ -585,10 +571,7 @@ export async function POST(request: NextRequest) {
         { status: statusMap[error.code] || 400 }
       );
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 ```
@@ -601,11 +584,7 @@ Create `src/app/api/budget/[id]/route.ts`:
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
-import {
-  updateBudgetItem,
-  deleteBudgetItem,
-  BudgetServiceError,
-} from "@/services/budget.service";
+import { updateBudgetItem, deleteBudgetItem, BudgetServiceError } from "@/services/budget.service";
 
 const VALID_CATEGORIES = ["MEAL", "SNACK", "VENUE", "MATERIAL", "EQUIPMENT", "OTHER"];
 
@@ -615,10 +594,7 @@ const VALID_CATEGORIES = ["MEAL", "SNACK", "VENUE", "MATERIAL", "EQUIPMENT", "OT
  * Requires budget:write permission.
  * Body: { category?, customCategory?, estimated?, actual?, note? }
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -651,7 +627,7 @@ export async function PATCH(
     }
     data.category = body.category;
     data.customCategory =
-      body.category === "OTHER" ? (body.customCategory as string) ?? null : null;
+      body.category === "OTHER" ? ((body.customCategory as string) ?? null) : null;
   }
   if (body.estimated != null) data.estimated = body.estimated;
   if (body.actual != null) data.actual = body.actual;
@@ -670,10 +646,7 @@ export async function PATCH(
         { status: statusMap[error.code] || 400 }
       );
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -713,10 +686,7 @@ export async function DELETE(
         { status: statusMap[error.code] || 400 }
       );
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 ```
@@ -749,6 +719,7 @@ export function assertActive(user: { isActive?: boolean }): Response | null {
 ### Task 4: Admin budget page
 
 **Files:**
+
 - Create: `src/app/admin/budget/page.tsx`
 
 **Step 1: Create the budget admin page**
@@ -786,13 +757,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -897,7 +862,7 @@ export default function BudgetPage() {
     fetch("/api/events")
       .then((res) => res.json())
       .then((data) => {
-        const eventList = Array.isArray(data) ? data : data.events ?? [];
+        const eventList = Array.isArray(data) ? data : (data.events ?? []);
         setEvents(eventList);
       })
       .catch(() => toast.error("無法載入活動列表"));
@@ -1027,7 +992,11 @@ export default function BudgetPage() {
 
   // Format currency
   const fmt = (n: number) =>
-    new Intl.NumberFormat("zh-TW", { style: "currency", currency: "TWD", maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat("zh-TW", {
+      style: "currency",
+      currency: "TWD",
+      maximumFractionDigits: 0,
+    }).format(n);
 
   if (!canRead) {
     return (
@@ -1041,9 +1010,7 @@ export default function BudgetPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">預算管理</h1>
-        <p className="text-sm text-muted-foreground">
-          管理各活動的預算編列與實際支出
-        </p>
+        <p className="text-sm text-muted-foreground">管理各活動的預算編列與實際支出</p>
       </div>
 
       {/* Event Selector */}
@@ -1077,9 +1044,7 @@ export default function BudgetPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>預算項目</CardTitle>
-              <CardDescription>
-                預估金額與實際支出對比
-              </CardDescription>
+              <CardDescription>預估金額與實際支出對比</CardDescription>
             </div>
             {canWrite && (
               <Button size="sm" onClick={handleAdd}>
@@ -1113,23 +1078,13 @@ export default function BudgetPage() {
                         <TableCell className="font-medium">
                           {categoryLabel(item.category, item.customCategory)}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {item.note || "—"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {fmt(item.estimated)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {fmt(item.actual)}
-                        </TableCell>
+                        <TableCell className="text-muted-foreground">{item.note || "—"}</TableCell>
+                        <TableCell className="text-right">{fmt(item.estimated)}</TableCell>
+                        <TableCell className="text-right">{fmt(item.actual)}</TableCell>
                         {canWrite && (
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(item)}
-                              >
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
                                 <Pencil className="size-4" />
                               </Button>
                               <Button
@@ -1184,9 +1139,7 @@ export default function BudgetPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingItem ? "編輯預算項目" : "新增預算項目"}
-            </DialogTitle>
+            <DialogTitle>{editingItem ? "編輯預算項目" : "新增預算項目"}</DialogTitle>
             <DialogDescription>
               {editingItem ? "修改預算項目的資訊" : "為此活動新增一筆預算項目"}
             </DialogDescription>
@@ -1215,9 +1168,7 @@ export default function BudgetPage() {
                 <Label>自訂類別名稱</Label>
                 <Input
                   value={form.customCategory}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, customCategory: e.target.value }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, customCategory: e.target.value }))}
                   placeholder="輸入自訂類別..."
                 />
               </div>
@@ -1228,9 +1179,7 @@ export default function BudgetPage() {
                 <Input
                   type="number"
                   value={form.estimated}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, estimated: e.target.value }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, estimated: e.target.value }))}
                   placeholder="0"
                 />
               </div>
@@ -1239,9 +1188,7 @@ export default function BudgetPage() {
                 <Input
                   type="number"
                   value={form.actual}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, actual: e.target.value }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, actual: e.target.value }))}
                   placeholder="0"
                 />
               </div>
@@ -1250,9 +1197,7 @@ export default function BudgetPage() {
               <Label>備註</Label>
               <Input
                 value={form.note}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, note: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
                 placeholder="選填..."
               />
             </div>
@@ -1269,15 +1214,13 @@ export default function BudgetPage() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog
-        open={!!deleteItem}
-        onOpenChange={(open) => !open && setDeleteItem(null)}
-      >
+      <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>確認刪除</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除「{deleteItem && categoryLabel(deleteItem.category, deleteItem.customCategory)}」
+              確定要刪除「
+              {deleteItem && categoryLabel(deleteItem.category, deleteItem.customCategory)}」
               這筆預算項目嗎？此操作無法復原。
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1298,6 +1241,7 @@ export default function BudgetPage() {
 
 Run: `npx tsc --noEmit`
 Expected: No errors. If Dialog/AlertDialog components are missing, install them:
+
 ```bash
 npx shadcn@latest add dialog alert-dialog label
 ```
@@ -1314,6 +1258,7 @@ git commit -m "feat: add budget admin page with CRUD and summary"
 ### Task 5: Add budget to admin navigation
 
 **Files:**
+
 - Modify: `src/app/admin/layout.tsx`
 
 **Step 1: Add Wallet import and budget nav item**

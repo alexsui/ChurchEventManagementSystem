@@ -13,6 +13,7 @@
 ## Task 1: Playwright Config & Global Setup
 
 **Files:**
+
 - Create: `e2e/playwright.config.ts`
 - Create: `e2e/global-setup.ts`
 
@@ -81,6 +82,7 @@ export default async function globalSetup() {
 The project already has `"test:e2e": "playwright test"` in package.json. Update it to point to the e2e config:
 
 In `package.json`, change the `test:e2e` script to:
+
 ```json
 "test:e2e": "playwright test --config e2e/playwright.config.ts"
 ```
@@ -90,6 +92,7 @@ In `package.json`, change the `test:e2e` script to:
 Create `e2e/.auth/.gitkeep` (empty file) and add `e2e/.auth/admin.json` to `.gitignore`.
 
 Add to `.gitignore`:
+
 ```
 e2e/.auth/
 ```
@@ -115,6 +118,7 @@ git commit -m "feat: add Playwright E2E config with global setup and webServer"
 ## Task 2: Auth Setup (storageState)
 
 **Files:**
+
 - Create: `e2e/auth.setup.ts`
 
 **Step 1: Create auth setup file**
@@ -162,6 +166,7 @@ git commit -m "feat: add auth setup for Playwright admin session"
 ## Task 3: Auth Flow Tests (1-auth.spec.ts)
 
 **Files:**
+
 - Create: `e2e/1-auth.spec.ts`
 
 **Step 1: Write auth flow tests**
@@ -172,9 +177,7 @@ Create `e2e/1-auth.spec.ts`:
 import { test, expect } from "@playwright/test";
 
 test.describe("Auth flows", () => {
-  test("register new account → redirected to login tab with success", async ({
-    page,
-  }) => {
+  test("register new account → redirected to login tab with success", async ({ page }) => {
     await page.goto("/login");
 
     // Switch to register tab
@@ -193,9 +196,7 @@ test.describe("Auth flows", () => {
     await expect(page.getByText("註冊成功")).toBeVisible();
   });
 
-  test("login with existing credentials → admin dashboard", async ({
-    page,
-  }) => {
+  test("login with existing credentials → admin dashboard", async ({ page }) => {
     await page.goto("/login");
 
     await page.getByLabel("Email").fill("admin@church.org");
@@ -204,9 +205,7 @@ test.describe("Auth flows", () => {
 
     // Should redirect to admin events
     await page.waitForURL("/admin/events");
-    await expect(
-      page.getByRole("heading", { name: "活動管理" })
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "活動管理" })).toBeVisible();
   });
 
   test("login with wrong password → error message", async ({ page }) => {
@@ -255,6 +254,7 @@ git commit -m "feat: add auth E2E tests (register, login, logout)"
 ## Task 4: Admin Events Tests (2-admin-events.spec.ts)
 
 **Files:**
+
 - Create: `e2e/2-admin-events.spec.ts`
 
 **Step 1: Write admin events tests**
@@ -308,9 +308,7 @@ test.describe("Admin event management", () => {
     await page.waitForURL(/\/admin\/events\/.+/);
 
     // Should show event info
-    await expect(
-      page.getByRole("heading", { name: "2026 春季幸福小組" })
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "2026 春季幸福小組" })).toBeVisible();
     await expect(page.getByText("副堂 B 教室")).toBeVisible();
 
     // Should show 5 sessions
@@ -323,9 +321,7 @@ test.describe("Admin event management", () => {
     await expect(page.getByRole("button", { name: "報名中" })).toBeVisible();
   });
 
-  test("change event status (OPEN → IN_PROGRESS) → badge updates", async ({
-    page,
-  }) => {
+  test("change event status (OPEN → IN_PROGRESS) → badge updates", async ({ page }) => {
     await page.goto("/admin/events");
 
     // Click the series event
@@ -336,9 +332,7 @@ test.describe("Admin event management", () => {
     await page.getByRole("button", { name: "進行中" }).click();
 
     // Badge should update — the status badge near the title
-    await expect(
-      page.locator("h1 + div").getByText("進行中")
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("h1 + div").getByText("進行中")).toBeVisible({ timeout: 5000 });
   });
 
   test("edit event via dialog → changes saved", async ({ page }) => {
@@ -385,6 +379,7 @@ git commit -m "feat: add admin events E2E tests (CRUD + status)"
 ## Task 5: Public Event Tests (3-public-event.spec.ts)
 
 **Files:**
+
 - Create: `e2e/3-public-event.spec.ts`
 
 **Step 1: Write public event tests**
@@ -395,16 +390,12 @@ Create `e2e/3-public-event.spec.ts`:
 import { test, expect } from "@playwright/test";
 
 test.describe("Public event page", () => {
-  test("view public event detail → title, location, date, registration info", async ({
-    page,
-  }) => {
+  test("view public event detail → title, location, date, registration info", async ({ page }) => {
     // We need the event ID — go to admin first to get it
     // Or navigate via a known path. Let's use the API to find the event.
     const eventsRes = await page.request.get("/api/events");
     const events = await eventsRes.json();
-    const singleEvent = events.find(
-      (e: { title: string }) => e.title === "復活節特別聚會"
-    );
+    const singleEvent = events.find((e: { title: string }) => e.title === "復活節特別聚會");
 
     await page.goto(`/events/${singleEvent.id}`);
 
@@ -415,9 +406,7 @@ test.describe("Public event page", () => {
     await expect(page.getByText("已報名")).toBeVisible();
   });
 
-  test("click 立即報名 when logged in → registration succeeds", async ({
-    page,
-  }) => {
+  test("click 立即報名 when logged in → registration succeeds", async ({ page }) => {
     // Login as a member who is NOT registered for single event
     // zhiwei@example.com IS registered for single event, so we need
     // to find an event + user combo where user is not registered.
@@ -431,9 +420,7 @@ test.describe("Public event page", () => {
     // Get the series event ID
     const eventsRes = await page.request.get("/api/events");
     const events = await eventsRes.json();
-    const seriesEvent = events.find(
-      (e: { title: string }) => e.title === "2026 春季幸福小組"
-    );
+    const seriesEvent = events.find((e: { title: string }) => e.title === "2026 春季幸福小組");
 
     // Navigate to public event page
     await page.goto(`/events/${seriesEvent.id}`);
@@ -442,28 +429,22 @@ test.describe("Public event page", () => {
     await page.getByRole("button", { name: /立即報名|候補報名/ }).click();
 
     // Should show success (either "已報名" badge or toast)
-    await expect(
-      page.getByText("已報名").or(page.getByText("報名成功"))
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("已報名").or(page.getByText("報名成功"))).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test("view event when not logged in → login button visible", async ({
-    page,
-  }) => {
+  test("view event when not logged in → login button visible", async ({ page }) => {
     // Get event ID
     const eventsRes = await page.request.get("/api/events");
     const events = await eventsRes.json();
-    const singleEvent = events.find(
-      (e: { title: string }) => e.title === "復活節特別聚會"
-    );
+    const singleEvent = events.find((e: { title: string }) => e.title === "復活節特別聚會");
 
     // Visit without being logged in
     await page.goto(`/events/${singleEvent.id}`);
 
     // Should show "登入後報名" button
-    await expect(
-      page.getByRole("button", { name: "登入後報名" })
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "登入後報名" })).toBeVisible();
   });
 });
 ```
@@ -485,6 +466,7 @@ git commit -m "feat: add public event E2E tests (view, register, unauthenticated
 ## Task 6: Admin Registrations Tests (4-admin-registrations.spec.ts)
 
 **Files:**
+
 - Create: `e2e/4-admin-registrations.spec.ts`
 
 **Step 1: Write admin registrations tests**
@@ -499,9 +481,7 @@ test.use({ storageState: "e2e/.auth/admin.json" });
 test.describe("Admin registration management", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("select event → registrations table loads with correct count", async ({
-    page,
-  }) => {
+  test("select event → registrations table loads with correct count", async ({ page }) => {
     await page.goto("/admin/registrations");
 
     // Should show event selector
@@ -583,6 +563,7 @@ git commit -m "feat: add admin registrations E2E tests (select, filter, cancel)"
 ## Task 7: Admin Attendance Tests (5-admin-attendance.spec.ts)
 
 **Files:**
+
 - Create: `e2e/5-admin-attendance.spec.ts`
 
 **Step 1: Write admin attendance tests**
@@ -597,9 +578,7 @@ test.use({ storageState: "e2e/.auth/admin.json" });
 test.describe("Admin attendance management", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("select event + session → QR code tab shows QR image and URL", async ({
-    page,
-  }) => {
+  test("select event + session → QR code tab shows QR image and URL", async ({ page }) => {
     await page.goto("/admin/attendance");
 
     // Select series event
@@ -608,9 +587,7 @@ test.describe("Admin attendance management", () => {
 
     // Wait for sessions to load, then select first session
     await page.getByRole("combobox").nth(1).click();
-    await page
-      .getByRole("option", { name: /第 1 堂/ })
-      .click();
+    await page.getByRole("option", { name: /第 1 堂/ }).click();
 
     // QR code tab should be default — check for QR image
     await expect(page.getByAlt("報到 QR Code")).toBeVisible({ timeout: 10000 });
@@ -628,9 +605,7 @@ test.describe("Admin attendance management", () => {
 
     // Select first session (session 1 has 3 attendance records, 3 registered)
     await page.getByRole("combobox").nth(1).click();
-    await page
-      .getByRole("option", { name: /第 1 堂/ })
-      .click();
+    await page.getByRole("option", { name: /第 1 堂/ }).click();
 
     // Switch to manual tab
     await page.getByRole("tab", { name: /手動點名/ }).click();
@@ -641,9 +616,7 @@ test.describe("Admin attendance management", () => {
     });
   });
 
-  test("check a user checkbox → bulk check-in → count updates", async ({
-    page,
-  }) => {
+  test("check a user checkbox → bulk check-in → count updates", async ({ page }) => {
     await page.goto("/admin/attendance");
 
     // Select series event
@@ -652,9 +625,7 @@ test.describe("Admin attendance management", () => {
 
     // Select session 2 (2 of 3 attended — 林小明 and 劉大華 checked in, 黃美玲 not)
     await page.getByRole("combobox").nth(1).click();
-    await page
-      .getByRole("option", { name: /第 2 堂/ })
-      .click();
+    await page.getByRole("option", { name: /第 2 堂/ }).click();
 
     // Switch to manual tab
     await page.getByRole("tab", { name: /手動點名/ }).click();
@@ -696,6 +667,7 @@ git commit -m "feat: add admin attendance E2E tests (QR, manual, bulk check-in)"
 ## Task 8: Admin Users Tests (6-admin-users.spec.ts)
 
 **Files:**
+
 - Create: `e2e/6-admin-users.spec.ts`
 
 **Step 1: Write admin users tests**
@@ -753,9 +725,9 @@ test.describe("Admin user management", () => {
     await page.getByRole("button", { name: "儲存" }).click();
 
     // Dialog should close and role badge should update
-    await expect(
-      page.getByRole("heading", { name: "編輯使用者" })
-    ).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("heading", { name: "編輯使用者" })).not.toBeVisible({
+      timeout: 5000,
+    });
 
     // Verify the badge changed in the table
     const row = page.getByRole("row").filter({ hasText: "林小明" });
@@ -778,9 +750,9 @@ test.describe("Admin user management", () => {
     await page.getByRole("button", { name: "儲存" }).click();
 
     // Wait for dialog to close
-    await expect(
-      page.getByRole("heading", { name: "編輯使用者" })
-    ).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("heading", { name: "編輯使用者" })).not.toBeVisible({
+      timeout: 5000,
+    });
 
     // Verify badge changed to 停用
     const row = page.getByRole("row").filter({ hasText: "周志偉" });
@@ -806,6 +778,7 @@ git commit -m "feat: add admin users E2E tests (list, search, edit role, toggle 
 ## Task 9: QR Check-in Flow Tests (7-checkin-flow.spec.ts)
 
 **Files:**
+
 - Create: `e2e/7-checkin-flow.spec.ts`
 
 **Step 1: Write check-in flow tests**
@@ -824,9 +797,7 @@ test.describe("QR check-in flow", () => {
     // Get the series event to find a session ID
     const eventsRes = await request.get("/api/events");
     const events = await eventsRes.json();
-    const seriesEvent = events.find(
-      (e: { title: string }) => e.title === "2026 春季幸福小組"
-    );
+    const seriesEvent = events.find((e: { title: string }) => e.title === "2026 春季幸福小組");
     // Get event detail to find session IDs
     const detailRes = await request.get(`/api/events/${seriesEvent.id}`);
     const detail = await detailRes.json();
@@ -842,14 +813,10 @@ test.describe("QR check-in flow", () => {
       timeout: 10000,
     });
     await expect(page.getByText("請先登入以完成報到")).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "前往登入" })
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "前往登入" })).toBeVisible();
   });
 
-  test("navigate logged in as registered member → check in button visible", async ({
-    page,
-  }) => {
+  test("navigate logged in as registered member → check in button visible", async ({ page }) => {
     // Login as ming (registered for series event)
     await page.goto("/login");
     await page.getByLabel("Email").fill("ming@example.com");
@@ -864,9 +831,7 @@ test.describe("QR check-in flow", () => {
     await expect(page.getByText("2026 春季幸福小組")).toBeVisible({
       timeout: 10000,
     });
-    await expect(
-      page.getByRole("button", { name: "確認報到" })
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "確認報到" })).toBeVisible();
   });
 
   test("click 確認報到 → success state with time", async ({ page }) => {
@@ -879,9 +844,7 @@ test.describe("QR check-in flow", () => {
 
     // Navigate and check in
     await page.goto(`/check-in/${sessionId}`);
-    await expect(
-      page.getByRole("button", { name: "確認報到" })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole("button", { name: "確認報到" })).toBeVisible({ timeout: 10000 });
     await page.getByRole("button", { name: "確認報到" }).click();
 
     // Should show success
@@ -930,6 +893,7 @@ Expected: All tests pass in order (setup → 1 through 7).
 **Step 2: Fix any failing tests**
 
 Adjust selectors, timeouts, or test logic based on actual UI behavior. Common issues:
+
 - Selector mismatches (label text, button text)
 - Timing issues (increase timeouts or add `waitFor` calls)
 - Data assumptions that don't match seed (re-check seed.ts)

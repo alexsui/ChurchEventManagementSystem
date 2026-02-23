@@ -13,6 +13,7 @@
 ### Task 1: Add `getAttendanceSummaryByEvent` service function
 
 **Files:**
+
 - Modify: `src/services/attendance.service.ts` (append new function)
 - Modify: `src/services/attendance.service.test.ts` (add test + mock)
 
@@ -85,6 +86,7 @@ git commit -m "feat: add getAttendanceSummaryByEvent service function"
 ### Task 2: Add `GET /api/events/{eventId}/attendance-summary` API route
 
 **Files:**
+
 - Create: `src/app/api/events/[eventId]/attendance-summary/route.ts`
 
 **Step 1: Create the API route**
@@ -120,10 +122,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json(summary);
   } catch (error) {
     console.error("GET /api/events/[eventId]/attendance-summary error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch attendance summary" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch attendance summary" }, { status: 500 });
   }
 }
 ```
@@ -145,6 +144,7 @@ git commit -m "feat: add attendance summary API route"
 ### Task 3: Add `getAssignmentSummaryByEvent` service function
 
 **Files:**
+
 - Modify: `src/services/assignment.service.ts` (append new function)
 - Modify: `src/services/assignment.service.test.ts` (add test + mock)
 
@@ -245,6 +245,7 @@ git commit -m "feat: add getAssignmentSummaryByEvent service function"
 ### Task 4: Add `GET /api/events/{eventId}/assignment-summary` API route
 
 **Files:**
+
 - Create: `src/app/api/events/[eventId]/assignment-summary/route.ts`
 
 **Step 1: Create the API route**
@@ -280,10 +281,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json(summary);
   } catch (error) {
     console.error("GET /api/events/[eventId]/assignment-summary error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch assignment summary" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch assignment summary" }, { status: 500 });
   }
 }
 ```
@@ -305,6 +303,7 @@ git commit -m "feat: add assignment summary API route"
 ### Task 5: Add shared `isSessionPast` helper
 
 **Files:**
+
 - Modify: `src/lib/utils.ts` (append helper)
 
 **Step 1: Add the helper**
@@ -355,6 +354,7 @@ git commit -m "feat: add isSessionPast helper"
 ### Task 6: Create `AttendanceOverview` component and integrate into `AttendancePanel`
 
 **Files:**
+
 - Create: `src/components/admin/attendance-overview.tsx`
 - Modify: `src/components/admin/attendance-panel.tsx`
 
@@ -476,9 +476,7 @@ export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
   }
 
   // Build a Set for fast lookup: "userId:sessionId"
-  const attendanceSet = new Set(
-    attendanceRecords.map((r) => `${r.userId}:${r.eventSessionId}`)
-  );
+  const attendanceSet = new Set(attendanceRecords.map((r) => `${r.userId}:${r.eventSessionId}`));
 
   const allSessionsPast = sessions.every((s) => isSessionPast(s));
 
@@ -559,12 +557,14 @@ export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
 In `src/components/admin/attendance-panel.tsx`:
 
 1. Add import at top:
+
 ```typescript
 import { BarChart3 } from "lucide-react";
 import { AttendanceOverview } from "@/components/admin/attendance-overview";
 ```
 
 2. Wrap the entire return content in outer tabs. Replace the `return (...)` with:
+
 ```tsx
 return (
   <Tabs defaultValue="overview">
@@ -609,6 +609,7 @@ git commit -m "feat: add attendance overview sub-tab with cross-session summary 
 ### Task 7: Create `AssignmentOverview` component and integrate into `AssignmentsPanel`
 
 **Files:**
+
 - Create: `src/components/admin/assignment-overview.tsx`
 - Modify: `src/components/admin/assignments-panel.tsx`
 
@@ -699,9 +700,7 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
       setRegistrations(regData.filter((r) => r.status === "REGISTERED"));
       setAssignments(asgData);
       setMinAssignmentRate(
-        eventData.minAssignmentRate != null
-          ? eventData.minAssignmentRate
-          : null
+        eventData.minAssignmentRate != null ? eventData.minAssignmentRate : null
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "發生未知錯誤");
@@ -821,16 +820,11 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
 
                 const canShowRate = allSessionsPast && !hasNonPastSession;
                 const rate =
-                  canShowRate && totalAssignments > 0
-                    ? totalCompleted / totalAssignments
-                    : null;
-                const rateDisplay =
-                  rate != null ? `${Math.round(rate * 100)}%` : "N/A";
+                  canShowRate && totalAssignments > 0 ? totalCompleted / totalAssignments : null;
+                const rateDisplay = rate != null ? `${Math.round(rate * 100)}%` : "N/A";
 
                 const passed =
-                  rate != null && minAssignmentRate != null
-                    ? rate >= minAssignmentRate
-                    : null;
+                  rate != null && minAssignmentRate != null ? rate >= minAssignmentRate : null;
 
                 return (
                   <TableRow key={reg.user.id}>
@@ -891,6 +885,7 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
 In `src/components/admin/assignments-panel.tsx`:
 
 1. Add imports at top:
+
 ```typescript
 import { BarChart3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -898,6 +893,7 @@ import { AssignmentOverview } from "@/components/admin/assignment-overview";
 ```
 
 2. Wrap the entire return content in outer tabs. Replace the `return (...)` with:
+
 ```tsx
 return (
   <Tabs defaultValue="overview">

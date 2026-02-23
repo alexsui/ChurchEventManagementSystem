@@ -52,11 +52,13 @@ Update `src/lib/authorization.ts`:
 ### 3. API Endpoints
 
 **`GET /api/role-permissions`**
+
 - Returns full permission matrix for all non-ADMIN roles
 - Requires `users:read` permission
 - Response: `{ [role]: { [module]: { read: boolean, write: boolean } } }`
 
 **`PUT /api/role-permissions`**
+
 - Bulk upsert of the full matrix in a transaction
 - Requires `users:write` permission
 - Invalidates permission cache after write
@@ -74,28 +76,28 @@ Sub-page under existing users management:
 
 **Role display names:**
 
-| Role | Label |
-|------|-------|
-| STAFF_ADMIN | 行政同工 |
-| STAFF_GENERAL | 總務同工 |
-| STAFF_FINANCE | 財務同工 |
-| PASTOR | 傳道人 |
-| STAFF_MEDIA | 多媒體同工 |
-| TEAM_LEADER | 組長 |
-| MEMBER | 一般會員 |
+| Role          | Label      |
+| ------------- | ---------- |
+| STAFF_ADMIN   | 行政同工   |
+| STAFF_GENERAL | 總務同工   |
+| STAFF_FINANCE | 財務同工   |
+| PASTOR        | 傳道人     |
+| STAFF_MEDIA   | 多媒體同工 |
+| TEAM_LEADER   | 組長       |
+| MEMBER        | 一般會員   |
 
 **Module display names:**
 
-| Module | Label |
-|--------|-------|
-| events | 活動管理 |
-| registrations | 報名管理 |
-| attendance | 出席管理 |
-| assignments | 任務分配 |
-| users | 使用者管理 |
-| teams | 小組管理 |
-| budget | 預算管理 |
-| reports | 報表 |
+| Module        | Label      |
+| ------------- | ---------- |
+| events        | 活動管理   |
+| registrations | 報名管理   |
+| attendance    | 出席管理   |
+| assignments   | 任務分配   |
+| users         | 使用者管理 |
+| teams         | 小組管理   |
+| budget        | 預算管理   |
+| reports       | 報表       |
 
 ### 5. Admin Navigation Enforcement
 
@@ -105,12 +107,12 @@ Update admin layout (`src/app/admin/layout.tsx`):
 - Filter nav items by whether role has `read` permission for the associated module
 - ADMIN always sees all tabs
 
-| Nav Tab | Required Module |
-|---------|----------------|
-| 活動管理 | `events:read` |
-| 報名管理 | `registrations:read` |
-| 出席管理 | `attendance:read` |
-| 使用者管理 | `users:read` |
+| Nav Tab    | Required Module      |
+| ---------- | -------------------- |
+| 活動管理   | `events:read`        |
+| 報名管理   | `registrations:read` |
+| 出席管理   | `attendance:read`    |
+| 使用者管理 | `users:read`         |
 
 Real enforcement remains at API level (403 on unauthorized API calls).
 
@@ -118,12 +120,12 @@ Real enforcement remains at API level (403 on unauthorized API calls).
 
 New `PublicNavbar` component in `(public)/layout.tsx`:
 
-| Item | Route | Visibility |
-|------|-------|-----------|
-| 活動列表 | `/events` | Always |
+| Item         | Route               | Visibility     |
+| ------------ | ------------------- | -------------- |
+| 活動列表     | `/events`           | Always         |
 | 我的報名紀錄 | `/my/registrations` | Logged in only |
-| 登入 | `/login` | Not logged in |
-| 登出 | (sign out action) | Logged in only |
+| 登入         | `/login`            | Not logged in  |
+| 登出         | (sign out action)   | Logged in only |
 
 Minimal horizontal bar, consistent with existing `bg-gray-50` theme.
 

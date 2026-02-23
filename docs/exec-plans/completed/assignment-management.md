@@ -13,6 +13,7 @@
 ### Task 1: Prisma Schema — Add Assignment and AssignmentCompletion models
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 **Step 1: Add models and relations to schema**
@@ -49,17 +50,20 @@ model AssignmentCompletion {
 Add relation fields to existing models:
 
 In `User` model, add after `attendances Attendance[]`:
+
 ```prisma
   assignmentCompletions AssignmentCompletion[] @relation("assignmentCompletions")
   assignmentCompletedBy AssignmentCompletion[] @relation("assignmentCompletedBy")
 ```
 
 In `EventSession` model, add after `attendances Attendance[]`:
+
 ```prisma
   assignments Assignment[]
 ```
 
 In `Event` model, add after `updatedAt`:
+
 ```prisma
   minAssignmentRate Float?
 ```
@@ -81,6 +85,7 @@ git commit -m "feat: add Assignment and AssignmentCompletion models to schema"
 ### Task 2: Assignment Service — Tests
 
 **Files:**
+
 - Create: `src/services/assignment.service.test.ts`
 
 **Step 1: Write the test file**
@@ -192,9 +197,7 @@ describe("assignment.service", () => {
     it("should return all assignments across sessions for an event", async () => {
       const sessions = [{ id: "s-1" }, { id: "s-2" }];
       mockPrisma.eventSession.findMany.mockResolvedValue(sessions);
-      const assignments = [
-        { id: "a-1", eventSessionId: "s-1", title: "讀經" },
-      ];
+      const assignments = [{ id: "a-1", eventSessionId: "s-1", title: "讀經" }];
       mockPrisma.assignment.findMany.mockResolvedValue(assignments);
 
       const result = await getAssignmentsByEvent("event-1");
@@ -314,6 +317,7 @@ git commit -m "test: add assignment service tests (red phase)"
 ### Task 3: Assignment Service — Implementation
 
 **Files:**
+
 - Create: `src/services/assignment.service.ts`
 
 **Step 1: Write the service implementation**
@@ -340,10 +344,7 @@ export async function createAssignment(eventSessionId: string, title: string) {
   });
 
   if (!session) {
-    throw new AssignmentServiceError(
-      "Event session not found",
-      "SESSION_NOT_FOUND"
-    );
+    throw new AssignmentServiceError("Event session not found", "SESSION_NOT_FOUND");
   }
 
   return prisma.assignment.create({
@@ -360,10 +361,7 @@ export async function deleteAssignment(id: string) {
   });
 
   if (!assignment) {
-    throw new AssignmentServiceError(
-      "Assignment not found",
-      "ASSIGNMENT_NOT_FOUND"
-    );
+    throw new AssignmentServiceError("Assignment not found", "ASSIGNMENT_NOT_FOUND");
   }
 
   return prisma.assignment.delete({ where: { id } });
@@ -405,20 +403,13 @@ export async function getAssignmentsByEvent(eventId: string) {
  * Bulk mark assignments as complete for given users.
  * Skips users who already have a completion record.
  */
-export async function markComplete(
-  assignmentId: string,
-  userIds: string[],
-  completedById: string
-) {
+export async function markComplete(assignmentId: string, userIds: string[], completedById: string) {
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
   });
 
   if (!assignment) {
-    throw new AssignmentServiceError(
-      "Assignment not found",
-      "ASSIGNMENT_NOT_FOUND"
-    );
+    throw new AssignmentServiceError("Assignment not found", "ASSIGNMENT_NOT_FOUND");
   }
 
   // Find existing completions to skip
@@ -508,6 +499,7 @@ git commit -m "feat: add assignment service with CRUD and completion tracking"
 ### Task 4: API Routes — Assignments CRUD
 
 **Files:**
+
 - Create: `src/app/api/assignments/route.ts`
 - Create: `src/app/api/assignments/[id]/route.ts`
 - Create: `src/app/api/assignments/[id]/completions/route.ts`
@@ -541,10 +533,7 @@ export async function GET(request: NextRequest) {
 
   const eventSessionId = request.nextUrl.searchParams.get("eventSessionId");
   if (!eventSessionId) {
-    return NextResponse.json(
-      { error: "eventSessionId is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventSessionId is required" }, { status: 400 });
   }
 
   const assignments = await getAssignmentsBySession(eventSessionId);
@@ -575,10 +564,7 @@ export async function POST(request: NextRequest) {
   const { eventSessionId, title } = body;
 
   if (!eventSessionId || !title?.trim()) {
-    return NextResponse.json(
-      { error: "eventSessionId and title are required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventSessionId and title are required" }, { status: 400 });
   }
 
   try {
@@ -605,10 +591,7 @@ export async function POST(request: NextRequest) {
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
-import {
-  deleteAssignment,
-  AssignmentServiceError,
-} from "@/services/assignment.service";
+import { deleteAssignment, AssignmentServiceError } from "@/services/assignment.service";
 
 /**
  * DELETE /api/assignments/[id]
@@ -653,20 +636,14 @@ export async function DELETE(
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
-import {
-  markComplete,
-  AssignmentServiceError,
-} from "@/services/assignment.service";
+import { markComplete, AssignmentServiceError } from "@/services/assignment.service";
 import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/assignments/[id]/completions
  * List all completions for an assignment (who completed it).
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -693,10 +670,7 @@ export async function GET(
  * POST /api/assignments/[id]/completions
  * Bulk mark users as complete. Body: { userIds: string[] }
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -717,10 +691,7 @@ export async function POST(
 
   const { userIds } = body;
   if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-    return NextResponse.json(
-      { error: "userIds must be a non-empty array" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "userIds must be a non-empty array" }, { status: 400 });
   }
 
   try {
@@ -790,6 +761,7 @@ git commit -m "feat: add assignment API routes with auth and permission guards"
 ### Task 5: Admin Layout — Add assignments nav item
 
 **Files:**
+
 - Modify: `src/app/admin/layout.tsx`
 
 **Step 1: Add BookCheck import and nav item**
@@ -826,6 +798,7 @@ git commit -m "feat: add assignments nav item to admin layout"
 ### Task 6: Admin Assignments Page
 
 **Files:**
+
 - Create: `src/app/admin/assignments/page.tsx`
 
 **Step 1: Create the page**
@@ -841,6 +814,7 @@ Build the page following the attendance page pattern (`src/app/admin/attendance/
 7. **Unmark completion** — clicking a checked member's checkbox removes their completion
 
 Key UI elements to use (all from shadcn/ui, already in the project):
+
 - `Select` for event/session pickers
 - `Card` for layout sections
 - `Table` with `Checkbox` for member checklist
@@ -852,6 +826,7 @@ Key UI elements to use (all from shadcn/ui, already in the project):
 - `toast` from sonner for feedback
 
 The page should have two views:
+
 - **Assignment list view**: shows after selecting event + session. Lists assignments with completion stats.
 - **Completion detail view**: shows after clicking an assignment. Shows member checklist with checkboxes.
 
@@ -874,6 +849,7 @@ git commit -m "feat: add admin assignments page with CRUD and completion trackin
 ### Task 7: Event Form — Add minAssignmentRate field
 
 **Files:**
+
 - Modify: `src/components/shared/event-form.tsx`
 - Modify: `src/app/api/events/route.ts` (POST handler)
 - Modify: `src/app/api/events/[eventId]/route.ts` (PUT handler)
@@ -904,9 +880,7 @@ Add a form field after `maxParticipants`:
           placeholder="例：80（表示需完成 80% 作業）"
           value={field.value ?? ""}
           onChange={(e) =>
-            field.onChange(
-              e.target.value === "" ? undefined : Number(e.target.value)
-            )
+            field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
           }
         />
       </FormControl>
@@ -960,6 +934,7 @@ Expected: Build succeeds
 Run: `npm run dev`
 
 Verify:
+
 1. Navigate to `/admin/assignments` — page loads with event/session selectors
 2. Select an event and session — empty assignment list shows
 3. Create an assignment — appears in the list
@@ -971,13 +946,13 @@ Verify:
 
 ## Summary
 
-| Task | Description | Files | Tests |
-| :--- | :---------- | :---- | :---- |
-| 1 | Prisma schema + migration | `prisma/schema.prisma` | — |
-| 2 | Assignment service tests (red) | `src/services/assignment.service.test.ts` | 9 tests |
-| 3 | Assignment service implementation (green) | `src/services/assignment.service.ts` | 9 tests pass |
-| 4 | API routes | `src/app/api/assignments/**` (4 files) | — |
-| 5 | Admin nav item | `src/app/admin/layout.tsx` | — |
-| 6 | Admin assignments page | `src/app/admin/assignments/page.tsx` | — |
-| 7 | Event form + minAssignmentRate | `event-form.tsx`, `event.service.ts`, API routes | — |
-| 8 | Final verification | — | All pass |
+| Task | Description                               | Files                                            | Tests        |
+| :--- | :---------------------------------------- | :----------------------------------------------- | :----------- |
+| 1    | Prisma schema + migration                 | `prisma/schema.prisma`                           | —            |
+| 2    | Assignment service tests (red)            | `src/services/assignment.service.test.ts`        | 9 tests      |
+| 3    | Assignment service implementation (green) | `src/services/assignment.service.ts`             | 9 tests pass |
+| 4    | API routes                                | `src/app/api/assignments/**` (4 files)           | —            |
+| 5    | Admin nav item                            | `src/app/admin/layout.tsx`                       | —            |
+| 6    | Admin assignments page                    | `src/app/admin/assignments/page.tsx`             | —            |
+| 7    | Event form + minAssignmentRate            | `event-form.tsx`, `event.service.ts`, API routes | —            |
+| 8    | Final verification                        | —                                                | All pass     |

@@ -29,12 +29,14 @@ e2e/
 ## Test Scenarios
 
 ### 1-auth.spec.ts
+
 - Register new account → redirected to admin/events
 - Login with existing credentials → admin dashboard
 - Login with wrong password → error message
 - Logout → redirected to login
 
 ### 2-admin-events.spec.ts (admin session)
+
 - Events list shows seed data (2 events)
 - Create new single event → appears in list
 - Click event → detail page shows info, sessions, status buttons
@@ -42,27 +44,32 @@ e2e/
 - Edit event via dialog → changes saved
 
 ### 3-public-event.spec.ts
+
 - View public event detail → title, location, date, registration info
 - Click "立即報名" when logged in → registration succeeds, shows QR code
 - View event when not logged in → button visible (redirects to login)
 
 ### 4-admin-registrations.spec.ts (admin session)
+
 - Select event → registrations table loads with correct count
 - Filter by status → table filters correctly
 - Cancel a registration → confirmation → row updates to "已取消"
 
 ### 5-admin-attendance.spec.ts (admin session)
+
 - Select event + session → QR code tab shows QR image and URL
 - Switch to manual tab → shows "已報到 3 / 已報名 3 人"
 - Check a user checkbox → bulk check-in → count updates
 
 ### 6-admin-users.spec.ts (admin session)
+
 - Users table shows all 8 seed users
 - Search filters by name
 - Click user → edit dialog → change role → saves
 - Toggle active/inactive → status badge changes
 
 ### 7-checkin-flow.spec.ts
+
 - Navigate to `/check-in/[sessionId]` not logged in → login prompt
 - Navigate logged in as registered member → event info + "確認報到"
 - Click "確認報到" → success state with time

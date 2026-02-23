@@ -39,6 +39,7 @@ model TeamDefaultTask {
 ```
 
 Relations added to `Team`:
+
 ```prisma
 model Team {
   ...
@@ -48,6 +49,7 @@ model Team {
 ```
 
 Relation added to `User`:
+
 ```prisma
 model User {
   ...
@@ -60,6 +62,7 @@ model User {
 ### team.service.ts
 
 New functions:
+
 - `getTeamTemplateWithDefaults(id)` — returns template with defaultMembers (including user info) and defaultTasks
 - `addDefaultMember(teamId, userId, role?)` — add a default member
 - `removeDefaultMember(teamId, userId)` — remove a default member
@@ -67,15 +70,18 @@ New functions:
 - `removeDefaultTask(id)` — remove a default task
 
 Modified functions:
+
 - `getTeamTemplates()` — include `_count` for defaultMembers and defaultTasks
 - `createEventTeam()` — when `teamId` is provided, copy default members → `EventTeamMember` rows and default tasks → `EventTeamTask` rows (PENDING status, no assignee)
 
 ## API Routes
 
 ### Existing routes (modified)
+
 - `GET /api/teams` — include `_count.defaultMembers` and `_count.defaultTasks`
 
 ### New routes
+
 - `GET /api/teams/[id]` — returns template with full default members and tasks
 - `POST /api/teams/[id]/default-members` — add default member `{ userId, role? }`
 - `DELETE /api/teams/[id]/default-members/[userId]` — remove default member
@@ -87,6 +93,7 @@ Modified functions:
 ### 組別範本管理 page (`/admin/teams`)
 
 Transform from a flat name list into an expandable detail view:
+
 - Each template row becomes clickable/expandable
 - Expanded view shows:
   - Default members list with role badges + add/remove
@@ -113,13 +120,15 @@ All within a single Prisma transaction.
 ## Files Changed
 
 **New files:**
+
 - `prisma/migrations/YYYYMMDD_add_team_defaults/migration.sql`
 
 **Modified files:**
+
 - `prisma/schema.prisma` — add TeamDefaultMember, TeamDefaultTask models
 - `src/services/team.service.ts` — add default member/task functions, modify createEventTeam
 - `src/services/team.service.test.ts` — add tests for new functions
-- `src/app/api/teams/route.ts` — include _count in GET
+- `src/app/api/teams/route.ts` — include \_count in GET
 - `src/app/api/teams/[id]/route.ts` — add GET for template detail
 - `src/app/api/teams/[id]/default-members/route.ts` — new POST
 - `src/app/api/teams/[id]/default-members/[userId]/route.ts` — new DELETE

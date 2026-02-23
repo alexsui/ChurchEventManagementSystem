@@ -9,6 +9,7 @@
 **Tech Stack:** Next.js 15 (App Router), TypeScript, Prisma, NextAuth.js (Auth.js v5), shadcn/ui, Tailwind CSS, Supabase PostgreSQL, `qrcode` npm package.
 
 **Reference docs:**
+
 - HLD: `docs/plans/2026-02-17-hld-design.md`
 - PRD: `docs/plans/PRD.md`
 
@@ -17,6 +18,7 @@
 ## Task 1: Project Scaffolding
 
 **Files:**
+
 - Create: `package.json`, `tsconfig.json`, `tailwind.config.ts`, `next.config.ts`, `src/app/layout.tsx`, `src/app/page.tsx`
 - Create: `.env.local`, `.env.example`, `.gitignore`
 
@@ -94,6 +96,7 @@ git commit -m "feat: scaffold Next.js project with Tailwind, shadcn/ui, and core
 ## Task 2: Prisma Schema & Database Setup
 
 **Files:**
+
 - Create: `prisma/schema.prisma`
 - Create: `src/lib/prisma.ts`
 
@@ -332,6 +335,7 @@ git commit -m "feat: add Prisma schema with User, Event, EventSession, Registrat
 ## Task 3: NextAuth.js Setup (Credentials + LINE Login)
 
 **Files:**
+
 - Create: `src/lib/auth.ts`
 - Create: `src/app/api/auth/[...nextauth]/route.ts`
 - Create: `src/app/(public)/login/page.tsx`
@@ -371,10 +375,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user || !user.password) return null;
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
+        const isValid = await bcrypt.compare(credentials.password as string, user.password);
 
         if (!isValid) return null;
 
@@ -525,6 +526,7 @@ git commit -m "feat: add NextAuth.js with LINE Login + Credentials providers"
 ## Task 4: RBAC Authorization Helpers
 
 **Files:**
+
 - Create: `src/lib/authorization.ts`
 - Create: `src/lib/authorization.test.ts`
 
@@ -609,7 +611,15 @@ Expected: FAIL — module not found.
 
 ```typescript
 // src/lib/authorization.ts
-type Module = "events" | "registrations" | "attendance" | "assignments" | "users" | "teams" | "budget" | "reports";
+type Module =
+  | "events"
+  | "registrations"
+  | "attendance"
+  | "assignments"
+  | "users"
+  | "teams"
+  | "budget"
+  | "reports";
 type Action = "read" | "write";
 
 const ROLE_PERMISSIONS: Record<string, Partial<Record<Module, Action[]>>> = {
@@ -705,6 +715,7 @@ git commit -m "feat: add RBAC permission helpers with tests"
 ## Task 5: Event Management — Service & API
 
 **Files:**
+
 - Create: `src/services/event.service.ts`
 - Create: `src/app/api/events/route.ts`
 - Create: `src/app/api/events/[eventId]/route.ts`
@@ -738,6 +749,7 @@ git commit -m "feat: add RBAC permission helpers with tests"
 ```
 
 Each route handler should:
+
 1. Check auth via `auth()`
 2. Check permission via `hasPermission()`
 3. Call service function
@@ -761,6 +773,7 @@ git commit -m "feat: add event management service and API routes"
 ## Task 6: Event Management — Admin UI
 
 **Files:**
+
 - Create: `src/app/(admin)/layout.tsx` — admin layout with sidebar navigation
 - Create: `src/app/(admin)/events/page.tsx` — events list page
 - Create: `src/app/(admin)/events/new/page.tsx` — create event form
@@ -770,6 +783,7 @@ git commit -m "feat: add event management service and API routes"
 **Step 1: Create admin layout with sidebar**
 
 Sidebar links (Phase 1 only):
+
 - 活動管理 (`/admin/events`)
 - 報名管理 (`/admin/registrations`)
 - 出席管理 (`/admin/attendance`)
@@ -787,6 +801,7 @@ Header: show current user name + role + logout button.
 **Step 3: Create event form (shared between new & edit)**
 
 Fields:
+
 - 活動名稱 (required)
 - 活動說明 (textarea)
 - 地點
@@ -823,6 +838,7 @@ git commit -m "feat: add event management admin UI with CRUD"
 ## Task 7: Registration Management — Service & API
 
 **Files:**
+
 - Create: `src/services/registration.service.ts`
 - Create: `src/app/api/registrations/route.ts`
 - Create: `src/app/api/registrations/[registrationId]/route.ts`
@@ -866,6 +882,7 @@ git commit -m "feat: add registration service with waitlist support"
 ## Task 8: Public Event Page & Registration Flow
 
 **Files:**
+
 - Create: `src/app/(public)/events/[eventId]/page.tsx`
 - Create: `src/lib/qrcode.ts`
 
@@ -913,6 +930,7 @@ git commit -m "feat: add public event page with registration flow and QR code"
 ## Task 9: Registration Management — Admin UI
 
 **Files:**
+
 - Create: `src/app/(admin)/registrations/page.tsx`
 
 **Step 1: Create registrations admin page**
@@ -939,6 +957,7 @@ git commit -m "feat: add registration management admin page"
 ## Task 10: Attendance Management — Service & API
 
 **Files:**
+
 - Create: `src/services/attendance.service.ts`
 - Create: `src/app/api/attendance/route.ts`
 
@@ -977,11 +996,13 @@ git commit -m "feat: add attendance service and API with check-in support"
 ## Task 11: Venue QR Code Check-in Page
 
 **Files:**
+
 - Create: `src/app/(public)/check-in/[sessionId]/page.tsx`
 
 **Step 1: Create check-in page**
 
 Flow:
+
 1. User scans venue QR code → arrives at `/check-in/[sessionId]`
 2. If not logged in → redirect to `/login?callbackUrl=/check-in/[sessionId]`
 3. If logged in → show event name, session info, user's name
@@ -1005,6 +1026,7 @@ git commit -m "feat: add venue QR code check-in page"
 ## Task 12: Attendance Management — Admin UI
 
 **Files:**
+
 - Create: `src/app/(admin)/attendance/page.tsx`
 
 **Step 1: Create attendance admin page**
@@ -1034,6 +1056,7 @@ git commit -m "feat: add attendance admin page with manual check-in and QR displ
 ## Task 13: User Management — Admin UI
 
 **Files:**
+
 - Create: `src/app/(admin)/users/page.tsx`
 - Create: `src/app/api/users/route.ts`
 - Create: `src/app/api/users/[userId]/route.ts`
@@ -1086,6 +1109,7 @@ git commit -m "feat: add user management with role assignment"
 ## Task 14: Seed Data & Final Integration
 
 **Files:**
+
 - Create: `prisma/seed.ts`
 
 **Step 1: Create seed script**
@@ -1119,6 +1143,7 @@ npx prisma db seed
 **Step 2: End-to-end walkthrough**
 
 Verify all Phase 1 completion criteria:
+
 - [ ] 一般會員可以透過帳密註冊/登入 (LINE Login after LINE console setup)
 - [ ] 行政同工可以建立活動（含系列活動）
 - [ ] 會員可以報名活動（從活動頁或掃 QR Code）
@@ -1137,19 +1162,19 @@ git commit -m "feat: add seed data and complete Phase 1 MVP integration"
 
 ## Summary
 
-| Task | Description | Dependencies |
-|------|-------------|--------------|
-| 1 | Project scaffolding | None |
-| 2 | Prisma schema & DB setup | Task 1 |
-| 3 | NextAuth.js setup | Task 2 |
-| 4 | RBAC authorization helpers | Task 1 |
-| 5 | Event service & API | Tasks 2, 4 |
-| 6 | Event admin UI | Tasks 3, 5 |
-| 7 | Registration service & API | Tasks 2, 4 |
-| 8 | Public event page & registration flow | Tasks 3, 7 |
-| 9 | Registration admin UI | Tasks 6, 7 |
-| 10 | Attendance service & API | Tasks 2, 7 |
-| 11 | Venue QR Code check-in page | Tasks 3, 8, 10 |
-| 12 | Attendance admin UI | Tasks 6, 10 |
-| 13 | User management admin UI | Tasks 3, 4 |
-| 14 | Seed data & integration test | All above |
+| Task | Description                           | Dependencies   |
+| ---- | ------------------------------------- | -------------- |
+| 1    | Project scaffolding                   | None           |
+| 2    | Prisma schema & DB setup              | Task 1         |
+| 3    | NextAuth.js setup                     | Task 2         |
+| 4    | RBAC authorization helpers            | Task 1         |
+| 5    | Event service & API                   | Tasks 2, 4     |
+| 6    | Event admin UI                        | Tasks 3, 5     |
+| 7    | Registration service & API            | Tasks 2, 4     |
+| 8    | Public event page & registration flow | Tasks 3, 7     |
+| 9    | Registration admin UI                 | Tasks 6, 7     |
+| 10   | Attendance service & API              | Tasks 2, 7     |
+| 11   | Venue QR Code check-in page           | Tasks 3, 8, 10 |
+| 12   | Attendance admin UI                   | Tasks 6, 10    |
+| 13   | User management admin UI              | Tasks 3, 4     |
+| 14   | Seed data & integration test          | All above      |

@@ -13,6 +13,7 @@
 ### Task 1: Prisma schema + migration
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 - Create: `prisma/migrations/20260218100000_add_team_defaults/migration.sql`
 
@@ -45,12 +46,14 @@ model TeamDefaultTask {
 ```
 
 Add to Team model:
+
 ```prisma
 defaultMembers TeamDefaultMember[]
 defaultTasks   TeamDefaultTask[]
 ```
 
 Add to User model:
+
 ```prisma
 teamDefaultMemberships TeamDefaultMember[]
 ```
@@ -66,6 +69,7 @@ Commit: `feat: add TeamDefaultMember and TeamDefaultTask models`
 ### Task 2: Service layer
 
 **Files:**
+
 - Modify: `src/services/team.service.ts`
 - Modify: `src/services/team.service.test.ts`
 
@@ -128,6 +132,7 @@ export async function removeDefaultTask(taskId: string) {
 **Modified functions:**
 
 `getTeamTemplates()` — add `_count` for defaultMembers and defaultTasks:
+
 ```typescript
 return prisma.team.findMany({
   orderBy: { name: "asc" },
@@ -138,8 +143,12 @@ return prisma.team.findMany({
 ```
 
 `createEventTeam()` — after creating EventTeam, copy defaults in a transaction:
+
 ```typescript
-export async function createEventTeam(eventId: string, input: { teamId?: string; customName?: string }) {
+export async function createEventTeam(
+  eventId: string,
+  input: { teamId?: string; customName?: string }
+) {
   // ... existing validation ...
 
   return prisma.$transaction(async (tx) => {
@@ -190,7 +199,8 @@ Commit: `feat: add default members/tasks service functions and auto-copy on even
 ### Task 3: API routes for default members and tasks
 
 **Files:**
-- Modify: `src/app/api/teams/route.ts` — GET includes _count
+
+- Modify: `src/app/api/teams/route.ts` — GET includes \_count
 - Modify: `src/app/api/teams/[teamId]/route.ts` — add GET handler
 - Create: `src/app/api/teams/[teamId]/default-members/route.ts` — POST
 - Create: `src/app/api/teams/[teamId]/default-members/[userId]/route.ts` — DELETE
@@ -198,6 +208,7 @@ Commit: `feat: add default members/tasks service functions and auto-copy on even
 - Create: `src/app/api/teams/[teamId]/default-tasks/[taskId]/route.ts` — DELETE
 
 All routes follow the existing pattern:
+
 - Auth check → assertActive → hasPermission("teams", "read"/"write")
 - GET = read permission, POST/DELETE = write permission
 - TeamServiceError handling with status map
@@ -223,6 +234,7 @@ Commit: `feat: add API routes for team template default members and tasks`
 ### Task 4: Enhanced admin teams page
 
 **Files:**
+
 - Modify: `src/app/admin/teams/page.tsx`
 
 Transform the flat table into an expandable detail view:

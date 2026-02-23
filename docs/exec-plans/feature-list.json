@@ -1,0 +1,298 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-02-23",
+  "rules": [
+    "Do NOT delete or rewrite feature items. Only set passes true/false and append notes.",
+    "Only set passes=true after completing end-to-end verification for that feature.",
+    "passes=true means YOU verified it this session, not just that old tests exist.",
+    "Add new features as new entries. Do not merge into existing ones."
+  ],
+  "features": [
+    {
+      "id": "auth",
+      "priority": "P0",
+      "name": "Authentication",
+      "description": "LINE OAuth + email/password login, JWT sessions, profile completion flow",
+      "status": "complete",
+      "steps": [
+        "Open /login",
+        "Log in with credentials or LINE OAuth",
+        "Verify redirect to app home",
+        "Verify session persists on refresh",
+        "Verify incomplete profile redirects to /complete-profile"
+      ],
+      "services": ["src/lib/auth.ts", "src/lib/auth.config.ts"],
+      "routes": ["/api/auth/[...nextauth]", "/api/auth/register", "/api/me/profile"],
+      "pages": ["/login", "/complete-profile"],
+      "unitTests": true,
+      "e2eTests": ["e2e/1-auth.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/1-auth.spec.ts covers login flow. Unit tests: 143/143 pass (2026-02-23).",
+      "notes": "12-hour max session age. LINE is primary provider."
+    },
+    {
+      "id": "authorization",
+      "priority": "P0",
+      "name": "Role-Based Permissions",
+      "description": "DB-backed RBAC with 8 roles, per-module read/write permissions, in-memory cache",
+      "status": "complete",
+      "steps": [
+        "Open /admin/users/roles",
+        "Toggle a permission for a non-ADMIN role",
+        "Save changes",
+        "Verify the role now has/lacks access to the corresponding admin page",
+        "Verify ADMIN always has full access regardless of DB entries"
+      ],
+      "services": ["src/services/role-permission.service.ts", "src/lib/authorization.ts"],
+      "routes": ["/api/role-permissions", "/api/me/permissions"],
+      "pages": ["/admin/users/roles"],
+      "unitTests": true,
+      "e2eTests": ["e2e/11-admin-role-permissions.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/11-admin-role-permissions.spec.ts (4 tests). Unit tests pass. Verified 2026-02-23.",
+      "notes": "ADMIN bypasses all checks. 60s cache TTL."
+    },
+    {
+      "id": "events",
+      "priority": "P0",
+      "name": "Event Management",
+      "description": "CRUD for single/series events with sessions, computed status lifecycle",
+      "status": "complete",
+      "steps": [
+        "Open /admin/events/new, create a single event",
+        "Verify it appears in /admin/events list",
+        "Edit the event, change title and add sessions",
+        "Verify public /events page shows OPEN events",
+        "Delete the event, verify removal"
+      ],
+      "services": ["src/services/event.service.ts"],
+      "routes": ["/api/events", "/api/events/[eventId]"],
+      "pages": [
+        "/admin/events",
+        "/admin/events/new",
+        "/admin/events/[eventId]",
+        "/events",
+        "/events/[eventId]"
+      ],
+      "unitTests": true,
+      "e2eTests": ["e2e/2-admin-events.spec.ts", "e2e/3-public-event.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/2-admin-events.spec.ts + e2e/3-public-event.spec.ts. Unit tests pass.",
+      "notes": "Status computed from session dates: PLANNING → OPEN → IN_PROGRESS → COMPLETED."
+    },
+    {
+      "id": "registrations",
+      "priority": "P0",
+      "name": "Registration",
+      "description": "Event registration with auto-waitlist and auto-promotion on cancellation",
+      "status": "complete",
+      "steps": [
+        "Open /events/[eventId] as a logged-in user",
+        "Click register, verify REGISTERED status",
+        "Cancel registration, verify CANCELLED status",
+        "Fill event to maxParticipants, register another user, verify WAITLISTED",
+        "Cancel one registration, verify waitlisted user promoted to REGISTERED"
+      ],
+      "services": ["src/services/registration.service.ts"],
+      "routes": ["/api/registrations", "/api/registrations/[registrationId]"],
+      "pages": ["/admin/registrations", "/my/registrations"],
+      "unitTests": true,
+      "e2eTests": ["e2e/4-admin-registrations.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/4-admin-registrations.spec.ts. Unit tests pass.",
+      "notes": "Waitlist engages when maxParticipants reached."
+    },
+    {
+      "id": "attendance",
+      "priority": "P1",
+      "name": "Attendance Tracking",
+      "description": "Per-session check-in, late marking, bulk check-in, attendance matrix",
+      "status": "complete",
+      "steps": [
+        "Open /admin/attendance, select an event",
+        "Check in a user for a session",
+        "Mark a user as late with minutes",
+        "Use bulk check-in for multiple users",
+        "Verify attendance matrix shows correct data"
+      ],
+      "services": ["src/services/attendance.service.ts"],
+      "routes": [
+        "/api/attendance",
+        "/api/attendance/bulk",
+        "/api/events/[eventId]/attendance-summary"
+      ],
+      "pages": ["/admin/attendance"],
+      "unitTests": true,
+      "e2eTests": ["e2e/5-admin-attendance.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/5-admin-attendance.spec.ts. Unit tests pass.",
+      "notes": "Attendance summary returns user × session matrix."
+    },
+    {
+      "id": "checkin",
+      "priority": "P1",
+      "name": "QR Code Check-in",
+      "description": "Public QR code check-in page per event session",
+      "status": "complete",
+      "steps": [
+        "Open /admin/share, generate QR for a session",
+        "Scan/open QR link at /check-in/[sessionId]",
+        "Verify check-in recorded for authenticated user",
+        "Verify attendance appears in admin attendance view"
+      ],
+      "services": ["src/lib/qrcode.ts"],
+      "routes": ["/api/check-in/[sessionId]"],
+      "pages": ["/check-in/[sessionId]"],
+      "unitTests": false,
+      "e2eTests": ["e2e/7-checkin-flow.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/7-checkin-flow.spec.ts covers full QR check-in flow.",
+      "notes": "QR displayed on admin share page."
+    },
+    {
+      "id": "assignments",
+      "priority": "P1",
+      "name": "Assignment Management",
+      "description": "Per-session assignments with completion tracking and rate computation",
+      "status": "complete",
+      "steps": [
+        "Open /admin/assignments, select an event",
+        "Create an assignment for a session",
+        "Mark a user as completed",
+        "Remove a completion",
+        "Verify completion rate matrix reflects changes"
+      ],
+      "services": ["src/services/assignment.service.ts"],
+      "routes": [
+        "/api/assignments",
+        "/api/assignments/[id]",
+        "/api/assignments/[id]/completions",
+        "/api/assignments/[id]/completions/[userId]",
+        "/api/events/[eventId]/assignment-summary"
+      ],
+      "pages": ["/admin/assignments"],
+      "unitTests": true,
+      "e2eTests": ["e2e/8-admin-assignments.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/8-admin-assignments.spec.ts (6 tests). Unit tests pass. Verified 2026-02-23.",
+      "notes": "Completion matrix tracks per-user per-assignment status."
+    },
+    {
+      "id": "teams",
+      "priority": "P1",
+      "name": "Teams",
+      "description": "Team templates with default members/tasks, event team instantiation",
+      "status": "complete",
+      "steps": [
+        "Open /admin/teams, create a team template",
+        "Add default members and default tasks to the template",
+        "Open /admin/events/[eventId], attach the team template to an event",
+        "Verify default members and tasks were cloned to event team",
+        "Add/remove event team members and tasks independently"
+      ],
+      "services": ["src/services/team.service.ts"],
+      "routes": [
+        "/api/teams",
+        "/api/teams/[teamId]",
+        "/api/teams/[teamId]/default-members",
+        "/api/teams/[teamId]/default-members/[userId]",
+        "/api/teams/[teamId]/default-tasks",
+        "/api/teams/[teamId]/default-tasks/[taskId]",
+        "/api/events/[eventId]/teams",
+        "/api/events/[eventId]/teams/[eventTeamId]",
+        "/api/events/[eventId]/teams/[eventTeamId]/members",
+        "/api/events/[eventId]/teams/[eventTeamId]/members/[userId]",
+        "/api/events/[eventId]/teams/[eventTeamId]/tasks",
+        "/api/events/[eventId]/teams/[eventTeamId]/tasks/[taskId]"
+      ],
+      "pages": ["/admin/teams", "/admin/events/[eventId]"],
+      "unitTests": true,
+      "e2eTests": ["e2e/9-admin-teams.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/9-admin-teams.spec.ts (7 tests). Unit tests pass (36 tests). Verified 2026-02-23.",
+      "notes": "Two-level model: templates are reusable, event teams are per-event instances."
+    },
+    {
+      "id": "budget",
+      "priority": "P2",
+      "name": "Budget Tracking",
+      "description": "Per-event budget items with estimated vs actual, summary with execution rate",
+      "status": "complete",
+      "steps": [
+        "Open /admin/budget, select an event",
+        "Create a budget item with category and estimated amount",
+        "Update actual amount",
+        "Verify summary shows correct totals and execution rate",
+        "Delete a budget item"
+      ],
+      "services": ["src/services/budget.service.ts"],
+      "routes": ["/api/budget", "/api/budget/[id]"],
+      "pages": ["/admin/budget"],
+      "unitTests": true,
+      "e2eTests": ["e2e/10-admin-budget.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/10-admin-budget.spec.ts (6 tests). Unit tests pass. Verified 2026-02-23.",
+      "notes": "Categories: MEAL, SNACK, VENUE, MATERIAL, EQUIPMENT, OTHER."
+    },
+    {
+      "id": "users",
+      "priority": "P0",
+      "name": "User Management",
+      "description": "User listing, role assignment with expiration, account activation/deactivation",
+      "status": "complete",
+      "steps": [
+        "Open /admin/users, verify user list loads",
+        "Change a user's role",
+        "Deactivate a user, verify they cannot access /admin",
+        "Reactivate the user, verify access restored"
+      ],
+      "services": ["src/services/user.service.ts"],
+      "routes": ["/api/users", "/api/users/[userId]"],
+      "pages": ["/admin/users"],
+      "unitTests": true,
+      "e2eTests": ["e2e/6-admin-users.spec.ts"],
+      "passes": true,
+      "evidence": "E2E e2e/6-admin-users.spec.ts. Unit tests pass.",
+      "notes": "Inactive users blocked from admin via middleware."
+    },
+    {
+      "id": "admin-dashboard",
+      "priority": "P2",
+      "name": "Admin Dashboard",
+      "description": "Admin overview page and share page for event QR codes",
+      "status": "complete",
+      "steps": [
+        "Open /admin, verify dashboard loads with overview subtabs",
+        "Switch between subtabs, verify content updates",
+        "Open /admin/share, verify QR code generation works"
+      ],
+      "services": [],
+      "routes": [],
+      "pages": ["/admin", "/admin/share"],
+      "unitTests": false,
+      "e2eTests": [],
+      "passes": false,
+      "evidence": "No E2E verification. UI-only feature.",
+      "notes": "Overview subtabs implemented for dashboard."
+    }
+  ],
+  "testSummary": {
+    "unitTests": {
+      "framework": "vitest",
+      "total": 143,
+      "passing": 143,
+      "files": 10
+    },
+    "integrationTests": {
+      "framework": "vitest",
+      "config": "vitest.integration.config.ts",
+      "files": ["src/services/registration.service.integration.test.ts"],
+      "notes": "Requires live database connection"
+    },
+    "e2eTests": {
+      "framework": "playwright",
+      "files": 11,
+      "notes": "Numbered 1-11 for sequential execution order"
+    }
+  }
+}

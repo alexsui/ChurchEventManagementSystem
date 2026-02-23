@@ -1,11 +1,11 @@
 # 作業管理 (Assignment Management) — 設計文件
 
-| 項目   | 內容                        |
-| :----- | :-------------------------- |
-| 版本號 | v1.0                        |
-| 日期   | 2026-02-17                  |
-| 狀態   | 已核准                      |
-| 依據   | HLD v1.0 Phase 2            |
+| 項目   | 內容             |
+| :----- | :--------------- |
+| 版本號 | v1.0             |
+| 日期   | 2026-02-17       |
+| 狀態   | 已核准           |
+| 依據   | HLD v1.0 Phase 2 |
 
 ---
 
@@ -29,14 +29,14 @@ Phase 2 簡化版作業管理：追蹤會員是否完成作業（勾選），不
 
 ## 2. 設計決策
 
-| 決策                     | 選項                               | 結論               | 理由                                               |
-| :----------------------- | :--------------------------------- | :----------------- | :------------------------------------------------- |
-| 作業歸屬                 | Per Event / Per EventSession       | Per EventSession   | 符合 HLD 設計，支援逐堂追蹤                        |
-| 每堂作業數量             | 單一 / 多筆                        | 多筆               | 彈性較大（如「讀經篇章」+「寫心得」）              |
-| 是否每堂都必須有作業     | 強制 / 選擇性                      | 選擇性             | 有些堂次不需要作業                                 |
-| 完成標記者               | 管理者 / 會員 / 兩者               | 僅管理者           | 簡化版，避免會員自行灌水                           |
-| 結業條件                 | 包含 / 延後                        | 包含               | 一併實作，完成率 = 已完成數 / 作業總數             |
-| 資料模型                 | 兩表 / JSON / 複用 Attendance      | 兩表               | 維持關聯完整性，符合現有 codebase pattern           |
+| 決策                 | 選項                          | 結論             | 理由                                      |
+| :------------------- | :---------------------------- | :--------------- | :---------------------------------------- |
+| 作業歸屬             | Per Event / Per EventSession  | Per EventSession | 符合 HLD 設計，支援逐堂追蹤               |
+| 每堂作業數量         | 單一 / 多筆                   | 多筆             | 彈性較大（如「讀經篇章」+「寫心得」）     |
+| 是否每堂都必須有作業 | 強制 / 選擇性                 | 選擇性           | 有些堂次不需要作業                        |
+| 完成標記者           | 管理者 / 會員 / 兩者          | 僅管理者         | 簡化版，避免會員自行灌水                  |
+| 結業條件             | 包含 / 延後                   | 包含             | 一併實作，完成率 = 已完成數 / 作業總數    |
+| 資料模型             | 兩表 / JSON / 複用 Attendance | 兩表             | 維持關聯完整性，符合現有 codebase pattern |
 
 ---
 
@@ -121,22 +121,22 @@ model EventSession {
 
 **檔案**：`src/services/assignment.service.ts`
 
-| 方法                                              | 說明                                     |
-| :------------------------------------------------ | :--------------------------------------- |
-| `createAssignment(eventSessionId, title)`          | 建立作業                                 |
-| `deleteAssignment(id)`                             | 刪除作業（cascade 刪除所有完成紀錄）     |
-| `getAssignmentsBySession(eventSessionId)`          | 取得該堂所有作業（含完成人數統計）       |
-| `getAssignmentsByEvent(eventId)`                   | 取得該活動所有作業（跨 session）         |
-| `markComplete(assignmentId, userIds[], adminId)`   | 批次標記完成                             |
-| `removeCompletion(assignmentId, userId)`           | 取消完成標記                             |
-| `getCompletionRate(userId, eventId)`               | 計算會員在該活動的作業完成率             |
+| 方法                                             | 說明                                 |
+| :----------------------------------------------- | :----------------------------------- |
+| `createAssignment(eventSessionId, title)`        | 建立作業                             |
+| `deleteAssignment(id)`                           | 刪除作業（cascade 刪除所有完成紀錄） |
+| `getAssignmentsBySession(eventSessionId)`        | 取得該堂所有作業（含完成人數統計）   |
+| `getAssignmentsByEvent(eventId)`                 | 取得該活動所有作業（跨 session）     |
+| `markComplete(assignmentId, userIds[], adminId)` | 批次標記完成                         |
+| `removeCompletion(assignmentId, userId)`         | 取消完成標記                         |
+| `getCompletionRate(userId, eventId)`             | 計算會員在該活動的作業完成率         |
 
 ---
 
 ## 5. API Routes
 
-| Method | Route                                        | 權限            | 說明                       |
-| :----- | :------------------------------------------- | :-------------- | :------------------------- |
+| Method | Route                                        | 權限              | 說明                       |
+| :----- | :------------------------------------------- | :---------------- | :------------------------- |
 | GET    | `/api/assignments?eventSessionId=`           | assignments:read  | 列出某堂的作業             |
 | POST   | `/api/assignments`                           | assignments:write | 建立作業                   |
 | DELETE | `/api/assignments/[id]`                      | assignments:write | 刪除作業                   |
@@ -181,8 +181,8 @@ model EventSession {
 
 依 HLD 權限矩陣：
 
-| 角色         | assignments |
-| :----------- | :---------- |
-| 統籌者       | 讀寫        |
-| 行政同工     | 讀          |
-| 其他角色     | 依設定      |
+| 角色     | assignments |
+| :------- | :---------- |
+| 統籌者   | 讀寫        |
+| 行政同工 | 讀          |
+| 其他角色 | 依設定      |

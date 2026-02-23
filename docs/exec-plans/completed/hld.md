@@ -2,30 +2,30 @@
 
 Church Event Management System — High-Level Design
 
-| 項目   | 內容               |
-| :----- | :----------------- |
-| 版本號 | v1.0               |
-| 日期   | 2026-02-17         |
-| 狀態   | 已核准             |
-| 依據   | PRD v1.0           |
+| 項目   | 內容       |
+| :----- | :--------- |
+| 版本號 | v1.0       |
+| 日期   | 2026-02-17 |
+| 狀態   | 已核准     |
+| 依據   | PRD v1.0   |
 
 ---
 
 ## 1. 技術選型總覽
 
-| 層級       | 技術                          | 說明                                             |
-| :--------- | :---------------------------- | :----------------------------------------------- |
-| 前端       | Next.js (App Router) + React  | SSR/SSG + 客戶端互動                             |
-| UI 元件    | shadcn/ui + Tailwind CSS      | 可客製元件庫                                     |
-| 後端 API   | Next.js API Routes            | 同一專案內的 serverless API                      |
-| ORM        | Prisma                        | 型別安全、自動 migration                         |
-| 資料庫     | Supabase PostgreSQL           | 短期用 Supabase，未來可換任何 PostgreSQL          |
-| 檔案儲存   | Supabase Storage              | 作業上傳，透過 presigned URL 直傳                |
-| 認證       | NextAuth.js (Auth.js v5)      | LINE Login + 帳密（所有人皆可選擇）+ Prisma Adapter |
-| QR Code    | `qrcode` npm 套件             | server-side 產生活動報名連結 QR + 每堂場地報到 QR |
-| 部署       | Vercel                        | 一鍵部署 Next.js                                 |
-| 語言       | TypeScript                    | 全專案統一                                       |
-| UI 語系    | 繁體中文                      | 不做多語系                                       |
+| 層級     | 技術                         | 說明                                                |
+| :------- | :--------------------------- | :-------------------------------------------------- |
+| 前端     | Next.js (App Router) + React | SSR/SSG + 客戶端互動                                |
+| UI 元件  | shadcn/ui + Tailwind CSS     | 可客製元件庫                                        |
+| 後端 API | Next.js API Routes           | 同一專案內的 serverless API                         |
+| ORM      | Prisma                       | 型別安全、自動 migration                            |
+| 資料庫   | Supabase PostgreSQL          | 短期用 Supabase，未來可換任何 PostgreSQL            |
+| 檔案儲存 | Supabase Storage             | 作業上傳，透過 presigned URL 直傳                   |
+| 認證     | NextAuth.js (Auth.js v5)     | LINE Login + 帳密（所有人皆可選擇）+ Prisma Adapter |
+| QR Code  | `qrcode` npm 套件            | server-side 產生活動報名連結 QR + 每堂場地報到 QR   |
+| 部署     | Vercel                       | 一鍵部署 Next.js                                    |
+| 語言     | TypeScript                   | 全專案統一                                          |
+| UI 語系  | 繁體中文                     | 不做多語系                                          |
 
 ---
 
@@ -178,29 +178,29 @@ church-event-management/
 
 **模組說明：**
 
-| 模組 | 說明 |
-| :--- | :--- |
-| events | 活動管理 — 建立／編輯／刪除活動、設定活動狀態、管理系列活動的每一堂 |
+| 模組          | 說明                                                                    |
+| :------------ | :---------------------------------------------------------------------- |
+| events        | 活動管理 — 建立／編輯／刪除活動、設定活動狀態、管理系列活動的每一堂     |
 | registrations | 報名管理 — 查看／管理報名名單、報名狀態（已報名／取消／候補）、名額控管 |
-| attendance | 出席管理 — 點名／報到紀錄、遲到標記、每堂出席追蹤 |
-| assignments | 作業管理 — 每堂課的作業指派、繳交狀態追蹤、完成比例統計 |
-| users | 會員資料 — 使用者個人資料、屬性標籤、參加歷史、牧養備註 |
-| teams | 工作人員與分組 — 服事組別管理（影音／敬拜／破冰等）、任務指派、SOP 文件 |
-| budget | 預算與總務 — 活動預算編列（餐飲／場佈／設備等）、實際支出、預算對比 |
-| reports | 統計與報表 — 報名／出席統計儀表板、人數趨勢、會員參與度分析 |
+| attendance    | 出席管理 — 點名／報到紀錄、遲到標記、每堂出席追蹤                       |
+| assignments   | 作業管理 — 每堂課的作業指派、繳交狀態追蹤、完成比例統計                 |
+| users         | 會員資料 — 使用者個人資料、屬性標籤、參加歷史、牧養備註                 |
+| teams         | 工作人員與分組 — 服事組別管理（影音／敬拜／破冰等）、任務指派、SOP 文件 |
+| budget        | 預算與總務 — 活動預算編列（餐飲／場佈／設備等）、實際支出、預算對比     |
+| reports       | 統計與報表 — 報名／出席統計儀表板、人數趨勢、會員參與度分析             |
 
 **各角色權限矩陣：**
 
-| 角色     | events | registrations | attendance | assignments | users  | teams    | budget | reports |
-| :------- | :----- | :------------ | :--------- | :---------- | :----- | :------- | :----- | :------ |
-| 統籌者     | 全部   | 全部          | 全部       | 全部        | 全部   | 全部     | 全部   | 全部    |
-| 行政同工   | 讀寫   | 讀寫          | 讀寫       | 讀          | 讀     | 讀       | —      | 讀      |
-| 總務同工   | 讀     | 讀（人數）    | —          | —           | —      | —        | 讀寫   | 讀      |
-| 財務同工   | 讀     | 讀（人數）    | —          | —           | —      | —        | 讀寫   | 讀      |
-| 傳道人     | 讀     | 讀            | 讀         | 讀          | 讀     | 讀       | —      | 讀      |
-| 多媒體同工 | 讀     | —             | —          | —           | —      | 所屬組別 | —      | —       |
-| 組長       | 讀     | 讀            | 讀         | 讀          | —      | 所屬組別 | —      | —       |
-| 一般會員   | 讀（已報名） | 自己的  | 自己的     | 自己的      | 自己的 | —        | —      | —       |
+| 角色       | events       | registrations | attendance | assignments | users  | teams    | budget | reports |
+| :--------- | :----------- | :------------ | :--------- | :---------- | :----- | :------- | :----- | :------ |
+| 統籌者     | 全部         | 全部          | 全部       | 全部        | 全部   | 全部     | 全部   | 全部    |
+| 行政同工   | 讀寫         | 讀寫          | 讀寫       | 讀          | 讀     | 讀       | —      | 讀      |
+| 總務同工   | 讀           | 讀（人數）    | —          | —           | —      | —        | 讀寫   | 讀      |
+| 財務同工   | 讀           | 讀（人數）    | —          | —           | —      | —        | 讀寫   | 讀      |
+| 傳道人     | 讀           | 讀            | 讀         | 讀          | 讀     | 讀       | —      | 讀      |
+| 多媒體同工 | 讀           | —             | —          | —           | —      | 所屬組別 | —      | —       |
+| 組長       | 讀           | 讀            | 讀         | 讀          | —      | 所屬組別 | —      | —       |
+| 一般會員   | 讀（已報名） | 自己的        | 自己的     | 自己的      | 自己的 | —        | —      | —       |
 
 ### 4.3 組長特殊處理
 
@@ -275,18 +275,18 @@ church-event-management/
 
 ### 核心 Entity 說明
 
-| Entity       | 對應 PRD  | 關鍵設計                                                   |
-| :----------- | :-------- | :--------------------------------------------------------- |
+| Entity       | 對應 PRD  | 關鍵設計                                                                                                                                           |
+| :----------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **User**     | 4.1 + 6.6 | **統一的使用者表**（原 User + Member 合併）。`role` 區分管理者與一般會員；`provider` 記錄登入方式（credentials / line）；含個人資料、tags、LINE ID |
-| Event        | 6.1       | `type` 區分單場/系列；系列活動下掛多個 Session             |
-| Session      | 6.1       | 單場活動自動建一個 Session；系列活動建多個                  |
-| Registration | 6.2       | 關聯 User + Event，`status` 追蹤報名/取消/候補             |
-| Attendance   | 6.3       | 關聯 User + Session，含遲到標記與分鐘數                    |
-| Assignment   | 6.4       | 掛在 Session 下，每堂課可指派作業                          |
-| Submission   | 6.4       | 關聯 User + Assignment，`file_url` 指向 Storage            |
-| Team         | 6.5       | 組別 + SOP 文件                                            |
-| TeamTask     | 6.5       | 指派給 User（管理者角色），追蹤進度                        |
-| Budget       | 6.7       | 每個 Event 可有多筆預算項目                                |
+| Event        | 6.1       | `type` 區分單場/系列；系列活動下掛多個 Session                                                                                                     |
+| Session      | 6.1       | 單場活動自動建一個 Session；系列活動建多個                                                                                                         |
+| Registration | 6.2       | 關聯 User + Event，`status` 追蹤報名/取消/候補                                                                                                     |
+| Attendance   | 6.3       | 關聯 User + Session，含遲到標記與分鐘數                                                                                                            |
+| Assignment   | 6.4       | 掛在 Session 下，每堂課可指派作業                                                                                                                  |
+| Submission   | 6.4       | 關聯 User + Assignment，`file_url` 指向 Storage                                                                                                    |
+| Team         | 6.5       | 組別 + SOP 文件                                                                                                                                    |
+| TeamTask     | 6.5       | 指派給 User（管理者角色），追蹤進度                                                                                                                |
+| Budget       | 6.7       | 每個 Event 可有多筆預算項目                                                                                                                        |
 
 ### 結業條件計算（PRD 6.3）
 
@@ -396,10 +396,10 @@ church-event-management/
 
 ### 7.1 環境分層
 
-| 環境 | Branch | 部署位置                 | Supabase 專案   |
-| :--- | :----- | :----------------------- | :-------------- |
-| Dev  | `dev`  | Vercel Preview（自動）   | Supabase dev    |
-| Prod | `main` | Vercel Production（自動）| Supabase prod   |
+| 環境 | Branch | 部署位置                  | Supabase 專案 |
+| :--- | :----- | :------------------------ | :------------ |
+| Dev  | `dev`  | Vercel Preview（自動）    | Supabase dev  |
+| Prod | `main` | Vercel Production（自動） | Supabase prod |
 
 ### 7.2 Git 開發流程
 
@@ -427,11 +427,11 @@ Vercel 後台可分別設定 Production 和 Preview 的環境變數，自動連�
 
 ### 7.4 未來搬家路徑
 
-| 現在                 | 未來（任一選項）                              | 改動範圍           |
-| :------------------- | :-------------------------------------------- | :----------------- |
-| Vercel               | 繼續用 / AWS / 任何 Node.js 平台              | 部署設定           |
-| Supabase PostgreSQL  | AWS RDS / Neon / Railway / 自架 PostgreSQL     | 改 DATABASE_URL    |
-| Supabase Storage     | AWS S3 / 任何 S3 相容儲存                     | 改 storage.ts      |
+| 現在                | 未來（任一選項）                           | 改動範圍        |
+| :------------------ | :----------------------------------------- | :-------------- |
+| Vercel              | 繼續用 / AWS / 任何 Node.js 平台           | 部署設定        |
+| Supabase PostgreSQL | AWS RDS / Neon / Railway / 自架 PostgreSQL | 改 DATABASE_URL |
+| Supabase Storage    | AWS S3 / 任何 S3 相容儲存                  | 改 storage.ts   |
 
 ---
 
@@ -439,23 +439,23 @@ Vercel 後台可分別設定 Production 和 Preview 的環境變數，自動連�
 
 ### 8.1 Phase 1 包含
 
-| 模組       | 功能                                                                       | 對應 Entity             |
-| :--------- | :------------------------------------------------------------------------- | :---------------------- |
-| 活動管理   | 建立／編輯／刪除活動、支援單場＋系列活動、活動狀態管理                     | Event, Session          |
-| 會員與認證 | LINE Login + 帳密登入、首次登入自動建立 User、RBAC 角色權限               | User                    |
-| 報名管理   | 登入後報名、QR Code 分享、報名狀態追蹤、名額管理＋候補                     | Registration            |
-| 出席管理   | 手動點名 + QR Code 報到、遲到標記、每堂出席紀錄                            | Attendance              |
+| 模組       | 功能                                                        | 對應 Entity    |
+| :--------- | :---------------------------------------------------------- | :------------- |
+| 活動管理   | 建立／編輯／刪除活動、支援單場＋系列活動、活動狀態管理      | Event, Session |
+| 會員與認證 | LINE Login + 帳密登入、首次登入自動建立 User、RBAC 角色權限 | User           |
+| 報名管理   | 登入後報名、QR Code 分享、報名狀態追蹤、名額管理＋候補      | Registration   |
+| 出席管理   | 手動點名 + QR Code 報到、遲到標記、每堂出席紀錄             | Attendance     |
 
 ### 8.2 Phase 1 不包含
 
-| 延後項目                                         | 原因                                 |
-| :----------------------------------------------- | :----------------------------------- |
-| 作業管理 (Assignment, Submission)                | 需先有穩定的活動＋出席基礎           |
-| 會員資料庫進階功能（標籤、自動分組、兒童營欄位） | Phase 1 的 User 只存基本欄位         |
-| 工作人員分組與任務追蹤 (Team, TeamTask)          | 可先繼續用 LINE 群組協調             |
-| 預算與總務 (Budget)                              | 可先繼續用 Excel                     |
-| 統計報表 (Reports)                               | 需累積足夠資料才有意義               |
-| 結業條件判定                                     | 依賴作業管理，延到 Phase 2           |
+| 延後項目                                         | 原因                         |
+| :----------------------------------------------- | :--------------------------- |
+| 作業管理 (Assignment, Submission)                | 需先有穩定的活動＋出席基礎   |
+| 會員資料庫進階功能（標籤、自動分組、兒童營欄位） | Phase 1 的 User 只存基本欄位 |
+| 工作人員分組與任務追蹤 (Team, TeamTask)          | 可先繼續用 LINE 群組協調     |
+| 預算與總務 (Budget)                              | 可先繼續用 Excel             |
+| 統計報表 (Reports)                               | 需累積足夠資料才有意義       |
+| 結業條件判定                                     | 依賴作業管理，延到 Phase 2   |
 
 ### 8.3 Phase 1 完成定義
 

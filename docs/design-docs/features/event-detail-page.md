@@ -21,13 +21,13 @@ The event detail page imports all 4 panel components and renders them as sub-tab
 
 ### New shared components
 
-| File | Extracted from | Description |
-|------|---------------|-------------|
-| `src/components/admin/event-selector.tsx` | All 4 module pages | Shared event dropdown selector |
+| File                                           | Extracted from                         | Description                           |
+| ---------------------------------------------- | -------------------------------------- | ------------------------------------- |
+| `src/components/admin/event-selector.tsx`      | All 4 module pages                     | Shared event dropdown selector        |
 | `src/components/admin/registrations-panel.tsx` | `src/app/admin/registrations/page.tsx` | Full registrations CRUD for one event |
-| `src/components/admin/attendance-panel.tsx` | `src/app/admin/attendance/page.tsx` | Full attendance CRUD for one event |
-| `src/components/admin/assignments-panel.tsx` | `src/app/admin/assignments/page.tsx` | Full assignments CRUD for one event |
-| `src/components/admin/budget-panel.tsx` | `src/app/admin/budget/page.tsx` | Full budget CRUD for one event |
+| `src/components/admin/attendance-panel.tsx`    | `src/app/admin/attendance/page.tsx`    | Full attendance CRUD for one event    |
+| `src/components/admin/assignments-panel.tsx`   | `src/app/admin/assignments/page.tsx`   | Full assignments CRUD for one event   |
+| `src/components/admin/budget-panel.tsx`        | `src/app/admin/budget/page.tsx`        | Full budget CRUD for one event        |
 
 Each panel accepts `eventId: string` as its only required prop. All event selection logic is removed from the panel — it works with the given event directly.
 
@@ -96,6 +96,7 @@ Each panel fetches from existing API endpoints (`/api/registrations?eventId=`, `
 ## Files Changed
 
 **New files (5):**
+
 - `src/components/admin/event-selector.tsx`
 - `src/components/admin/registrations-panel.tsx`
 - `src/components/admin/attendance-panel.tsx`
@@ -103,6 +104,7 @@ Each panel fetches from existing API endpoints (`/api/registrations?eventId=`, `
 - `src/components/admin/budget-panel.tsx`
 
 **Modified files (5):**
+
 - `src/app/admin/events/[eventId]/page.tsx` — add Tabs, move existing content into 活動資訊 tab
 - `src/app/admin/registrations/page.tsx` — thin wrapper
 - `src/app/admin/attendance/page.tsx` — thin wrapper
@@ -110,4 +112,5 @@ Each panel fetches from existing API endpoints (`/api/registrations?eventId=`, `
 - `src/app/admin/budget/page.tsx` — thin wrapper
 
 **Unchanged:**
+
 - API routes, services, Prisma schema, sidebar navigation

@@ -13,6 +13,7 @@
 ### Task 1: Create shared EventSelector component
 
 **Files:**
+
 - Create: `src/components/admin/event-selector.tsx`
 
 All 4 standalone module pages share the same pattern: fetch events from `/api/events`, display a Select dropdown. Extract this into a reusable component.
@@ -125,6 +126,7 @@ git commit -m "feat: add shared EventSelector component"
 ### Task 2: Extract RegistrationsPanel and update standalone page
 
 **Files:**
+
 - Create: `src/components/admin/registrations-panel.tsx`
 - Modify: `src/app/admin/registrations/page.tsx`
 
@@ -133,6 +135,7 @@ Extract all registration CRUD logic and UI into a panel component that accepts `
 **Step 1: Create RegistrationsPanel**
 
 The panel contains:
+
 - All types: `Registration` interface
 - All constants: `statusConfig`, `statusFilterOptions`, `formatDateTime`
 - All state except event selection: `registrations`, `registrationsLoading`, `registrationsError`, `statusFilter`, `cancellingId`
@@ -140,6 +143,7 @@ The panel contains:
 - All UI: status filter, registrations table, empty states
 
 Key changes from original:
+
 - Accept `eventId: string` prop instead of managing `selectedEventId` state
 - Remove `EventItem` interface and event-fetching code
 - `fetchRegistrations` uses the `eventId` prop directly
@@ -168,12 +172,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
@@ -268,9 +267,7 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
   }
 
   const filteredRegistrations =
-    statusFilter === "ALL"
-      ? registrations
-      : registrations.filter((r) => r.status === statusFilter);
+    statusFilter === "ALL" ? registrations : registrations.filter((r) => r.status === statusFilter);
 
   if (loading) {
     return (
@@ -327,9 +324,7 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                   <TableHead>電話</TableHead>
                   <TableHead>狀態</TableHead>
                   <TableHead>報名時間</TableHead>
-                  {canWrite && (
-                    <TableHead className="text-right">操作</TableHead>
-                  )}
+                  {canWrite && <TableHead className="text-right">操作</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -340,15 +335,10 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                   };
                   return (
                     <TableRow key={reg.id}>
-                      <TableCell className="font-medium">
-                        {reg.user.name}
-                      </TableCell>
+                      <TableCell className="font-medium">{reg.user.name}</TableCell>
                       <TableCell>{reg.user.phone}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={cn(statusInfo.className)}
-                        >
+                        <Badge variant="secondary" className={cn(statusInfo.className)}>
                           {statusInfo.label}
                         </Badge>
                       </TableCell>
@@ -360,13 +350,9 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                               variant="destructive"
                               size="sm"
                               disabled={cancellingId === reg.id}
-                              onClick={() =>
-                                handleCancel(reg.id, reg.user.name)
-                              }
+                              onClick={() => handleCancel(reg.id, reg.user.name)}
                             >
-                              {cancellingId === reg.id
-                                ? "取消中..."
-                                : "取消報名"}
+                              {cancellingId === reg.id ? "取消中..." : "取消報名"}
                             </Button>
                           )}
                         </TableCell>
@@ -391,13 +377,7 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventSelector } from "@/components/admin/event-selector";
 import { RegistrationsPanel } from "@/components/admin/registrations-panel";
 
@@ -454,6 +434,7 @@ git commit -m "refactor: extract RegistrationsPanel from registrations page"
 ### Task 3: Extract AttendancePanel and update standalone page
 
 **Files:**
+
 - Create: `src/components/admin/attendance-panel.tsx`
 - Modify: `src/app/admin/attendance/page.tsx`
 
@@ -462,6 +443,7 @@ The attendance page has event → session cascading selectors. The panel keeps t
 **Step 1: Create AttendancePanel**
 
 Key changes from original:
+
 - Accept `eventId: string` prop
 - Remove `events`, `eventsLoading`, `eventsError`, `selectedEventId` state
 - Remove `fetchEvents`
@@ -480,13 +462,7 @@ Same thin-wrapper pattern as registrations:
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventSelector } from "@/components/admin/event-selector";
 import { AttendancePanel } from "@/components/admin/attendance-panel";
 
@@ -538,6 +514,7 @@ git commit -m "refactor: extract AttendancePanel from attendance page"
 ### Task 4: Extract AssignmentsPanel and update standalone page
 
 **Files:**
+
 - Create: `src/components/admin/assignments-panel.tsx`
 - Modify: `src/app/admin/assignments/page.tsx`
 
@@ -546,6 +523,7 @@ The assignments page has event → session → assignment cascading selectors pl
 **Step 1: Create AssignmentsPanel**
 
 Key changes from original:
+
 - Accept `eventId: string` prop
 - Remove `events`, `eventsLoading`, `eventsError`, `selectedEventId` state
 - Remove `fetchEvents`
@@ -573,12 +551,14 @@ git commit -m "refactor: extract AssignmentsPanel from assignments page"
 ### Task 5: Extract BudgetPanel and update standalone page
 
 **Files:**
+
 - Create: `src/components/admin/budget-panel.tsx`
 - Modify: `src/app/admin/budget/page.tsx`
 
 **Step 1: Create BudgetPanel**
 
 Key changes from original:
+
 - Accept `eventId: string` prop
 - Remove event selection state and `fetchEvents`
 - Remove the event selector Card
@@ -607,6 +587,7 @@ git commit -m "refactor: extract BudgetPanel from budget page"
 ### Task 6: Update event detail page with tabs
 
 **Files:**
+
 - Modify: `src/app/admin/events/[eventId]/page.tsx`
 
 Add a tabbed interface to the existing event detail page. The existing content (event info, status management, sessions, teams) goes into the default "活動資訊" tab. The 4 panel components are imported and rendered in their respective tabs.
@@ -614,6 +595,7 @@ Add a tabbed interface to the existing event detail page. The existing content (
 **Step 1: Update the event detail page**
 
 Key changes:
+
 - Import `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` from shadcn
 - Import all 4 panel components
 - Import `useAdminPermissions` for each module's read permission
@@ -644,9 +626,7 @@ const { canRead: canReadBudget } = useAdminPermissions("budget");
     {canReadAssignments && <TabsTrigger value="assignments">作業</TabsTrigger>}
     {canReadBudget && <TabsTrigger value="budget">預算</TabsTrigger>}
   </TabsList>
-  <TabsContent value="info">
-    {/* Existing event info, status, sessions, teams cards */}
-  </TabsContent>
+  <TabsContent value="info">{/* Existing event info, status, sessions, teams cards */}</TabsContent>
   {canReadRegistrations && (
     <TabsContent value="registrations">
       <RegistrationsPanel eventId={eventId} />
@@ -667,7 +647,7 @@ const { canRead: canReadBudget } = useAdminPermissions("budget");
       <BudgetPanel eventId={eventId} />
     </TabsContent>
   )}
-</Tabs>
+</Tabs>;
 ```
 
 **Step 2: Verify TypeScript compiles**
@@ -698,6 +678,7 @@ Expected: All existing tests pass (no service/API changes were made)
 **Step 3: Verify no regressions**
 
 Check that:
+
 - Standalone pages still render correctly with event selectors
 - Event detail page shows tabs with correct permissions
 - Each tab loads its data correctly
