@@ -16,6 +16,8 @@ test.describe("Admin event management", () => {
     await page.getByLabel("活動名稱").fill("E2E 測試活動");
     await page.getByLabel("活動說明").fill("這是 E2E 測試建立的活動");
     await page.getByLabel("地點").fill("測試場地");
+    await page.getByLabel("活動類別").click();
+    await page.getByRole("option", { name: "課程" }).click();
     await page.getByLabel("日期").fill("2026-06-01");
     await page.getByRole("button", { name: "建立活動" }).click();
     await page.waitForURL(/\/admin\/events\/.+/);
@@ -37,9 +39,9 @@ test.describe("Admin event management", () => {
     await expect(page.getByRole("button", { name: "報名中" })).toBeVisible();
   });
 
-  test("change event status (OPEN → IN_PROGRESS) → badge updates", async ({ page }) => {
+  test("change event status (PLANNING → IN_PROGRESS) → badge updates", async ({ page }) => {
     await page.goto("/admin/events");
-    await page.getByText("2026 春季幸福小組").click();
+    await page.getByText("E2E 測試活動").click();
     await page.waitForURL(/\/admin\/events\/.+/);
     await page.getByRole("button", { name: "進行中" }).click();
     // Wait for toast confirmation that status changed

@@ -7,7 +7,8 @@ test.describe("Admin registration management", () => {
 
   test("select event → registrations table loads", async ({ page }) => {
     await page.goto("/admin/registrations");
-    await expect(page.getByText("選擇活動")).toBeVisible();
+    await expect(page.getByText("選擇活動", { exact: true })).toBeVisible();
+    await expect(page.getByRole("combobox")).toBeVisible({ timeout: 5000 });
     await page.getByRole("combobox").first().click();
     await page.getByRole("option", { name: /復活節特別聚會/ }).click();
     await expect(page.getByText("報名列表")).toBeVisible({ timeout: 5000 });

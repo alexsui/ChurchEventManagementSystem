@@ -9,6 +9,8 @@ test.describe("Admin attendance management", () => {
     await page.goto("/admin/attendance");
     await page.getByRole("combobox").first().click();
     await page.getByRole("option", { name: /幸福小組/ }).click();
+    await page.getByRole("tab", { name: "場次管理" }).click();
+    await expect(page.getByRole("combobox").nth(1)).toBeVisible({ timeout: 5000 });
     await page.getByRole("combobox").nth(1).click();
     await page.getByRole("option", { name: /第 1 堂/ }).click();
     await expect(page.getByAltText("報到 QR Code")).toBeVisible({ timeout: 10000 });
@@ -19,6 +21,8 @@ test.describe("Admin attendance management", () => {
     await page.goto("/admin/attendance");
     await page.getByRole("combobox").first().click();
     await page.getByRole("option", { name: /幸福小組/ }).click();
+    await page.getByRole("tab", { name: "場次管理" }).click();
+    await expect(page.getByRole("combobox").nth(1)).toBeVisible({ timeout: 5000 });
     await page.getByRole("combobox").nth(1).click();
     await page.getByRole("option", { name: /第 1 堂/ }).click();
     await page.getByRole("tab", { name: /手動點名/ }).click();
@@ -29,6 +33,8 @@ test.describe("Admin attendance management", () => {
     await page.goto("/admin/attendance");
     await page.getByRole("combobox").first().click();
     await page.getByRole("option", { name: /幸福小組/ }).click();
+    await page.getByRole("tab", { name: "場次管理" }).click();
+    await expect(page.getByRole("combobox").nth(1)).toBeVisible({ timeout: 5000 });
     await page.getByRole("combobox").nth(1).click();
     await page.getByRole("option", { name: /第 2 堂/ }).click();
     await page.getByRole("tab", { name: /手動點名/ }).click();

@@ -35,13 +35,13 @@ test.describe("Admin user management", () => {
     await page.getByRole("row").filter({ hasText: "林小明" }).click();
     await expect(page.getByRole("heading", { name: "編輯使用者" })).toBeVisible();
     await page.getByRole("combobox").click();
-    await page.getByRole("option", { name: "小組長" }).click();
+    await page.getByRole("option", { name: "組長" }).click();
     await page.getByRole("button", { name: "儲存" }).click();
     await expect(page.getByRole("heading", { name: "編輯使用者" })).not.toBeVisible({
       timeout: 5000,
     });
     const row = page.getByRole("row").filter({ hasText: "林小明" });
-    await expect(row.getByText("小組長")).toBeVisible();
+    await expect(row.getByText("組長")).toBeVisible();
   });
 
   test("toggle active/inactive → status badge changes", async ({ page }) => {
