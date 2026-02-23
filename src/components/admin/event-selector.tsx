@@ -8,13 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface EventItem {
   id: string;
@@ -68,9 +62,7 @@ export function EventSelector({
         <CardDescription>請選擇要管理的活動</CardDescription>
       </CardHeader>
       <CardContent>
-        {loading && (
-          <p className="text-muted-foreground text-sm">載入活動列表中...</p>
-        )}
+        {loading && <p className="text-muted-foreground text-sm">載入活動列表中...</p>}
         {error && (
           <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
             {error}

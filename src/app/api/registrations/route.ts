@@ -39,8 +39,7 @@ export async function GET(request: NextRequest) {
     const registrations = await getRegistrationsByUser(session.user.id);
     return NextResponse.json(registrations);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -70,10 +69,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!body.eventId) {
-    return NextResponse.json(
-      { error: "eventId is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventId is required" }, { status: 400 });
   }
 
   try {
@@ -91,8 +87,7 @@ export async function POST(request: NextRequest) {
         { status: statusMap[error.code] || 400 }
       );
     }
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -85,11 +85,7 @@ export async function getUserById(id: string) {
   return user;
 }
 
-export async function updateUserRole(
-  id: string,
-  role: Role,
-  expiresAt?: Date | null
-) {
+export async function updateUserRole(id: string, role: Role, expiresAt?: Date | null) {
   const data: Record<string, unknown> = { role };
 
   if (expiresAt !== undefined) {
@@ -112,10 +108,7 @@ export async function updateUserRole(
   return user;
 }
 
-export async function updateOwnProfile(
-  userId: string,
-  data: { name: string; phone?: string }
-) {
+export async function updateOwnProfile(userId: string, data: { name: string; phone?: string }) {
   return prisma.user.update({
     where: { id: userId },
     data: {

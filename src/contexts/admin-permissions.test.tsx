@@ -3,10 +3,7 @@ import { renderHook } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it } from "vitest";
 
-import {
-  AdminPermissionsProvider,
-  useAdminPermissions,
-} from "./admin-permissions";
+import { AdminPermissionsProvider, useAdminPermissions } from "./admin-permissions";
 
 describe("useAdminPermissions", () => {
   it("returns canRead:false, canWrite:false when no provider is present", () => {

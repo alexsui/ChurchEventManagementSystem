@@ -12,10 +12,7 @@ export async function PATCH(request: Request) {
   const { name, phone } = body;
 
   if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return NextResponse.json(
-      { error: "請輸入您的真實姓名" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "請輸入您的真實姓名" }, { status: 400 });
   }
 
   if (!/^[\u4e00-\u9fff]{2,}$/.test(name.trim())) {
@@ -39,14 +36,8 @@ export async function PATCH(request: Request) {
       "code" in error &&
       (error as { code: string }).code === "P2002"
     ) {
-      return NextResponse.json(
-        { error: "更新失敗，請確認資料後重試" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "更新失敗，請確認資料後重試" }, { status: 409 });
     }
-    return NextResponse.json(
-      { error: "更新失敗，請稍後再試" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "更新失敗，請稍後再試" }, { status: 500 });
   }
 }

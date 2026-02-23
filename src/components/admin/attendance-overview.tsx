@@ -104,18 +104,13 @@ export function AttendanceOverview({ eventId }: AttendanceOverviewProps) {
   }
 
   // Build a Set for fast lookup: "userId:sessionId"
-  const attendanceSet = new Set(
-    attendanceRecords.map((r) => `${r.userId}:${r.eventSessionId}`)
-  );
+  const attendanceSet = new Set(attendanceRecords.map((r) => `${r.userId}:${r.eventSessionId}`));
 
   // Sessions that have any attendance data recorded
-  const sessionsWithData = new Set(
-    attendanceRecords.map((r) => r.eventSessionId)
-  );
+  const sessionsWithData = new Set(attendanceRecords.map((r) => r.eventSessionId));
 
   // A session is "resolved" if it's past OR has attendance data already
-  const isSessionResolved = (s: EventSession) =>
-    isSessionPast(s) || sessionsWithData.has(s.id);
+  const isSessionResolved = (s: EventSession) => isSessionPast(s) || sessionsWithData.has(s.id);
 
   const allSessionsResolved = sessions.every(isSessionResolved);
 

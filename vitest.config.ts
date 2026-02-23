@@ -7,7 +7,7 @@ export default defineConfig({
     // Service/library tests should run in Node by default.
     // React/component tests can opt into jsdom via file-level directive.
     environment: "node",
-    exclude: ["e2e/**", "node_modules/**", ".worktrees/**"],
+    exclude: ["e2e/**", "node_modules/**", ".worktrees/**", "**/*.integration.test.ts"],
   },
   resolve: {
     alias: {

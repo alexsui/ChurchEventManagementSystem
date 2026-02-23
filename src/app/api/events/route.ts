@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
-import {
-  createEvent,
-  getEvents,
-  type CreateEventInput,
-} from "@/services/event.service";
+import { createEvent, getEvents, type CreateEventInput } from "@/services/event.service";
 import { EventStatus } from "@/generated/prisma/client";
 import type { EventType } from "@/generated/prisma/client";
 
@@ -28,10 +24,7 @@ export async function GET(request: Request) {
     return NextResponse.json(events);
   } catch (error) {
     console.error("GET /api/events error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch events" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 });
   }
 }
 
@@ -61,10 +54,7 @@ export async function POST(request: Request) {
     }
 
     if (!body.title) {
-      return NextResponse.json(
-        { error: "Title is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
     const eventData = {
@@ -75,9 +65,7 @@ export async function POST(request: Request) {
       type: body.type as CreateEventInput["type"],
       maxParticipants: body.maxParticipants as number | undefined,
       minAssignmentRate:
-        body.minAssignmentRate != null
-          ? (body.minAssignmentRate as number) / 100
-          : undefined,
+        body.minAssignmentRate != null ? (body.minAssignmentRate as number) / 100 : undefined,
       session: body.session as CreateEventInput["session"],
       sessions: body.sessions as CreateEventInput["sessions"],
     };
@@ -86,8 +74,7 @@ export async function POST(request: Request) {
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error("POST /api/events error:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to create event";
+    const message = error instanceof Error ? error.message : "Failed to create event";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

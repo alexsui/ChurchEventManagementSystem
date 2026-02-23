@@ -121,10 +121,7 @@ export async function createEventTeam(
   input: { teamId?: string; customName?: string }
 ) {
   if (!input.teamId && !input.customName) {
-    throw new TeamServiceError(
-      "Either teamId or customName is required",
-      "INVALID_INPUT"
-    );
+    throw new TeamServiceError("Either teamId or customName is required", "INVALID_INPUT");
   }
 
   return prisma.$transaction(async (tx) => {
@@ -193,20 +190,13 @@ export async function deleteEventTeam(id: string) {
 
 // ==================== Event Team Members ====================
 
-export async function addEventTeamMember(
-  eventTeamId: string,
-  userId: string,
-  role?: string
-) {
+export async function addEventTeamMember(eventTeamId: string, userId: string, role?: string) {
   return prisma.eventTeamMember.create({
     data: { eventTeamId, userId, role: role ?? null },
   });
 }
 
-export async function removeEventTeamMember(
-  eventTeamId: string,
-  userId: string
-) {
+export async function removeEventTeamMember(eventTeamId: string, userId: string) {
   return prisma.eventTeamMember.deleteMany({
     where: { eventTeamId, userId },
   });

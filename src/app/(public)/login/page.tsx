@@ -14,9 +14,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-warm-cream">
-          <div className="font-display text-warm-dark/50 text-lg">
-            載入中...
-          </div>
+          <div className="font-display text-warm-dark/50 text-lg">載入中...</div>
         </div>
       }
     >
@@ -48,22 +46,14 @@ function LoginContent() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-warm-green rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="text-white"
-            >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-white">
               <path
                 d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
                 fill="currentColor"
               />
             </svg>
           </div>
-          <h1 className="font-display text-3xl font-bold text-warm-dark">
-            歡迎回來
-          </h1>
+          <h1 className="font-display text-3xl font-bold text-warm-dark">歡迎回來</h1>
           <p className="text-warm-dark/50 mt-2">登入或註冊帳號開始報名活動</p>
         </div>
 
@@ -75,13 +65,7 @@ function LoginContent() {
             className="w-full bg-[#06C755] text-white hover:bg-[#05b34d] hover:text-white rounded-2xl h-12 font-display font-bold text-base border-0 shadow-sm hover:shadow-md transition-all"
             onClick={() => signIn("line", { callbackUrl })}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="mr-2"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="mr-2">
               <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.349 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
             </svg>
             用 LINE 登入
@@ -93,9 +77,7 @@ function LoginContent() {
               <div className="w-full border-t border-warm-sand" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-3 text-warm-dark/40 font-medium">
-                或使用帳號密碼
-              </span>
+              <span className="bg-white px-3 text-warm-dark/40 font-medium">或使用帳號密碼</span>
             </div>
           </div>
 
@@ -192,10 +174,7 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="space-y-2">
-        <Label
-          htmlFor="login-email"
-          className="text-warm-dark/70 font-medium text-sm"
-        >
+        <Label htmlFor="login-email" className="text-warm-dark/70 font-medium text-sm">
           Email
         </Label>
         <Input
@@ -208,18 +187,10 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="login-password"
-          className="text-warm-dark/70 font-medium text-sm"
-        >
+        <Label htmlFor="login-password" className="text-warm-dark/70 font-medium text-sm">
           密碼
         </Label>
-        <PasswordInput
-          id="login-password"
-          name="password"
-          required
-          placeholder="輸入密碼"
-        />
+        <PasswordInput id="login-password" name="password" required placeholder="輸入密碼" />
       </div>
       {error && (
         <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl font-medium">
@@ -300,25 +271,15 @@ function RegisterForm() {
     return (
       <div className="text-center py-6 space-y-3">
         <div className="w-12 h-12 bg-warm-green/10 rounded-full flex items-center justify-center mx-auto">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="text-warm-green"
-          >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-warm-green">
             <path
               d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"
               fill="currentColor"
             />
           </svg>
         </div>
-        <p className="text-warm-green font-display font-bold text-lg">
-          註冊成功！
-        </p>
-        <p className="text-warm-dark/50 text-sm">
-          請切換到「登入」分頁進行登入
-        </p>
+        <p className="text-warm-green font-display font-bold text-lg">註冊成功！</p>
+        <p className="text-warm-dark/50 text-sm">請切換到「登入」分頁進行登入</p>
       </div>
     );
   }
@@ -326,10 +287,7 @@ function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="space-y-2">
-        <Label
-          htmlFor="reg-name"
-          className="text-warm-dark/70 font-medium text-sm"
-        >
+        <Label htmlFor="reg-name" className="text-warm-dark/70 font-medium text-sm">
           姓名 *
         </Label>
         <Input
@@ -341,10 +299,7 @@ function RegisterForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="reg-email"
-          className="text-warm-dark/70 font-medium text-sm"
-        >
+        <Label htmlFor="reg-email" className="text-warm-dark/70 font-medium text-sm">
           Email *
         </Label>
         <Input
@@ -357,10 +312,7 @@ function RegisterForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="reg-phone"
-          className="text-warm-dark/70 font-medium text-sm"
-        >
+        <Label htmlFor="reg-phone" className="text-warm-dark/70 font-medium text-sm">
           電話
         </Label>
         <Input
@@ -372,24 +324,13 @@ function RegisterForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="reg-password"
-          className="text-warm-dark/70 font-medium text-sm"
-        >
+        <Label htmlFor="reg-password" className="text-warm-dark/70 font-medium text-sm">
           密碼 *
         </Label>
-        <PasswordInput
-          id="reg-password"
-          name="password"
-          required
-          placeholder="至少 8 個字元"
-        />
+        <PasswordInput id="reg-password" name="password" required placeholder="至少 8 個字元" />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="reg-confirm"
-          className="text-warm-dark/70 font-medium text-sm"
-        >
+        <Label htmlFor="reg-confirm" className="text-warm-dark/70 font-medium text-sm">
           確認密碼 *
         </Label>
         <PasswordInput

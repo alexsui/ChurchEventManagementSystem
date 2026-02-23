@@ -14,7 +14,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { eventStatusLabels, eventCategoryLabels, eventTypeLabels, eventStatusClassNames } from "@/lib/constants";
+import {
+  eventStatusLabels,
+  eventCategoryLabels,
+  eventTypeLabels,
+  eventStatusClassNames,
+} from "@/lib/constants";
 import { formatAdminDate } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
@@ -64,9 +69,7 @@ export default function EventsPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">活動管理</h1>
-          <p className="text-muted-foreground text-sm">
-            管理所有教會活動
-          </p>
+          <p className="text-muted-foreground text-sm">管理所有教會活動</p>
         </div>
         {canWrite && (
           <Button onClick={() => router.push("/admin/events/new")}>
@@ -121,9 +124,7 @@ export default function EventsPage() {
                     className="cursor-pointer"
                     onClick={() => router.push(`/admin/events/${event.id}`)}
                   >
-                    <TableCell className="font-medium">
-                      {event.title}
-                    </TableCell>
+                    <TableCell className="font-medium">{event.title}</TableCell>
                     <TableCell>
                       {event.category ? (
                         <Badge variant="outline">
@@ -134,9 +135,7 @@ export default function EventsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {eventTypeLabels[event.type] ?? event.type}
-                      </Badge>
+                      <Badge variant="outline">{eventTypeLabels[event.type] ?? event.type}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -146,9 +145,7 @@ export default function EventsPage() {
                         {eventStatusLabels[event.status] ?? event.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      {event._count.registrations}
-                    </TableCell>
+                    <TableCell className="text-right">{event._count.registrations}</TableCell>
                     <TableCell>{formatAdminDate(event.createdAt)}</TableCell>
                   </TableRow>
                 );

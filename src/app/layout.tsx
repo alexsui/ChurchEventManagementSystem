@@ -28,9 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-TW">
-      <body
-        className={`${fredoka.variable} ${notoSansTC.variable} antialiased`}
-      >
+      <body className={`${fredoka.variable} ${notoSansTC.variable} antialiased`}>
         <Providers>
           {children}
           <Toaster />

@@ -1,8 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import {
-  RegistrationStatus,
-  EventStatus,
-} from "@/generated/prisma/client";
+import { RegistrationStatus, EventStatus } from "@/generated/prisma/client";
 
 export class RegistrationServiceError extends Error {
   constructor(
@@ -38,7 +35,10 @@ export async function registerForEvent(userId: string, eventId: string) {
   });
 
   if (existing && existing.status !== RegistrationStatus.CANCELLED) {
-    throw new RegistrationServiceError("User is already registered for this event", "ALREADY_REGISTERED");
+    throw new RegistrationServiceError(
+      "User is already registered for this event",
+      "ALREADY_REGISTERED"
+    );
   }
 
   // Determine status based on capacity
@@ -149,10 +149,7 @@ export async function getRegistrationsByUser(userId: string) {
  * Get a user's active registration for an event, if any.
  * Returns the registration if REGISTERED or WAITLISTED, or null.
  */
-export async function getUserRegistrationForEvent(
-  userId: string,
-  eventId: string
-) {
+export async function getUserRegistrationForEvent(userId: string, eventId: string) {
   const registration = await prisma.registration.findUnique({
     where: { userId_eventId: { userId, eventId } },
   });

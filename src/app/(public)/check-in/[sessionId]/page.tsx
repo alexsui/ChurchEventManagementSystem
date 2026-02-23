@@ -7,13 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatLongDate, formatTime } from "@/lib/formatters";
@@ -107,6 +101,7 @@ export default function CheckInPage() {
 
   useEffect(() => {
     if (authStatus === "loading") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetching pattern
     fetchSessionData();
   }, [authStatus, fetchSessionData]);
 
@@ -183,9 +178,7 @@ export default function CheckInPage() {
             <AlertCircle className="mx-auto size-12 text-destructive" />
             <div className="space-y-2">
               <h2 className="text-xl font-semibold">找不到此場次</h2>
-              <p className="text-sm text-muted-foreground">
-                此 QR Code 可能已失效或場次不存在
-              </p>
+              <p className="text-sm text-muted-foreground">此 QR Code 可能已失效或場次不存在</p>
             </div>
             <Button asChild variant="outline">
               <Link href="/">返回首頁</Link>
@@ -208,9 +201,7 @@ export default function CheckInPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-xl">{eventInfo?.title}</CardTitle>
             {sessionInfo?.topic && (
-              <CardDescription className="text-base">
-                {sessionInfo.topic}
-              </CardDescription>
+              <CardDescription className="text-base">{sessionInfo.topic}</CardDescription>
             )}
           </CardHeader>
           <CardContent className="space-y-4">
@@ -225,9 +216,7 @@ export default function CheckInPage() {
                   {(sessionInfo.startTime || sessionInfo.endTime) && (
                     <div className="flex items-center gap-2">
                       <Clock className="size-4 text-muted-foreground shrink-0 invisible" />
-                      <span>
-                        {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
-                      </span>
+                      <span>{formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}</span>
                     </div>
                   )}
                 </>
@@ -247,11 +236,7 @@ export default function CheckInPage() {
                 <span className="font-medium">請先登入以完成報到</span>
               </div>
               <Button asChild className="w-full" size="lg">
-                <Link
-                  href={`/login?callbackUrl=/check-in/${sessionId}`}
-                >
-                  前往登入
-                </Link>
+                <Link href={`/login?callbackUrl=/check-in/${sessionId}`}>前往登入</Link>
               </Button>
             </div>
           </CardContent>
@@ -268,9 +253,7 @@ export default function CheckInPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-xl">{eventInfo?.title}</CardTitle>
             {sessionInfo?.topic && (
-              <CardDescription className="text-base">
-                {sessionInfo.topic}
-              </CardDescription>
+              <CardDescription className="text-base">{sessionInfo.topic}</CardDescription>
             )}
           </CardHeader>
           <CardContent className="space-y-4">
@@ -280,9 +263,7 @@ export default function CheckInPage() {
                 <CheckCircle2 className="size-10 text-green-600" />
               </div>
               <div className="text-center space-y-1">
-                <h3 className="text-lg font-semibold text-green-700">
-                  您已報到
-                </h3>
+                <h3 className="text-lg font-semibold text-green-700">您已報到</h3>
                 {checkInTime && (
                   <p className="text-sm text-muted-foreground">
                     報到時間：{formatCheckInTime(checkInTime)}
@@ -295,16 +276,12 @@ export default function CheckInPage() {
             <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">姓名</span>
-                <span className="font-medium">
-                  {authSession?.user?.name || "—"}
-                </span>
+                <span className="font-medium">{authSession?.user?.name || "—"}</span>
               </div>
               {sessionInfo && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">場次</span>
-                  <span>
-                    第 {sessionInfo.sessionNo} 堂
-                  </span>
+                  <span>第 {sessionInfo.sessionNo} 堂</span>
                 </div>
               )}
               {sessionInfo && (
@@ -313,15 +290,12 @@ export default function CheckInPage() {
                   <span>{formatLongDate(sessionInfo.sessionDate)}</span>
                 </div>
               )}
-              {sessionInfo &&
-                (sessionInfo.startTime || sessionInfo.endTime) && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">時間</span>
-                    <span>
-                      {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
-                    </span>
-                  </div>
-                )}
+              {sessionInfo && (sessionInfo.startTime || sessionInfo.endTime) && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">時間</span>
+                  <span>{formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}</span>
+                </div>
+              )}
               {eventInfo?.location && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">地點</span>
@@ -330,10 +304,7 @@ export default function CheckInPage() {
               )}
             </div>
 
-            <Badge
-              variant="secondary"
-              className="w-full justify-center py-1.5"
-            >
+            <Badge variant="secondary" className="w-full justify-center py-1.5">
               報到完成
             </Badge>
           </CardContent>
@@ -350,9 +321,7 @@ export default function CheckInPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-xl">{eventInfo?.title}</CardTitle>
             {sessionInfo?.topic && (
-              <CardDescription className="text-base">
-                {sessionInfo.topic}
-              </CardDescription>
+              <CardDescription className="text-base">{sessionInfo.topic}</CardDescription>
             )}
           </CardHeader>
           <CardContent className="space-y-4">
@@ -367,9 +336,7 @@ export default function CheckInPage() {
                 <CheckCircle2 className="size-10 text-green-600" />
               </div>
               <div className="text-center space-y-1">
-                <h3 className="text-lg font-semibold text-green-700">
-                  報到成功！
-                </h3>
+                <h3 className="text-lg font-semibold text-green-700">報到成功！</h3>
                 {checkInTime && (
                   <p className="text-sm text-muted-foreground">
                     報到時間：{formatCheckInTime(checkInTime)}
@@ -382,16 +349,12 @@ export default function CheckInPage() {
             <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">姓名</span>
-                <span className="font-medium">
-                  {authSession?.user?.name || "—"}
-                </span>
+                <span className="font-medium">{authSession?.user?.name || "—"}</span>
               </div>
               {sessionInfo && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">場次</span>
-                  <span>
-                    第 {sessionInfo.sessionNo} 堂
-                  </span>
+                  <span>第 {sessionInfo.sessionNo} 堂</span>
                 </div>
               )}
               {sessionInfo && (
@@ -400,15 +363,12 @@ export default function CheckInPage() {
                   <span>{formatLongDate(sessionInfo.sessionDate)}</span>
                 </div>
               )}
-              {sessionInfo &&
-                (sessionInfo.startTime || sessionInfo.endTime) && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">時間</span>
-                    <span>
-                      {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
-                    </span>
-                  </div>
-                )}
+              {sessionInfo && (sessionInfo.startTime || sessionInfo.endTime) && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">時間</span>
+                  <span>{formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}</span>
+                </div>
+              )}
               {eventInfo?.location && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">地點</span>
@@ -417,10 +377,7 @@ export default function CheckInPage() {
               )}
             </div>
 
-            <Badge
-              variant="default"
-              className="w-full justify-center py-1.5"
-            >
+            <Badge variant="default" className="w-full justify-center py-1.5">
               報到完成
             </Badge>
           </CardContent>
@@ -443,9 +400,7 @@ export default function CheckInPage() {
             <div className="flex flex-col gap-2">
               {checkInData?.event && (
                 <Button asChild variant="outline">
-                  <Link href={`/events/${checkInData.event.id}`}>
-                    查看活動詳情
-                  </Link>
+                  <Link href={`/events/${checkInData.event.id}`}>查看活動詳情</Link>
                 </Button>
               )}
               <Button asChild variant="ghost">
@@ -465,9 +420,7 @@ export default function CheckInPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-xl">{eventInfo?.title}</CardTitle>
           {sessionInfo?.topic && (
-            <CardDescription className="text-base">
-              {sessionInfo.topic}
-            </CardDescription>
+            <CardDescription className="text-base">{sessionInfo.topic}</CardDescription>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
@@ -475,16 +428,12 @@ export default function CheckInPage() {
           <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">姓名</span>
-              <span className="font-medium">
-                {authSession?.user?.name || "—"}
-              </span>
+              <span className="font-medium">{authSession?.user?.name || "—"}</span>
             </div>
             {sessionInfo && (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">場次</span>
-                <span>
-                  第 {sessionInfo.sessionNo} 堂
-                </span>
+                <span>第 {sessionInfo.sessionNo} 堂</span>
               </div>
             )}
             {sessionInfo && (
@@ -493,15 +442,12 @@ export default function CheckInPage() {
                 <span>{formatLongDate(sessionInfo.sessionDate)}</span>
               </div>
             )}
-            {sessionInfo &&
-              (sessionInfo.startTime || sessionInfo.endTime) && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">時間</span>
-                  <span>
-                    {formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}
-                  </span>
-                </div>
-              )}
+            {sessionInfo && (sessionInfo.startTime || sessionInfo.endTime) && (
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">時間</span>
+                <span>{formatTime(sessionInfo.startTime, sessionInfo.endTime, "")}</span>
+              </div>
+            )}
             {eventInfo?.location && (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">地點</span>

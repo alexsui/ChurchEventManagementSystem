@@ -28,9 +28,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json(summary);
   } catch (error) {
     console.error("GET /api/events/[eventId]/assignment-summary error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch assignment summary" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch assignment summary" }, { status: 500 });
   }
 }

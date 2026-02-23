@@ -78,15 +78,10 @@ function getRoleBadgeClass(role: string): string {
   }
 }
 
-function getProviderDisplay(
-  accounts?: UserAccount[],
-  hasPassword?: boolean
-): string {
+function getProviderDisplay(accounts?: UserAccount[], hasPassword?: boolean): string {
   const methods: string[] = [];
   if (accounts && accounts.length > 0) {
-    methods.push(
-      ...accounts.map((a) => providerLabels[a.provider] ?? a.provider)
-    );
+    methods.push(...accounts.map((a) => providerLabels[a.provider] ?? a.provider));
   }
   if (hasPassword) {
     methods.push(providerLabels.credentials);
@@ -210,9 +205,7 @@ export default function UsersPage() {
         }
       }
 
-      toast.success(
-        `已更新 ${editingUser.name ?? editingUser.email ?? "使用者"} 的資料`
-      );
+      toast.success(`已更新 ${editingUser.name ?? editingUser.email ?? "使用者"} 的資料`);
       setEditingUser(null);
       fetchUsers();
     } catch (err) {
@@ -232,16 +225,11 @@ export default function UsersPage() {
           <Users className="size-6 text-muted-foreground" />
           <div>
             <h1 className="text-2xl font-bold">使用者管理</h1>
-            <p className="text-muted-foreground text-sm">
-              管理所有使用者帳號與角色
-            </p>
+            <p className="text-muted-foreground text-sm">管理所有使用者帳號與角色</p>
           </div>
         </div>
         {session?.user?.role === "ADMIN" && canWrite && (
-          <Button
-            variant="outline"
-            onClick={() => router.push("/admin/users/roles")}
-          >
+          <Button variant="outline" onClick={() => router.push("/admin/users/roles")}>
             <Shield className="size-4 mr-2" />
             角色權限設定
           </Button>
@@ -318,16 +306,11 @@ export default function UsersPage() {
                   className={canWrite ? "cursor-pointer" : undefined}
                   onClick={canWrite ? () => handleRowClick(user) : undefined}
                 >
-                  <TableCell className="font-medium">
-                    {user.name ?? "-"}
-                  </TableCell>
+                  <TableCell className="font-medium">{user.name ?? "-"}</TableCell>
                   <TableCell>{user.email ?? "-"}</TableCell>
                   <TableCell>{user.phone ?? "-"}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant="secondary"
-                      className={cn(getRoleBadgeClass(user.role))}
-                    >
+                    <Badge variant="secondary" className={cn(getRoleBadgeClass(user.role))}>
                       {roleLabels[user.role] ?? user.role}
                     </Badge>
                   </TableCell>
@@ -392,10 +375,7 @@ export default function UsersPage() {
                   {editIsActive ? "帳號目前為啟用狀態" : "帳號目前為停用狀態"}
                 </p>
               </div>
-              <Switch
-                checked={editIsActive}
-                onCheckedChange={setEditIsActive}
-              />
+              <Switch checked={editIsActive} onCheckedChange={setEditIsActive} />
             </div>
           </div>
 

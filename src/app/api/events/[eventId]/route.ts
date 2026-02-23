@@ -28,10 +28,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json(event);
   } catch (error) {
     console.error("GET /api/events/[eventId] error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch event" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch event" }, { status: 500 });
   }
 }
 
@@ -75,9 +72,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       type: body.type as UpdateEventInput["type"],
       maxParticipants: body.maxParticipants as number | null | undefined,
       minAssignmentRate:
-        body.minAssignmentRate != null
-          ? (body.minAssignmentRate as number) / 100
-          : undefined,
+        body.minAssignmentRate != null ? (body.minAssignmentRate as number) / 100 : undefined,
       session: body.session as UpdateEventInput["session"],
       sessions: body.sessions as UpdateEventInput["sessions"],
     };
@@ -86,10 +81,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json(event);
   } catch (error) {
     console.error("PUT /api/events/[eventId] error:", error);
-    return NextResponse.json(
-      { error: "Failed to update event" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update event" }, { status: 500 });
   }
 }
 
@@ -115,14 +107,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const { eventId } = await params;
     const body = await request.json();
 
-    if (
-      !body.status ||
-      !Object.values(EventStatus).includes(body.status as EventStatus)
-    ) {
-      return NextResponse.json(
-        { error: "A valid status is required" },
-        { status: 400 }
-      );
+    if (!body.status || !Object.values(EventStatus).includes(body.status as EventStatus)) {
+      return NextResponse.json({ error: "A valid status is required" }, { status: 400 });
     }
 
     const existingEvent = await getEventById(eventId);
@@ -134,10 +120,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json(event);
   } catch (error) {
     console.error("PATCH /api/events/[eventId] error:", error);
-    return NextResponse.json(
-      { error: "Failed to update event status" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update event status" }, { status: 500 });
   }
 }
 
@@ -170,9 +153,6 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/events/[eventId] error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete event" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to delete event" }, { status: 500 });
   }
 }

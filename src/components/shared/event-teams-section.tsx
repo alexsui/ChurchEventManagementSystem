@@ -16,12 +16,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -84,22 +79,14 @@ const taskStatusConfig: Record<string, { label: string; className: string }> = {
 const taskStatusFlow = ["PENDING", "IN_PROGRESS", "COMPLETED"] as const;
 
 function getNextTaskStatus(current: string): string {
-  const idx = taskStatusFlow.indexOf(
-    current as (typeof taskStatusFlow)[number]
-  );
+  const idx = taskStatusFlow.indexOf(current as (typeof taskStatusFlow)[number]);
   if (idx === -1) return "PENDING";
   return taskStatusFlow[(idx + 1) % taskStatusFlow.length];
 }
 
 // ==================== Component ====================
 
-export function EventTeamsSection({
-  eventId,
-  canWrite,
-}: {
-  eventId: string;
-  canWrite: boolean;
-}) {
+export function EventTeamsSection({ eventId, canWrite }: { eventId: string; canWrite: boolean }) {
   const [eventTeams, setEventTeams] = useState<EventTeamData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -107,18 +94,14 @@ export function EventTeamsSection({
   const [addTeamOpen, setAddTeamOpen] = useState(false);
   const [templates, setTemplates] = useState<TeamTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
-    null
-  );
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [customTeamName, setCustomTeamName] = useState("");
   const [addingTeam, setAddingTeam] = useState(false);
 
   // Add member dialog state
   const [addMemberTeamId, setAddMemberTeamId] = useState<string | null>(null);
   const [memberSearch, setMemberSearch] = useState("");
-  const [memberSearchResults, setMemberSearchResults] = useState<
-    UserSearchResult[]
-  >([]);
+  const [memberSearchResults, setMemberSearchResults] = useState<UserSearchResult[]>([]);
   const [searchingMembers, setSearchingMembers] = useState(false);
   const [memberRole, setMemberRole] = useState("");
 
@@ -130,12 +113,8 @@ export function EventTeamsSection({
   const [newSopLinks, setNewSopLinks] = useState<Record<string, string>>({});
 
   // New task input per team
-  const [newTaskTitles, setNewTaskTitles] = useState<Record<string, string>>(
-    {}
-  );
-  const [newTaskDeadlines, setNewTaskDeadlines] = useState<Record<string, string>>(
-    {}
-  );
+  const [newTaskTitles, setNewTaskTitles] = useState<Record<string, string>>({});
+  const [newTaskDeadlines, setNewTaskDeadlines] = useState<Record<string, string>>({});
 
   // ==================== Fetch teams ====================
 
@@ -211,10 +190,7 @@ export function EventTeamsSection({
     if (!deleteTeamId) return;
     setDeletingTeam(true);
     try {
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${deleteTeamId}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${deleteTeamId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("刪除工作小組失敗");
       toast.success("已刪除工作小組");
       setDeleteTeamId(null);
@@ -242,9 +218,7 @@ export function EventTeamsSection({
     }
     setSearchingMembers(true);
     try {
-      const res = await fetch(
-        `/api/users?search=${encodeURIComponent(query)}`
-      );
+      const res = await fetch(`/api/users?search=${encodeURIComponent(query)}`);
       if (!res.ok) throw new Error("搜尋使用者失敗");
       const data = await res.json();
       setMemberSearchResults(data);
@@ -258,17 +232,14 @@ export function EventTeamsSection({
   async function handleAddMember(userId: string) {
     if (!addMemberTeamId) return;
     try {
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${addMemberTeamId}/members`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            role: memberRole.trim() || undefined,
-          }),
-        }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${addMemberTeamId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          role: memberRole.trim() || undefined,
+        }),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error ?? "新增成員失敗");
@@ -283,10 +254,9 @@ export function EventTeamsSection({
 
   async function handleRemoveMember(eventTeamId: string, userId: string) {
     try {
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${eventTeamId}/members/${userId}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${eventTeamId}/members/${userId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("移除成員失敗");
       toast.success("已移除成員");
       fetchTeams();
@@ -303,14 +273,11 @@ export function EventTeamsSection({
 
     try {
       const updatedLinks = [...eventTeam.sopLinks, newLink];
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${eventTeam.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sopLinks: updatedLinks }),
-        }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${eventTeam.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sopLinks: updatedLinks }),
+      });
       if (!res.ok) throw new Error("新增 SOP 連結失敗");
       toast.success("已新增 SOP 連結");
       setNewSopLinks((prev) => ({ ...prev, [eventTeam.id]: "" }));
@@ -320,20 +287,14 @@ export function EventTeamsSection({
     }
   }
 
-  async function handleRemoveSopLink(
-    eventTeam: EventTeamData,
-    index: number
-  ) {
+  async function handleRemoveSopLink(eventTeam: EventTeamData, index: number) {
     try {
       const updatedLinks = eventTeam.sopLinks.filter((_, i) => i !== index);
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${eventTeam.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sopLinks: updatedLinks }),
-        }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${eventTeam.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sopLinks: updatedLinks }),
+      });
       if (!res.ok) throw new Error("移除 SOP 連結失敗");
       toast.success("已移除 SOP 連結");
       fetchTeams();
@@ -351,14 +312,11 @@ export function EventTeamsSection({
     const deadline = newTaskDeadlines[eventTeamId] || undefined;
 
     try {
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${eventTeamId}/tasks`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, deadline }),
-        }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${eventTeamId}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, deadline }),
+      });
       if (!res.ok) throw new Error("新增任務失敗");
       toast.success("已新增任務");
       setNewTaskTitles((prev) => ({ ...prev, [eventTeamId]: "" }));
@@ -376,14 +334,11 @@ export function EventTeamsSection({
   ) {
     const nextStatus = getNextTaskStatus(currentStatus);
     try {
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${eventTeamId}/tasks/${taskId}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: nextStatus }),
-        }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${eventTeamId}/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
       if (!res.ok) throw new Error("更新任務狀態失敗");
       fetchTeams();
     } catch (err) {
@@ -393,10 +348,9 @@ export function EventTeamsSection({
 
   async function handleDeleteTask(eventTeamId: string, taskId: string) {
     try {
-      const res = await fetch(
-        `/api/events/${eventId}/teams/${eventTeamId}/tasks/${taskId}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`/api/events/${eventId}/teams/${eventTeamId}/tasks/${taskId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) throw new Error("刪除任務失敗");
       toast.success("已刪除任務");
       fetchTeams();
@@ -431,14 +385,10 @@ export function EventTeamsSection({
           </div>
         </CardHeader>
         <CardContent>
-          {loading && (
-            <p className="text-muted-foreground text-center py-4">載入中...</p>
-          )}
+          {loading && <p className="text-muted-foreground text-center py-4">載入中...</p>}
 
           {!loading && eventTeams.length === 0 && (
-            <p className="text-muted-foreground text-center py-4">
-              尚無工作小組
-            </p>
+            <p className="text-muted-foreground text-center py-4">尚無工作小組</p>
           )}
 
           {!loading && eventTeams.length > 0 && (
@@ -487,9 +437,7 @@ export function EventTeamsSection({
                         )}
                       </div>
                       {team.members.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
-                          尚無成員
-                        </p>
+                        <p className="text-sm text-muted-foreground">尚無成員</p>
                       ) : (
                         <div className="space-y-1">
                           {team.members.map((member) => (
@@ -498,9 +446,7 @@ export function EventTeamsSection({
                               className="flex items-center justify-between py-1 px-2 rounded-md hover:bg-muted/50"
                             >
                               <div className="flex items-center gap-2">
-                                <span className="text-sm">
-                                  {member.user.name ?? "未設定姓名"}
-                                </span>
+                                <span className="text-sm">{member.user.name ?? "未設定姓名"}</span>
                                 {member.role && (
                                   <Badge variant="secondary" className="text-xs">
                                     {member.role}
@@ -512,9 +458,7 @@ export function EventTeamsSection({
                                   variant="ghost"
                                   size="icon"
                                   className="size-6"
-                                  onClick={() =>
-                                    handleRemoveMember(team.id, member.userId)
-                                  }
+                                  onClick={() => handleRemoveMember(team.id, member.userId)}
                                 >
                                   <X className="size-3" />
                                 </Button>
@@ -532,9 +476,7 @@ export function EventTeamsSection({
                         SOP 連結 ({team.sopLinks.length})
                       </h4>
                       {team.sopLinks.length === 0 && !canWrite && (
-                        <p className="text-sm text-muted-foreground">
-                          尚無 SOP 連結
-                        </p>
+                        <p className="text-sm text-muted-foreground">尚無 SOP 連結</p>
                       )}
                       {team.sopLinks.length > 0 && (
                         <div className="space-y-1 mb-2">
@@ -556,9 +498,7 @@ export function EventTeamsSection({
                                   variant="ghost"
                                   size="icon"
                                   className="size-6"
-                                  onClick={() =>
-                                    handleRemoveSopLink(team, idx)
-                                  }
+                                  onClick={() => handleRemoveSopLink(team, idx)}
                                 >
                                   <X className="size-3" />
                                 </Button>
@@ -602,15 +542,13 @@ export function EventTeamsSection({
                         任務 ({team.tasks.length})
                       </h4>
                       {team.tasks.length === 0 && !canWrite && (
-                        <p className="text-sm text-muted-foreground">
-                          尚無任務
-                        </p>
+                        <p className="text-sm text-muted-foreground">尚無任務</p>
                       )}
                       {team.tasks.length > 0 && (
                         <div className="space-y-1 mb-2">
                           {team.tasks.map((task) => {
-                            const statusInfo = taskStatusConfig[task.status] ??
-                              taskStatusConfig.PENDING;
+                            const statusInfo =
+                              taskStatusConfig[task.status] ?? taskStatusConfig.PENDING;
                             return (
                               <div
                                 key={task.id}
@@ -623,11 +561,7 @@ export function EventTeamsSection({
                                       size="sm"
                                       className="h-auto p-0"
                                       onClick={() =>
-                                        handleToggleTaskStatus(
-                                          team.id,
-                                          task.id,
-                                          task.status
-                                        )
+                                        handleToggleTaskStatus(team.id, task.id, task.status)
                                       }
                                       title="點擊切換狀態"
                                     >
@@ -647,18 +581,21 @@ export function EventTeamsSection({
                                       {statusInfo.label}
                                     </Badge>
                                   )}
-                                  <span className="text-sm truncate">
-                                    {task.title}
-                                  </span>
-                                  {task.deadline && (() => {
-                                    const isOverdue = task.status !== "COMPLETED" && new Date(task.deadline) < new Date();
-                                    return (
-                                      <span className={`text-xs flex items-center gap-0.5 ${isOverdue ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
-                                        <Calendar className="size-3" />
-                                        {new Date(task.deadline).toLocaleDateString("zh-TW")}
-                                      </span>
-                                    );
-                                  })()}
+                                  <span className="text-sm truncate">{task.title}</span>
+                                  {task.deadline &&
+                                    (() => {
+                                      const isOverdue =
+                                        task.status !== "COMPLETED" &&
+                                        new Date(task.deadline) < new Date();
+                                      return (
+                                        <span
+                                          className={`text-xs flex items-center gap-0.5 ${isOverdue ? "text-red-600 font-medium" : "text-muted-foreground"}`}
+                                        >
+                                          <Calendar className="size-3" />
+                                          {new Date(task.deadline).toLocaleDateString("zh-TW")}
+                                        </span>
+                                      );
+                                    })()}
                                   {task.assignee && (
                                     <span className="text-xs text-muted-foreground">
                                       ({task.assignee.name ?? "未知"})
@@ -670,9 +607,7 @@ export function EventTeamsSection({
                                     variant="ghost"
                                     size="icon"
                                     className="size-6"
-                                    onClick={() =>
-                                      handleDeleteTask(team.id, task.id)
-                                    }
+                                    onClick={() => handleDeleteTask(team.id, task.id)}
                                   >
                                     <X className="size-3" />
                                   </Button>
@@ -695,8 +630,7 @@ export function EventTeamsSection({
                               }))
                             }
                             onKeyDown={(e) => {
-                              if (e.key === "Enter")
-                                handleCreateTask(team.id);
+                              if (e.key === "Enter") handleCreateTask(team.id);
                             }}
                           />
                           <div className="flex items-center gap-2">
@@ -741,9 +675,7 @@ export function EventTeamsSection({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>新增工作小組</DialogTitle>
-            <DialogDescription>
-              從範本選擇或自訂小組名稱
-            </DialogDescription>
+            <DialogDescription>從範本選擇或自訂小組名稱</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -759,15 +691,11 @@ export function EventTeamsSection({
                   {templates.map((t) => (
                     <Button
                       key={t.id}
-                      variant={
-                        selectedTemplateId === t.id ? "default" : "outline"
-                      }
+                      variant={selectedTemplateId === t.id ? "default" : "outline"}
                       size="sm"
                       className="justify-start"
                       onClick={() => {
-                        setSelectedTemplateId(
-                          selectedTemplateId === t.id ? null : t.id
-                        );
+                        setSelectedTemplateId(selectedTemplateId === t.id ? null : t.id);
                         setCustomTeamName("");
                       }}
                     >
@@ -798,10 +726,7 @@ export function EventTeamsSection({
             </Button>
             <Button
               onClick={handleAddTeam}
-              disabled={
-                addingTeam ||
-                (!selectedTemplateId && !customTeamName.trim())
-              }
+              disabled={addingTeam || (!selectedTemplateId && !customTeamName.trim())}
             >
               {addingTeam ? "新增中..." : "新增"}
             </Button>
@@ -848,9 +773,7 @@ export function EventTeamsSection({
               </div>
             </div>
 
-            {searchingMembers && (
-              <p className="text-sm text-muted-foreground">搜尋中...</p>
-            )}
+            {searchingMembers && <p className="text-sm text-muted-foreground">搜尋中...</p>}
 
             {!searchingMembers && memberSearch && memberSearchResults.length === 0 && (
               <p className="text-sm text-muted-foreground">找不到使用者</p>
@@ -865,9 +788,7 @@ export function EventTeamsSection({
                     className="w-full text-left px-3 py-2 hover:bg-muted/50 transition-colors"
                     onClick={() => handleAddMember(user.id)}
                   >
-                    <p className="text-sm font-medium">
-                      {user.name ?? "未設定姓名"}
-                    </p>
+                    <p className="text-sm font-medium">{user.name ?? "未設定姓名"}</p>
                     <p className="text-xs text-muted-foreground">
                       {user.phone ?? user.email ?? ""}
                     </p>
@@ -897,11 +818,7 @@ export function EventTeamsSection({
             <Button variant="outline" onClick={() => setDeleteTeamId(null)}>
               取消
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteTeam}
-              disabled={deletingTeam}
-            >
+            <Button variant="destructive" onClick={handleDeleteTeam} disabled={deletingTeam}>
               {deletingTeam ? "刪除中..." : "確認刪除"}
             </Button>
           </DialogFooter>

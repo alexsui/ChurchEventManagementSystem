@@ -77,9 +77,7 @@ describe("attendance.service", () => {
     it("should throw when session not found", async () => {
       mockPrisma.eventSession.findUnique.mockResolvedValue(null);
 
-      await expect(checkIn("user-1", "session-1")).rejects.toThrow(
-        "Event session not found"
-      );
+      await expect(checkIn("user-1", "session-1")).rejects.toThrow("Event session not found");
     });
 
     it("should throw when user is not registered", async () => {
@@ -127,17 +125,13 @@ describe("attendance.service", () => {
     it("should throw when attendance not found", async () => {
       mockPrisma.attendance.findUnique.mockResolvedValue(null);
 
-      await expect(markLate("att-1", 20)).rejects.toThrow(
-        "Attendance record not found"
-      );
+      await expect(markLate("att-1", 20)).rejects.toThrow("Attendance record not found");
     });
   });
 
   describe("getAttendanceBySession", () => {
     it("should return attendance with user info", async () => {
-      const records = [
-        { id: "att-1", user: { id: "u1", name: "Alice" } },
-      ];
+      const records = [{ id: "att-1", user: { id: "u1", name: "Alice" } }];
       mockPrisma.attendance.findMany.mockResolvedValue(records);
 
       const result = await getAttendanceBySession("session-1");
@@ -170,10 +164,7 @@ describe("attendance.service", () => {
         eventId: "event-1",
       });
       mockPrisma.attendance.findMany.mockResolvedValue([]);
-      mockPrisma.registration.findMany.mockResolvedValue([
-        { userId: "u1" },
-        { userId: "u2" },
-      ]);
+      mockPrisma.registration.findMany.mockResolvedValue([{ userId: "u1" }, { userId: "u2" }]);
       const created = [
         { id: "att-1", userId: "u1" },
         { id: "att-2", userId: "u2" },
@@ -191,9 +182,7 @@ describe("attendance.service", () => {
         eventId: "event-1",
       });
       mockPrisma.attendance.findMany.mockResolvedValue([{ userId: "u1" }]);
-      mockPrisma.registration.findMany.mockResolvedValue([
-        { userId: "u2" },
-      ]);
+      mockPrisma.registration.findMany.mockResolvedValue([{ userId: "u2" }]);
       const created = [{ id: "att-2", userId: "u2" }];
       mockPrisma.$transaction.mockResolvedValue(created);
 
@@ -207,10 +196,7 @@ describe("attendance.service", () => {
       mockPrisma.eventSession.findUnique.mockResolvedValue({
         eventId: "event-1",
       });
-      mockPrisma.attendance.findMany.mockResolvedValue([
-        { userId: "u1" },
-        { userId: "u2" },
-      ]);
+      mockPrisma.attendance.findMany.mockResolvedValue([{ userId: "u1" }, { userId: "u2" }]);
 
       const result = await bulkCheckIn("session-1", ["u1", "u2"]);
 
@@ -221,9 +207,7 @@ describe("attendance.service", () => {
     it("should throw when session not found", async () => {
       mockPrisma.eventSession.findUnique.mockResolvedValue(null);
 
-      await expect(bulkCheckIn("session-1", ["u1"])).rejects.toThrow(
-        "Event session not found"
-      );
+      await expect(bulkCheckIn("session-1", ["u1"])).rejects.toThrow("Event session not found");
     });
   });
 

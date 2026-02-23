@@ -37,9 +37,7 @@ export function QRCodeDisplay({ url, label, downloadFileName }: QRCodeDisplayPro
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {label && (
-        <p className="text-sm text-muted-foreground">{label}</p>
-      )}
+      {label && <p className="text-sm text-muted-foreground">{label}</p>}
       {dataUrl ? (
         <img src={dataUrl} alt="QR Code" className="w-[200px] h-[200px]" />
       ) : (

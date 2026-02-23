@@ -55,8 +55,7 @@ export async function GET(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -88,10 +87,7 @@ export async function POST(request: NextRequest) {
 
   const { eventSessionId } = body;
   if (!eventSessionId) {
-    return NextResponse.json(
-      { error: "eventSessionId is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventSessionId is required" }, { status: 400 });
   }
 
   try {
@@ -155,10 +151,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(attendance);
   } catch (error) {
     if (error instanceof AttendanceServiceError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 404 });
     }
     throw error;
   }

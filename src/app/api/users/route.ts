@@ -39,9 +39,7 @@ export async function GET(request: Request) {
       filters.search = search;
     }
 
-    const users = await getUsers(
-      Object.keys(filters).length > 0 ? filters : undefined
-    );
+    const users = await getUsers(Object.keys(filters).length > 0 ? filters : undefined);
 
     // Strip password hash, expose only a boolean flag
     const sanitized = users.map(({ password, ...rest }) => ({
@@ -52,9 +50,6 @@ export async function GET(request: Request) {
     return NextResponse.json(sanitized);
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch users" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
   }
 }

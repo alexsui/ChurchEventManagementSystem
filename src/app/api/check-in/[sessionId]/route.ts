@@ -32,10 +32,7 @@ export async function GET(
     });
 
     if (!eventSession) {
-      return NextResponse.json(
-        { error: "Session not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
     // Check if the user is authenticated and has an existing attendance record
@@ -81,8 +78,7 @@ export async function GET(
       attendance,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

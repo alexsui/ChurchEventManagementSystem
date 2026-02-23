@@ -140,12 +140,10 @@ describe("budget.service", () => {
     it("should throw BUDGET_ITEM_NOT_FOUND when item does not exist", async () => {
       mockPrisma.budgetItem.findUnique.mockResolvedValue(null);
 
-      await expect(updateBudgetItem("bi-1", { actual: 5500 })).rejects.toThrow(
-        BudgetServiceError
-      );
-      await expect(
-        updateBudgetItem("bi-1", { actual: 5500 })
-      ).rejects.toMatchObject({ code: "BUDGET_ITEM_NOT_FOUND" });
+      await expect(updateBudgetItem("bi-1", { actual: 5500 })).rejects.toThrow(BudgetServiceError);
+      await expect(updateBudgetItem("bi-1", { actual: 5500 })).rejects.toMatchObject({
+        code: "BUDGET_ITEM_NOT_FOUND",
+      });
     });
   });
 

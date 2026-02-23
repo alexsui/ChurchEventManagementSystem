@@ -33,10 +33,7 @@ export async function getBudgetItemsByEvent(eventId: string) {
   });
 }
 
-export async function createBudgetItem(
-  eventId: string,
-  data: CreateBudgetItemInput
-) {
+export async function createBudgetItem(eventId: string, data: CreateBudgetItemInput) {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
   if (!event) {
     throw new BudgetServiceError("Event not found", "EVENT_NOT_FOUND");
@@ -54,16 +51,10 @@ export async function createBudgetItem(
   });
 }
 
-export async function updateBudgetItem(
-  id: string,
-  data: UpdateBudgetItemInput
-) {
+export async function updateBudgetItem(id: string, data: UpdateBudgetItemInput) {
   const item = await prisma.budgetItem.findUnique({ where: { id } });
   if (!item) {
-    throw new BudgetServiceError(
-      "Budget item not found",
-      "BUDGET_ITEM_NOT_FOUND"
-    );
+    throw new BudgetServiceError("Budget item not found", "BUDGET_ITEM_NOT_FOUND");
   }
 
   return prisma.budgetItem.update({
@@ -75,10 +66,7 @@ export async function updateBudgetItem(
 export async function deleteBudgetItem(id: string) {
   const item = await prisma.budgetItem.findUnique({ where: { id } });
   if (!item) {
-    throw new BudgetServiceError(
-      "Budget item not found",
-      "BUDGET_ITEM_NOT_FOUND"
-    );
+    throw new BudgetServiceError("Budget item not found", "BUDGET_ITEM_NOT_FOUND");
   }
 
   return prisma.budgetItem.delete({ where: { id } });

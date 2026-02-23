@@ -179,8 +179,7 @@ async function main() {
   const seriesEvent = await prisma.event.create({
     data: {
       title: "2026 春季幸福小組",
-      description:
-        "為期五週的幸福小組課程，帶領新朋友認識信仰。每週五晚間聚會。",
+      description: "為期五週的幸福小組課程，帶領新朋友認識信仰。每週五晚間聚會。",
       location: "副堂 B 教室",
       type: "SERIES",
       status: "OPEN",
@@ -288,9 +287,7 @@ async function main() {
     }),
   ]);
 
-  console.log(
-    `  Created ${singleRegistrations.length + seriesRegistrations.length} registrations`
-  );
+  console.log(`  Created ${singleRegistrations.length + seriesRegistrations.length} registrations`);
 
   // ==================== Attendance ====================
 
@@ -359,8 +356,14 @@ async function main() {
   // ==================== RolePermission ====================
   // Seed RolePermission table
   const modules = [
-    "events", "registrations", "attendance", "assignments",
-    "users", "teams", "budget", "reports",
+    "events",
+    "registrations",
+    "attendance",
+    "assignments",
+    "users",
+    "teams",
+    "budget",
+    "reports",
   ] as const;
   const actions = ["read", "write"] as const;
 

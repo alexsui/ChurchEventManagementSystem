@@ -17,13 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ROLES = Object.entries(roleLabels)
   .filter(([key]) => key !== "ADMIN")
@@ -31,10 +25,7 @@ const ROLES = Object.entries(roleLabels)
 
 const MODULES = Object.entries(moduleLabels).map(([value, label]) => ({ value, label }));
 
-type PermissionMatrix = Record<
-  string,
-  Record<string, { read: boolean; write: boolean }>
->;
+type PermissionMatrix = Record<string, Record<string, { read: boolean; write: boolean }>>;
 
 export default function RolesPermissionPage() {
   const router = useRouter();
@@ -93,11 +84,7 @@ export default function RolesPermissionPage() {
     });
   }
 
-  function getPermission(
-    role: string,
-    module: string,
-    action: "read" | "write"
-  ): boolean {
+  function getPermission(role: string, module: string, action: "read" | "write"): boolean {
     return matrix[role]?.[module]?.[action] ?? false;
   }
 
@@ -129,11 +116,7 @@ export default function RolesPermissionPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.push("/admin/users")}
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/users")}>
           <ArrowLeft className="size-4" />
         </Button>
         <div>
@@ -147,18 +130,14 @@ export default function RolesPermissionPage() {
       <Card>
         <CardHeader>
           <CardTitle>權限矩陣</CardTitle>
-          <CardDescription>
-            R = 讀取，W = 寫入。勾選寫入會自動勾選讀取。
-          </CardDescription>
+          <CardDescription>R = 讀取，W = 寫入。勾選寫入會自動勾選讀取。</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="sticky left-0 z-30 min-w-[120px]">
-                    角色
-                  </TableHead>
+                  <TableHead className="sticky left-0 z-30 min-w-[120px]">角色</TableHead>
                   {MODULES.map((m) => (
                     <TableHead key={m.value} className="text-center min-w-[100px]">
                       {m.label}
@@ -178,18 +157,14 @@ export default function RolesPermissionPage() {
                           <label className="flex items-center gap-1 text-xs">
                             <Checkbox
                               checked={getPermission(role.value, mod.value, "read")}
-                              onCheckedChange={() =>
-                                toggle(role.value, mod.value, "read")
-                              }
+                              onCheckedChange={() => toggle(role.value, mod.value, "read")}
                             />
                             R
                           </label>
                           <label className="flex items-center gap-1 text-xs">
                             <Checkbox
                               checked={getPermission(role.value, mod.value, "write")}
-                              onCheckedChange={() =>
-                                toggle(role.value, mod.value, "write")
-                              }
+                              onCheckedChange={() => toggle(role.value, mod.value, "write")}
                             />
                             W
                           </label>

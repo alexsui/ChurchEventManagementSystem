@@ -1,17 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
-import {
-  getUserById,
-  updateUserRole,
-  toggleUserActive,
-} from "@/services/user.service";
+import { getUserById, updateUserRole, toggleUserActive } from "@/services/user.service";
 import { Role } from "@/generated/prisma/client";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ userId: string }> }
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ userId: string }> }) {
   try {
     const session = await auth();
 
@@ -27,26 +20,17 @@ export async function GET(
     const user = await getUserById(userId);
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch user" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ userId: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   try {
     const session = await auth();
 
@@ -69,10 +53,7 @@ export async function PATCH(
       const user = await toggleUserActive(userId);
 
       if (!user) {
-        return NextResponse.json(
-          { error: "User not found" },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
       return NextResponse.json(user);
@@ -82,19 +63,12 @@ export async function PATCH(
     if (body.role) {
       const validRoles = Object.values(Role);
       if (!validRoles.includes(body.role)) {
-        return NextResponse.json(
-          { error: "Invalid role" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid role" }, { status: 400 });
       }
 
       const expiresAt = body.expiresAt ? new Date(body.expiresAt) : undefined;
 
-      const user = await updateUserRole(
-        userId,
-        body.role as Role,
-        expiresAt
-      );
+      const user = await updateUserRole(userId, body.role as Role, expiresAt);
 
       return NextResponse.json(user);
     }
@@ -105,9 +79,6 @@ export async function PATCH(
     );
   } catch (error) {
     console.error("Error updating user:", error);
-    return NextResponse.json(
-      { error: "Failed to update user" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }

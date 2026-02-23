@@ -11,9 +11,7 @@ export default function AttendancePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">出席管理</h1>
-        <p className="text-muted-foreground text-sm">
-          管理活動出席報到紀錄
-        </p>
+        <p className="text-muted-foreground text-sm">管理活動出席報到紀錄</p>
       </div>
 
       <EventSelector value={selectedEventId} onChange={setSelectedEventId} />

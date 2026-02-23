@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  RegistrationStatus,
-  EventStatus,
-} from "@/generated/prisma/client";
+import { RegistrationStatus, EventStatus } from "@/generated/prisma/client";
 
 // ---------------------------------------------------------------------------
 // Mock Prisma client — use vi.hoisted so the mock object is available when
@@ -99,23 +96,19 @@ describe("registration.service", () => {
       const event = makeEvent({ status: EventStatus.PLANNING });
       mockPrisma.event.findUnique.mockResolvedValue(event);
 
-      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        RegistrationServiceError
-      );
-      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
-        { code: "EVENT_NOT_OPEN" }
-      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(RegistrationServiceError);
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject({
+        code: "EVENT_NOT_OPEN",
+      });
     });
 
     it("should throw when event is not found", async () => {
       mockPrisma.event.findUnique.mockResolvedValue(null);
 
-      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        RegistrationServiceError
-      );
-      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
-        { code: "EVENT_NOT_FOUND" }
-      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(RegistrationServiceError);
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject({
+        code: "EVENT_NOT_FOUND",
+      });
     });
 
     it("should throw when user is already registered", async () => {
@@ -125,12 +118,10 @@ describe("registration.service", () => {
       mockPrisma.event.findUnique.mockResolvedValue(event);
       mockPrisma.registration.findUnique.mockResolvedValue(existing);
 
-      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        RegistrationServiceError
-      );
-      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
-        { code: "ALREADY_REGISTERED" }
-      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(RegistrationServiceError);
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject({
+        code: "ALREADY_REGISTERED",
+      });
     });
 
     it("should throw when user is already waitlisted", async () => {
@@ -142,12 +133,10 @@ describe("registration.service", () => {
       mockPrisma.event.findUnique.mockResolvedValue(event);
       mockPrisma.registration.findUnique.mockResolvedValue(existing);
 
-      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(
-        RegistrationServiceError
-      );
-      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject(
-        { code: "ALREADY_REGISTERED" }
-      );
+      await expect(registerForEvent("user-1", "event-1")).rejects.toThrow(RegistrationServiceError);
+      await expect(registerForEvent("user-1", "event-1")).rejects.toMatchObject({
+        code: "ALREADY_REGISTERED",
+      });
     });
 
     it("should waitlist when maxParticipants is reached", async () => {
@@ -247,9 +236,9 @@ describe("registration.service", () => {
       await expect(cancelRegistration("user-1", "event-1")).rejects.toThrow(
         RegistrationServiceError
       );
-      await expect(
-        cancelRegistration("user-1", "event-1")
-      ).rejects.toMatchObject({ code: "REGISTRATION_NOT_FOUND" });
+      await expect(cancelRegistration("user-1", "event-1")).rejects.toMatchObject({
+        code: "REGISTRATION_NOT_FOUND",
+      });
     });
 
     it("should throw when registration is already cancelled", async () => {
@@ -261,9 +250,9 @@ describe("registration.service", () => {
       await expect(cancelRegistration("user-1", "event-1")).rejects.toThrow(
         RegistrationServiceError
       );
-      await expect(
-        cancelRegistration("user-1", "event-1")
-      ).rejects.toMatchObject({ code: "ALREADY_CANCELLED" });
+      await expect(cancelRegistration("user-1", "event-1")).rejects.toMatchObject({
+        code: "ALREADY_CANCELLED",
+      });
     });
 
     it("should promote the first waitlisted user when a registered user cancels", async () => {

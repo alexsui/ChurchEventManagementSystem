@@ -316,7 +316,6 @@ export default function TeamsPage() {
     }
   }
 
-
   // Filter out already-added members from search results
   const filteredSearchResults = memberSearchResults.filter(
     (u) => !detail?.defaultMembers.some((m) => m.userId === u.id)
@@ -382,10 +381,7 @@ export default function TeamsPage() {
             <TableBody>
               {templates.map((t) => (
                 <Fragment key={t.id}>
-                  <TableRow
-                    className="cursor-pointer"
-                    onClick={() => toggleExpand(t.id)}
-                  >
+                  <TableRow className="cursor-pointer" onClick={() => toggleExpand(t.id)}>
                     <TableCell className="w-8">
                       {expandedId === t.id ? (
                         <ChevronDown className="size-4" />
@@ -450,20 +446,14 @@ export default function TeamsPage() {
                                   預設成員
                                 </h3>
                                 {canWrite && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={openAddMemberDialog}
-                                  >
+                                  <Button size="sm" variant="outline" onClick={openAddMemberDialog}>
                                     <Plus className="size-3 mr-1" />
                                     新增
                                   </Button>
                                 )}
                               </div>
                               {detail.defaultMembers.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
-                                  尚無預設成員
-                                </p>
+                                <p className="text-sm text-muted-foreground">尚無預設成員</p>
                               ) : (
                                 <div className="space-y-1">
                                   {detail.defaultMembers.map((m) => (
@@ -504,9 +494,7 @@ export default function TeamsPage() {
                                 </h3>
                               </div>
                               {detail.defaultTasks.length === 0 && !canWrite && (
-                                <p className="text-sm text-muted-foreground">
-                                  尚無預設任務
-                                </p>
+                                <p className="text-sm text-muted-foreground">尚無預設任務</p>
                               )}
                               {detail.defaultTasks.length > 0 && (
                                 <div className="space-y-1">
@@ -536,9 +524,7 @@ export default function TeamsPage() {
                                     placeholder="新增預設任務..."
                                     value={newTaskTitle}
                                     onChange={(e) => setNewTaskTitle(e.target.value)}
-                                    onKeyDown={(e) =>
-                                      e.key === "Enter" && handleAddTask()
-                                    }
+                                    onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
                                     className="h-8 text-sm"
                                   />
                                   <Button
@@ -584,10 +570,7 @@ export default function TeamsPage() {
             <Button variant="outline" onClick={() => setEditingId(null)}>
               取消
             </Button>
-            <Button
-              onClick={handleEditSave}
-              disabled={saving || !editName.trim()}
-            >
+            <Button onClick={handleEditSave} disabled={saving || !editName.trim()}>
               {saving ? "儲存中..." : "儲存"}
             </Button>
           </DialogFooter>
@@ -612,11 +595,7 @@ export default function TeamsPage() {
             <Button variant="outline" onClick={() => setDeletingId(null)}>
               取消
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
               {deleting ? "刪除中..." : "確認刪除"}
             </Button>
           </DialogFooter>
@@ -665,13 +644,9 @@ export default function TeamsPage() {
                     onClick={() => handleAddMember(user.id)}
                   >
                     <div>
-                      <span className="font-medium">
-                        {user.name ?? "未命名"}
-                      </span>
+                      <span className="font-medium">{user.name ?? "未命名"}</span>
                       {user.phone && (
-                        <span className="text-muted-foreground ml-2">
-                          {user.phone}
-                        </span>
+                        <span className="text-muted-foreground ml-2">{user.phone}</span>
                       )}
                     </div>
                     <Plus className="size-4 text-muted-foreground" />

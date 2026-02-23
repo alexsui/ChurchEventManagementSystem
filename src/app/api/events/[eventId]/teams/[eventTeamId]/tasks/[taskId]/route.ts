@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
-import { updateEventTeamTask, deleteEventTeamTask, TeamServiceError } from "@/services/team.service";
+import {
+  updateEventTeamTask,
+  deleteEventTeamTask,
+  TeamServiceError,
+} from "@/services/team.service";
 
 type RouteParams = {
   params: Promise<{ eventId: string; eventTeamId: string; taskId: string }>;

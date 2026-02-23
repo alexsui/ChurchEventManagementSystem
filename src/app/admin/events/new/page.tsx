@@ -5,17 +5,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  EventForm,
-  type EventFormSubmitData,
-} from "@/components/shared/event-form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EventForm, type EventFormSubmitData } from "@/components/shared/event-form";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
 export default function NewEventPage() {
@@ -60,18 +51,12 @@ export default function NewEventPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.push("/admin/events")}
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/events")}>
           <ArrowLeft className="size-4" />
         </Button>
         <div>
           <h1 className="text-2xl font-bold">新增活動</h1>
-          <p className="text-muted-foreground text-sm">
-            建立新的教會活動
-          </p>
+          <p className="text-muted-foreground text-sm">建立新的教會活動</p>
         </div>
       </div>
 
@@ -81,11 +66,7 @@ export default function NewEventPage() {
           <CardDescription>填寫活動的基本資訊和場次</CardDescription>
         </CardHeader>
         <CardContent>
-          <EventForm
-            mode="create"
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <EventForm mode="create" onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </CardContent>
       </Card>
     </div>

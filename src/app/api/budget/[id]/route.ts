@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
-import {
-  updateBudgetItem,
-  deleteBudgetItem,
-  BudgetServiceError,
-} from "@/services/budget.service";
+import { updateBudgetItem, deleteBudgetItem, BudgetServiceError } from "@/services/budget.service";
 import { validBudgetCategories } from "@/lib/constants";
-
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -42,10 +37,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Validate estimated if provided
     if (estimated !== undefined && typeof estimated !== "number") {
-      return NextResponse.json(
-        { error: "estimated must be a number" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "estimated must be a number" }, { status: 400 });
     }
 
     const updateData: Record<string, unknown> = {};
@@ -67,10 +59,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     console.error("PATCH /api/budget/[id] error:", error);
-    return NextResponse.json(
-      { error: "Failed to update budget item" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update budget item" }, { status: 500 });
   }
 }
 
@@ -103,9 +92,6 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     }
 
     console.error("DELETE /api/budget/[id] error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete budget item" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to delete budget item" }, { status: 500 });
   }
 }

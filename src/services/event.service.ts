@@ -1,9 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import {
-  EventType,
-  EventStatus,
-  EventCategory,
-} from "@/generated/prisma/client";
+import { EventType, EventStatus, EventCategory } from "@/generated/prisma/client";
 
 // ==================== Types ====================
 
@@ -53,10 +49,7 @@ export function computeEffectiveStatus(
   storedStatus: EventStatus,
   sessions: { sessionDate: Date; endTime?: string | null }[]
 ): EventStatus {
-  if (
-    storedStatus === EventStatus.PLANNING ||
-    storedStatus === EventStatus.COMPLETED
-  ) {
+  if (storedStatus === EventStatus.PLANNING || storedStatus === EventStatus.COMPLETED) {
     return storedStatus;
   }
   if (sessions.length === 0) return storedStatus;
@@ -97,9 +90,7 @@ export async function createEvent(data: CreateEventInput) {
 
   if (eventType === EventType.SERIES) {
     if (!data.sessions || data.sessions.length === 0) {
-      throw new Error(
-        "SERIES events require at least one session in the sessions array"
-      );
+      throw new Error("SERIES events require at least one session in the sessions array");
     }
     sessionsToCreate = data.sessions;
   } else {
@@ -209,8 +200,7 @@ export async function getEventById(id: string) {
  * upserts sessions by eventId+sessionNo and removes any excess sessions.
  */
 export async function updateEvent(id: string, data: UpdateEventInput) {
-  const sessionsInput =
-    data.sessions ?? (data.session ? [data.session] : undefined);
+  const sessionsInput = data.sessions ?? (data.session ? [data.session] : undefined);
 
   if (!sessionsInput) {
     // No session changes — simple update

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Role } from "@/generated/prisma/client";
 
 type Module =
   | "events"
@@ -13,10 +14,7 @@ type Module =
 type Action = "read" | "write";
 
 // In-memory cache: role -> { permissions map, expiry timestamp }
-const cache = new Map<
-  string,
-  { permissions: Map<string, boolean>; expiresAt: number }
->();
+const cache = new Map<string, { permissions: Map<string, boolean>; expiresAt: number }>();
 
 const CACHE_TTL_MS = 60_000; // 60 seconds
 
@@ -27,9 +25,7 @@ function cacheKey(module: string, action: string): string {
 /**
  * Load permissions for a role from DB, with in-memory caching.
  */
-async function getPermissionsForRole(
-  role: string
-): Promise<Map<string, boolean>> {
+async function getPermissionsForRole(role: string): Promise<Map<string, boolean>> {
   const now = Date.now();
   const cached = cache.get(role);
   if (cached && cached.expiresAt > now) {
@@ -37,7 +33,7 @@ async function getPermissionsForRole(
   }
 
   const rows = await prisma.rolePermission.findMany({
-    where: { role: role as any },
+    where: { role: role as Role },
   });
 
   const permissions = new Map<string, boolean>();
@@ -77,9 +73,7 @@ export function invalidatePermissionCache(): void {
  * Call after auth check in API routes that perform write operations.
  * Returns a 403 NextResponse if inactive, or null if active.
  */
-export function assertActive(user: {
-  isActive?: boolean;
-}): Response | null {
+export function assertActive(user: { isActive?: boolean }): Response | null {
   if (user.isActive === false) {
     return Response.json({ error: "Account is inactive" }, { status: 403 });
   }

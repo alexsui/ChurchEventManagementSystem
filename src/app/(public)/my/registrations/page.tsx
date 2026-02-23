@@ -41,9 +41,7 @@ export default async function MyRegistrationsPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Header */}
         <div className="space-y-1">
-          <h1 className="font-display text-3xl font-bold text-warm-dark">
-            我的報名紀錄
-          </h1>
+          <h1 className="font-display text-3xl font-bold text-warm-dark">我的報名紀錄</h1>
           <p className="text-warm-dark/50">查看您報名過的活動</p>
         </div>
 
@@ -64,12 +62,8 @@ export default async function MyRegistrationsPage() {
                 />
               </svg>
             </div>
-            <h2 className="font-display text-xl font-bold text-warm-dark mb-2">
-              尚無報名紀錄
-            </h2>
-            <p className="text-warm-dark/50 mb-6">
-              前往活動列表瀏覽並報名活動
-            </p>
+            <h2 className="font-display text-xl font-bold text-warm-dark mb-2">尚無報名紀錄</h2>
+            <p className="text-warm-dark/50 mb-6">前往活動列表瀏覽並報名活動</p>
             <Link
               href="/events"
               className="inline-flex items-center gap-2 bg-warm-green text-white font-display font-bold px-6 py-3 rounded-full shadow-sm hover:shadow-md hover:bg-warm-green/90 transition-all"
@@ -90,22 +84,13 @@ export default async function MyRegistrationsPage() {
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm">
             <div className="space-y-3">
               {registrations.map((reg) => (
-                <Link
-                  key={reg.id}
-                  href={`/events/${reg.eventId}`}
-                  className="block"
-                >
+                <Link key={reg.id} href={`/events/${reg.eventId}`} className="block">
                   <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-warm-cream/60 transition-colors group">
                     {/* Status icon */}
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${getStatusStyle(reg.status)}`}
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                      >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                         <path d={getStatusIcon(reg.status)} />
                       </svg>
                     </div>
@@ -129,12 +114,7 @@ export default async function MyRegistrationsPage() {
 
                     {/* Arrow */}
                     <div className="w-8 h-8 bg-warm-green rounded-full flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                      >
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                         <path
                           d="M6 3L11 8L6 13"
                           stroke="white"

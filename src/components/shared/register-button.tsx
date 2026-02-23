@@ -63,12 +63,7 @@ export function RegisterButton({
           {label}
         </Badge>
         {registrationId && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCancel}
-            disabled={loading}
-          >
+          <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading}>
             {loading ? "取消中..." : "取消報名"}
           </Button>
         )}

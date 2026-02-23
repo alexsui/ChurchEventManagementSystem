@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { Role } from "@/generated/prisma/client";
 import { invalidatePermissionCache } from "@/lib/authorization";
 
-type PermissionMatrix = Record<
-  string,
-  Record<string, { read: boolean; write: boolean }>
->;
+type PermissionMatrix = Record<string, Record<string, { read: boolean; write: boolean }>>;
 
 type RoleModulePermissions = Record<string, { read: boolean; write: boolean }>;
 
@@ -12,13 +10,11 @@ type RoleModulePermissions = Record<string, { read: boolean; write: boolean }>;
  * Get permissions for a single role, grouped by module > { read, write }.
  * Returns null for ADMIN (ADMIN has full access, not stored in DB).
  */
-export async function getPermissionsForRole(
-  role: string
-): Promise<RoleModulePermissions | null> {
+export async function getPermissionsForRole(role: string): Promise<RoleModulePermissions | null> {
   if (role === "ADMIN") return null;
 
   const rows = await prisma.rolePermission.findMany({
-    where: { role: role as any },
+    where: { role: role as Role },
     orderBy: [{ module: "asc" }],
   });
 
@@ -62,9 +58,7 @@ export async function getAllRolePermissions(): Promise<PermissionMatrix> {
  * Bulk update role permissions from a full matrix.
  * Upserts all entries in a transaction, then invalidates cache.
  */
-export async function bulkUpdateRolePermissions(
-  matrix: PermissionMatrix
-): Promise<void> {
+export async function bulkUpdateRolePermissions(matrix: PermissionMatrix): Promise<void> {
   const operations = [];
 
   for (const [role, modules] of Object.entries(matrix)) {
@@ -74,14 +68,14 @@ export async function bulkUpdateRolePermissions(
           prisma.rolePermission.upsert({
             where: {
               role_module_action: {
-                role: role as any,
+                role: role as Role,
                 module,
                 action,
               },
             },
             update: { allowed },
             create: {
-              role: role as any,
+              role: role as Role,
               module,
               action,
               allowed,

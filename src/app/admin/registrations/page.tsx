@@ -14,11 +14,7 @@ export default function RegistrationsPage() {
         <p className="text-muted-foreground text-sm">管理活動報名資料</p>
       </div>
 
-      <EventSelector
-        value={selectedEventId}
-        onChange={setSelectedEventId}
-        showRegistrationCount
-      />
+      <EventSelector value={selectedEventId} onChange={setSelectedEventId} showRegistrationCount />
 
       {!selectedEventId && (
         <div className="flex flex-col items-center justify-center py-12">
@@ -26,9 +22,7 @@ export default function RegistrationsPage() {
         </div>
       )}
 
-      {selectedEventId && (
-        <RegistrationsPanel eventId={selectedEventId} />
-      )}
+      {selectedEventId && <RegistrationsPanel eventId={selectedEventId} />}
     </div>
   );
 }

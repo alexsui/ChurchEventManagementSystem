@@ -65,9 +65,9 @@ describe("assignment.service", () => {
     it("should throw when session not found", async () => {
       mockPrisma.eventSession.findUnique.mockResolvedValue(null);
 
-      await expect(
-        createAssignment("session-1", "Read Chapter 1")
-      ).rejects.toThrow("Event session not found");
+      await expect(createAssignment("session-1", "Read Chapter 1")).rejects.toThrow(
+        "Event session not found"
+      );
     });
   });
 
@@ -90,9 +90,7 @@ describe("assignment.service", () => {
     it("should throw when assignment not found", async () => {
       mockPrisma.assignment.findUnique.mockResolvedValue(null);
 
-      await expect(deleteAssignment("assign-1")).rejects.toThrow(
-        "Assignment not found"
-      );
+      await expect(deleteAssignment("assign-1")).rejects.toThrow("Assignment not found");
     });
   });
 
@@ -199,18 +197,12 @@ describe("assignment.service", () => {
         id: "assign-1",
         title: "Read Chapter 1",
       });
-      mockPrisma.assignmentCompletion.findMany.mockResolvedValue([
-        { userId: "u1" },
-      ]);
+      mockPrisma.assignmentCompletion.findMany.mockResolvedValue([{ userId: "u1" }]);
       mockPrisma.assignmentCompletion.createMany.mockResolvedValue({
         count: 1,
       });
 
-      const result = await markComplete(
-        "assign-1",
-        ["u1", "u2"],
-        "admin-1"
-      );
+      const result = await markComplete("assign-1", ["u1", "u2"], "admin-1");
 
       expect(result).toEqual({ created: 1, skipped: 1 });
       expect(mockPrisma.assignmentCompletion.createMany).toHaveBeenCalledWith({
@@ -228,9 +220,9 @@ describe("assignment.service", () => {
     it("should throw when assignment not found", async () => {
       mockPrisma.assignment.findUnique.mockResolvedValue(null);
 
-      await expect(
-        markComplete("assign-1", ["u1"], "admin-1")
-      ).rejects.toThrow("Assignment not found");
+      await expect(markComplete("assign-1", ["u1"], "admin-1")).rejects.toThrow(
+        "Assignment not found"
+      );
     });
   });
 
@@ -271,9 +263,7 @@ describe("assignment.service", () => {
     });
 
     it("should return rate=1 when no assignments exist (0/0)", async () => {
-      mockPrisma.eventSession.findMany.mockResolvedValue([
-        { id: "session-1" },
-      ]);
+      mockPrisma.eventSession.findMany.mockResolvedValue([{ id: "session-1" }]);
       mockPrisma.assignment.findMany.mockResolvedValue([]);
       mockPrisma.assignmentCompletion.findMany.mockResolvedValue([]);
 

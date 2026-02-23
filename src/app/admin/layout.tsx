@@ -4,25 +4,11 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import {
-  CalendarDays,
-  Users,
-  UsersRound,
-  QrCode,
-  Menu,
-  LogOut,
-  Home,
-} from "lucide-react";
+import { CalendarDays, Users, UsersRound, QrCode, Menu, LogOut, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { AdminPermissionsProvider } from "@/contexts/admin-permissions";
 import { roleLabels } from "@/lib/constants";
@@ -47,13 +33,10 @@ type RolePermissions = Record<string, { read: boolean; write: boolean }>;
 function useRolePermissions(role?: string) {
   const [permissions, setPermissions] = useState<RolePermissions | null>(null);
   const [isAdmin, setIsAdmin] = useState(role === "ADMIN");
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(!role);
 
   useEffect(() => {
-    if (!role) {
-      setLoaded(true);
-      return;
-    }
+    if (!role) return;
     fetch("/api/me/permissions")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -76,10 +59,7 @@ function useRolePermissions(role?: string) {
     if (!permissions) return false;
     if (item.module === "events") {
       // Show events nav if user has events:read OR any sub-module read
-      return (
-        permissions.events?.read ||
-        eventSubModules.some((m) => permissions[m]?.read)
-      );
+      return permissions.events?.read || eventSubModules.some((m) => permissions[m]?.read);
     }
     return permissions[item.module]?.read ?? false;
   });
@@ -122,11 +102,7 @@ function SidebarNav({
   );
 }
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -144,13 +120,15 @@ export default function AdminLayout({
       return;
     }
     // If the current path doesn't match any permitted module, redirect
+    // Admin users can access any admin page regardless of nav items
     const isPermitted =
+      isAdmin ||
       pathname === "/admin" ||
       visibleItems.some((item) => pathname.startsWith(item.href));
     if (!isPermitted) {
       router.replace(visibleItems[0].href);
     }
-  }, [loaded, status, visibleItems, pathname, router]);
+  }, [loaded, status, visibleItems, pathname, router, isAdmin]);
 
   if (status === "loading" || !loaded) {
     return (
@@ -169,8 +147,7 @@ export default function AdminLayout({
   }
 
   const isPermittedPath =
-    pathname === "/admin" ||
-    visibleItems.some((item) => pathname.startsWith(item.href));
+    isAdmin || pathname === "/admin" || visibleItems.some((item) => pathname.startsWith(item.href));
 
   if (visibleItems.length === 0 || !isPermittedPath) {
     return (
@@ -213,10 +190,7 @@ export default function AdminLayout({
                 <SheetTitle>教會活動管理</SheetTitle>
               </SheetHeader>
               <div className="p-4">
-                <SidebarNav
-                  visibleItems={visibleItems}
-                  onNavigate={() => setSheetOpen(false)}
-                />
+                <SidebarNav visibleItems={visibleItems} onNavigate={() => setSheetOpen(false)} />
               </div>
             </SheetContent>
           </Sheet>
@@ -233,16 +207,14 @@ export default function AdminLayout({
               <span className="hidden sm:inline">回到前台</span>
             </Link>
             <Separator orientation="vertical" className="h-6" />
-            <span className="text-sm font-medium truncate max-w-[80px] sm:max-w-none">{user.name ?? "使用者"}</span>
+            <span className="text-sm font-medium truncate max-w-[80px] sm:max-w-none">
+              {user.name ?? "使用者"}
+            </span>
             <Badge variant="secondary" className="hidden sm:inline-flex">
               {roleLabels[userRole] ?? userRole}
             </Badge>
             <Separator orientation="vertical" className="h-6" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => signOut({ callbackUrl: "/login" })}
-            >
+            <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/login" })}>
               <LogOut className="size-4" />
               <span className="hidden sm:inline">登出</span>
             </Button>

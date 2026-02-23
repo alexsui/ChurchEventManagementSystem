@@ -21,13 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
@@ -110,9 +104,7 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
   const [attendanceError, setAttendanceError] = useState<string | null>(null);
 
   // Bulk check-in state
-  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [bulkCheckInLoading, setBulkCheckInLoading] = useState(false);
 
   // ── Fetch sessions ──
@@ -176,41 +168,33 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
         if (!attendanceRes.ok) throw new Error("無法取得出席紀錄");
         if (!registrationsRes.ok) throw new Error("無法取得報名資料");
 
-        const attendanceData: AttendanceRecord[] =
-          await attendanceRes.json();
-        const registrationsData: Registration[] =
-          await registrationsRes.json();
+        const attendanceData: AttendanceRecord[] = await attendanceRes.json();
+        const registrationsData: Registration[] = await registrationsRes.json();
 
         const attendanceMap = new Map<string, AttendanceRecord>();
         for (const record of attendanceData) {
           attendanceMap.set(record.userId, record);
         }
 
-        const confirmedRegistrations = registrationsData.filter(
-          (r) => r.status === "REGISTERED"
-        );
+        const confirmedRegistrations = registrationsData.filter((r) => r.status === "REGISTERED");
 
-        const rows: CombinedAttendanceRow[] = confirmedRegistrations.map(
-          (reg) => {
-            const att = attendanceMap.get(reg.user.id);
-            return {
-              userId: reg.user.id,
-              userName: reg.user.name,
-              phone: reg.user.phone,
-              checkedIn: !!att,
-              checkedInAt: att?.checkedInAt ?? null,
-              isLate: att?.isLate ?? false,
-              lateMinutes: att?.lateMinutes ?? 0,
-              attendanceId: att?.id ?? null,
-            };
-          }
-        );
+        const rows: CombinedAttendanceRow[] = confirmedRegistrations.map((reg) => {
+          const att = attendanceMap.get(reg.user.id);
+          return {
+            userId: reg.user.id,
+            userName: reg.user.name,
+            phone: reg.user.phone,
+            checkedIn: !!att,
+            checkedInAt: att?.checkedInAt ?? null,
+            isLate: att?.isLate ?? false,
+            lateMinutes: att?.lateMinutes ?? 0,
+            attendanceId: att?.id ?? null,
+          };
+        });
 
         setCombinedRows(rows);
       } catch (err) {
-        setAttendanceError(
-          err instanceof Error ? err.message : "發生未知錯誤"
-        );
+        setAttendanceError(err instanceof Error ? err.message : "發生未知錯誤");
       } finally {
         setAttendanceLoading(false);
       }
@@ -242,9 +226,7 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
   }
 
   function toggleSelectAll() {
-    const uncheckedUserIds = combinedRows
-      .filter((r) => !r.checkedIn)
-      .map((r) => r.userId);
+    const uncheckedUserIds = combinedRows.filter((r) => !r.checkedIn).map((r) => r.userId);
 
     if (uncheckedUserIds.every((id) => selectedUserIds.has(id))) {
       setSelectedUserIds(new Set());
@@ -290,8 +272,7 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
   const totalCount = combinedRows.length;
   const uncheckedRows = combinedRows.filter((r) => !r.checkedIn);
   const allUncheckedSelected =
-    uncheckedRows.length > 0 &&
-    uncheckedRows.every((r) => selectedUserIds.has(r.userId));
+    uncheckedRows.length > 0 && uncheckedRows.every((r) => selectedUserIds.has(r.userId));
 
   // ── Overview refresh ─────────────────────────────────────────────
 
@@ -322,225 +303,208 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
       </TabsContent>
 
       <TabsContent value="session-management">
-      <div className="space-y-6">
-      {/* Session selector */}
-      <Card>
-        <CardHeader>
-          <CardTitle>選擇場次</CardTitle>
-          <CardDescription>請選擇要管理的場次</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sessionsLoading ? (
-            <p className="text-muted-foreground text-sm">載入場次中...</p>
-          ) : (
-            <Select
-              value={selectedSessionId}
-              onValueChange={setSelectedSessionId}
-            >
-              <SelectTrigger className="w-full sm:w-[320px]">
-                <SelectValue placeholder="請選擇場次" />
-              </SelectTrigger>
-              <SelectContent>
-                {sessions.map((session) => (
-                  <SelectItem key={session.id} value={session.id}>
-                    {formatSessionLabel(session)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="space-y-6">
+          {/* Session selector */}
+          <Card>
+            <CardHeader>
+              <CardTitle>選擇場次</CardTitle>
+              <CardDescription>請選擇要管理的場次</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {sessionsLoading ? (
+                <p className="text-muted-foreground text-sm">載入場次中...</p>
+              ) : (
+                <Select value={selectedSessionId} onValueChange={setSelectedSessionId}>
+                  <SelectTrigger className="w-full sm:w-[320px]">
+                    <SelectValue placeholder="請選擇場次" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sessions.map((session) => (
+                      <SelectItem key={session.id} value={session.id}>
+                        {formatSessionLabel(session)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Empty state: no session selected */}
+          {!selectedSessionId && !sessionsLoading && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground">請選擇場次以查看出席紀錄</p>
+            </div>
           )}
-        </CardContent>
-      </Card>
 
-      {/* Empty state: no session selected */}
-      {!selectedSessionId && !sessionsLoading && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-muted-foreground">請選擇場次以查看出席紀錄</p>
-        </div>
-      )}
+          {/* Tabs: QR Code & Manual check-in */}
+          {selectedSessionId && (
+            <Tabs defaultValue="qrcode">
+              <TabsList>
+                <TabsTrigger value="qrcode" className="gap-1.5">
+                  <QrCode className="size-4" />
+                  QR Code 報到
+                </TabsTrigger>
+                <TabsTrigger value="manual" className="gap-1.5">
+                  <Users className="size-4" />
+                  手動點名
+                </TabsTrigger>
+              </TabsList>
 
-      {/* Tabs: QR Code & Manual check-in */}
-      {selectedSessionId && (
-        <Tabs defaultValue="qrcode">
-          <TabsList>
-            <TabsTrigger value="qrcode" className="gap-1.5">
-              <QrCode className="size-4" />
-              QR Code 報到
-            </TabsTrigger>
-            <TabsTrigger value="manual" className="gap-1.5">
-              <Users className="size-4" />
-              手動點名
-            </TabsTrigger>
-          </TabsList>
-
-          {/* ── QR Code Tab ── */}
-          <TabsContent value="qrcode">
-            <Card>
-              <CardHeader>
-                <CardTitle>QR Code 報到</CardTitle>
-                <CardDescription>
-                  掃描下方 QR Code 即可完成報到
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center gap-6 py-8 print:py-4">
-                {qrCodeDataUrl ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={qrCodeDataUrl}
-                      alt="報到 QR Code"
-                      className="size-72 rounded-lg border p-2 sm:size-96"
-                    />
-                    <p className="text-muted-foreground max-w-md break-all text-center text-sm">
-                      {checkInUrl}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground text-sm">
-                    產生 QR Code 中...
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ── Manual Check-in Tab ── */}
-          <TabsContent value="manual">
-            {attendanceLoading && (
-              <div className="flex justify-center py-12">
-                <p className="text-muted-foreground">載入中...</p>
-              </div>
-            )}
-
-            {attendanceError && (
-              <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
-                {attendanceError}
-              </div>
-            )}
-
-            {!attendanceLoading && !attendanceError && (
-              <div className="space-y-4">
-                {/* Summary bar */}
+              {/* ── QR Code Tab ── */}
+              <TabsContent value="qrcode">
                 <Card>
-                  <CardContent className="flex items-center justify-between flex-wrap gap-2 py-4">
-                    <div className="flex items-center gap-2">
-                      <Users className="text-muted-foreground size-5" />
-                      <span className="text-sm font-medium">
-                        已報到 {checkedInCount} / 已報名 {totalCount} 人
-                      </span>
-                    </div>
-                    {canWrite && selectedUserIds.size > 0 && (
-                      <Button
-                        onClick={handleBulkCheckIn}
-                        disabled={bulkCheckInLoading}
-                        size="sm"
-                      >
-                        <Check className="size-4" />
-                        {bulkCheckInLoading
-                          ? "報到中..."
-                          : `批次報到 (${selectedUserIds.size} 人)`}
-                      </Button>
+                  <CardHeader>
+                    <CardTitle>QR Code 報到</CardTitle>
+                    <CardDescription>掃描下方 QR Code 即可完成報到</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center gap-6 py-8 print:py-4">
+                    {qrCodeDataUrl ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={qrCodeDataUrl}
+                          alt="報到 QR Code"
+                          className="size-72 rounded-lg border p-2 sm:size-96"
+                        />
+                        <p className="text-muted-foreground max-w-md break-all text-center text-sm">
+                          {checkInUrl}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">產生 QR Code 中...</p>
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
 
-                {/* Attendance table */}
-                {combinedRows.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <p className="text-muted-foreground">
-                      此場次尚無報名資料
-                    </p>
-                  </div>
-                ) : (
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          {canWrite && (
-                            <TableHead className="w-12">
-                              <Checkbox
-                                checked={allUncheckedSelected}
-                                onCheckedChange={toggleSelectAll}
-                                aria-label="全選未報到人員"
-                                disabled={uncheckedRows.length === 0}
-                              />
-                            </TableHead>
-                          )}
-                          <TableHead>姓名</TableHead>
-                          <TableHead>報到狀態</TableHead>
-                          <TableHead>報到時間</TableHead>
-                          <TableHead>遲到</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {combinedRows.map((row) => (
-                          <TableRow key={row.userId}>
-                            {canWrite && (
-                              <TableCell>
-                                {!row.checkedIn && (
-                                  <Checkbox
-                                    checked={selectedUserIds.has(row.userId)}
-                                    onCheckedChange={() =>
-                                      toggleUserSelection(row.userId)
-                                    }
-                                    aria-label={`選取 ${row.userName}`}
-                                  />
-                                )}
-                              </TableCell>
-                            )}
-                            <TableCell className="font-medium">
-                              {row.userName}
-                            </TableCell>
-                            <TableCell>
-                              {row.checkedIn ? (
-                                <Badge
-                                  variant="secondary"
-                                  className={cn(
-                                    "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                                  )}
-                                >
-                                  已報到
-                                </Badge>
-                              ) : (
-                                <Badge
-                                  variant="secondary"
-                                  className={cn(
-                                    "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                                  )}
-                                >
-                                  未報到
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {row.checkedInAt
-                                ? formatDateTime(row.checkedInAt)
-                                : "—"}
-                            </TableCell>
-                            <TableCell>
-                              {row.isLate && row.lateMinutes > 0 ? (
-                                <span className="inline-flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400">
-                                  <Clock className="size-3.5" />
-                                  遲到 {row.lateMinutes} 分鐘
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">
-                                  —
-                                </span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+              {/* ── Manual Check-in Tab ── */}
+              <TabsContent value="manual">
+                {attendanceLoading && (
+                  <div className="flex justify-center py-12">
+                    <p className="text-muted-foreground">載入中...</p>
                   </div>
                 )}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      )}
-    </div>
+
+                {attendanceError && (
+                  <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+                    {attendanceError}
+                  </div>
+                )}
+
+                {!attendanceLoading && !attendanceError && (
+                  <div className="space-y-4">
+                    {/* Summary bar */}
+                    <Card>
+                      <CardContent className="flex items-center justify-between flex-wrap gap-2 py-4">
+                        <div className="flex items-center gap-2">
+                          <Users className="text-muted-foreground size-5" />
+                          <span className="text-sm font-medium">
+                            已報到 {checkedInCount} / 已報名 {totalCount} 人
+                          </span>
+                        </div>
+                        {canWrite && selectedUserIds.size > 0 && (
+                          <Button
+                            onClick={handleBulkCheckIn}
+                            disabled={bulkCheckInLoading}
+                            size="sm"
+                          >
+                            <Check className="size-4" />
+                            {bulkCheckInLoading
+                              ? "報到中..."
+                              : `批次報到 (${selectedUserIds.size} 人)`}
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Attendance table */}
+                    {combinedRows.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <p className="text-muted-foreground">此場次尚無報名資料</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              {canWrite && (
+                                <TableHead className="w-12">
+                                  <Checkbox
+                                    checked={allUncheckedSelected}
+                                    onCheckedChange={toggleSelectAll}
+                                    aria-label="全選未報到人員"
+                                    disabled={uncheckedRows.length === 0}
+                                  />
+                                </TableHead>
+                              )}
+                              <TableHead>姓名</TableHead>
+                              <TableHead>報到狀態</TableHead>
+                              <TableHead>報到時間</TableHead>
+                              <TableHead>遲到</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {combinedRows.map((row) => (
+                              <TableRow key={row.userId}>
+                                {canWrite && (
+                                  <TableCell>
+                                    {!row.checkedIn && (
+                                      <Checkbox
+                                        checked={selectedUserIds.has(row.userId)}
+                                        onCheckedChange={() => toggleUserSelection(row.userId)}
+                                        aria-label={`選取 ${row.userName}`}
+                                      />
+                                    )}
+                                  </TableCell>
+                                )}
+                                <TableCell className="font-medium">{row.userName}</TableCell>
+                                <TableCell>
+                                  {row.checkedIn ? (
+                                    <Badge
+                                      variant="secondary"
+                                      className={cn(
+                                        "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                                      )}
+                                    >
+                                      已報到
+                                    </Badge>
+                                  ) : (
+                                    <Badge
+                                      variant="secondary"
+                                      className={cn(
+                                        "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                      )}
+                                    >
+                                      未報到
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {row.checkedInAt ? formatDateTime(row.checkedInAt) : "—"}
+                                </TableCell>
+                                <TableCell>
+                                  {row.isLate && row.lateMinutes > 0 ? (
+                                    <span className="inline-flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400">
+                                      <Clock className="size-3.5" />
+                                      遲到 {row.lateMinutes} 分鐘
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground text-sm">—</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
       </TabsContent>
     </Tabs>
   );

@@ -24,10 +24,7 @@ export async function checkIn(userId: string, eventSessionId: string) {
   });
 
   if (!eventSession) {
-    throw new AttendanceServiceError(
-      "Event session not found",
-      "SESSION_NOT_FOUND"
-    );
+    throw new AttendanceServiceError("Event session not found", "SESSION_NOT_FOUND");
   }
 
   // Verify user has a registration for the parent event
@@ -41,10 +38,7 @@ export async function checkIn(userId: string, eventSessionId: string) {
   });
 
   if (!registration || registration.status !== "REGISTERED") {
-    throw new AttendanceServiceError(
-      "User is not registered for this event",
-      "NOT_REGISTERED"
-    );
+    throw new AttendanceServiceError("User is not registered for this event", "NOT_REGISTERED");
   }
 
   // Create attendance record; unique constraint prevents duplicates
@@ -57,10 +51,7 @@ export async function checkIn(userId: string, eventSessionId: string) {
     });
     return attendance;
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       throw new AttendanceServiceError(
         "User has already checked in to this session",
         "ALREADY_CHECKED_IN"
@@ -79,10 +70,7 @@ export async function markLate(attendanceId: string, lateMinutes: number) {
   });
 
   if (!attendance) {
-    throw new AttendanceServiceError(
-      "Attendance record not found",
-      "ATTENDANCE_NOT_FOUND"
-    );
+    throw new AttendanceServiceError("Attendance record not found", "ATTENDANCE_NOT_FOUND");
   }
 
   return prisma.attendance.update({
@@ -158,10 +146,7 @@ export async function bulkCheckIn(eventSessionId: string, userIds: string[]) {
   });
 
   if (!eventSession) {
-    throw new AttendanceServiceError(
-      "Event session not found",
-      "SESSION_NOT_FOUND"
-    );
+    throw new AttendanceServiceError("Event session not found", "SESSION_NOT_FOUND");
   }
 
   // Find users who are already checked in for this session

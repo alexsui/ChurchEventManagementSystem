@@ -7,10 +7,7 @@ export async function POST(request: Request) {
     const { name, email, password, phone } = await request.json();
 
     if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: "姓名、Email 及密碼為必填欄位" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "姓名、Email 及密碼為必填欄位" }, { status: 400 });
     }
 
     if (!/^[\u4e00-\u9fff]{2,}$/.test(name.trim())) {
@@ -25,10 +22,7 @@ export async function POST(request: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "註冊失敗，請確認資料後重試" },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: "註冊失敗，請確認資料後重試" }, { status: 409 });
     }
 
     if (phone) {
@@ -36,10 +30,7 @@ export async function POST(request: Request) {
         where: { phone },
       });
       if (existingPhone) {
-        return NextResponse.json(
-          { error: "註冊失敗，請確認資料後重試" },
-          { status: 409 }
-        );
+        return NextResponse.json({ error: "註冊失敗，請確認資料後重試" }, { status: 409 });
       }
     }
 
@@ -55,10 +46,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(
-      { message: "註冊成功", userId: user.id },
-      { status: 201 }
-    );
+    return NextResponse.json({ message: "註冊成功", userId: user.id }, { status: 201 });
   } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json({ error: "註冊失敗，請稍後再試" }, { status: 500 });

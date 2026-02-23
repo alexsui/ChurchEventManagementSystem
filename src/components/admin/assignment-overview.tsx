@@ -72,9 +72,7 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
       setRegistrations(regData.filter((r) => r.status === "REGISTERED"));
       setAssignments(asgData);
       setMinAssignmentRate(
-        eventData.minAssignmentRate != null
-          ? eventData.minAssignmentRate
-          : null
+        eventData.minAssignmentRate != null ? eventData.minAssignmentRate : null
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "發生未知錯誤");
@@ -129,9 +127,7 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
   }
 
   // Sessions with assignments are considered "resolved"
-  const sessionsWithAssignments = new Set(
-    assignments.map((a) => a.eventSessionId)
-  );
+  const sessionsWithAssignments = new Set(assignments.map((a) => a.eventSessionId));
 
   // A session is "resolved" if it's past OR has assignments already
   const isSessionResolved = (s: EventSession) =>
@@ -195,16 +191,11 @@ export function AssignmentOverview({ eventId }: AssignmentOverviewProps) {
 
                 const canShowRate = allSessionsResolved;
                 const rate =
-                  canShowRate && totalAssignments > 0
-                    ? totalCompleted / totalAssignments
-                    : null;
-                const rateDisplay =
-                  rate != null ? `${Math.round(rate * 100)}%` : "N/A";
+                  canShowRate && totalAssignments > 0 ? totalCompleted / totalAssignments : null;
+                const rateDisplay = rate != null ? `${Math.round(rate * 100)}%` : "N/A";
 
                 const passed =
-                  rate != null && minAssignmentRate != null
-                    ? rate >= minAssignmentRate
-                    : null;
+                  rate != null && minAssignmentRate != null ? rate >= minAssignmentRate : null;
 
                 return (
                   <TableRow key={reg.user.id}>

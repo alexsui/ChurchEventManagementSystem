@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
-import {
-  bulkCheckIn,
-  AttendanceServiceError,
-} from "@/services/attendance.service";
+import { bulkCheckIn, AttendanceServiceError } from "@/services/attendance.service";
 
 /**
  * POST /api/attendance/bulk
@@ -32,17 +29,11 @@ export async function POST(request: NextRequest) {
   const { eventSessionId, userIds } = body;
 
   if (!eventSessionId) {
-    return NextResponse.json(
-      { error: "eventSessionId is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventSessionId is required" }, { status: 400 });
   }
 
   if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-    return NextResponse.json(
-      { error: "userIds must be a non-empty array" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "userIds must be a non-empty array" }, { status: 400 });
   }
 
   try {

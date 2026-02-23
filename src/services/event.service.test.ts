@@ -204,9 +204,7 @@ describe("Event Service", () => {
           type: "SERIES",
           sessions: [],
         })
-      ).rejects.toThrow(
-        "SERIES events require at least one session in the sessions array"
-      );
+      ).rejects.toThrow("SERIES events require at least one session in the sessions array");
     });
 
     it("throws error when SERIES event has undefined sessions", async () => {
@@ -215,9 +213,7 @@ describe("Event Service", () => {
           title: "Bad Series",
           type: "SERIES",
         })
-      ).rejects.toThrow(
-        "SERIES events require at least one session in the sessions array"
-      );
+      ).rejects.toThrow("SERIES events require at least one session in the sessions array");
     });
 
     it("defaults to SINGLE type and PLANNING status", async () => {
@@ -250,7 +246,6 @@ describe("Event Service", () => {
           data: expect.objectContaining({
             type: "SINGLE",
             status: "PLANNING",
-    
           }),
         })
       );
@@ -276,9 +271,7 @@ describe("Event Service", () => {
           maxParticipants: null,
           createdAt: new Date(),
           updatedAt: new Date(),
-          eventSessions: [
-            { sessionDate: futureDate },
-          ],
+          eventSessions: [{ sessionDate: futureDate }],
           _count: { eventSessions: 1, registrations: 5 },
         },
         {
@@ -491,7 +484,7 @@ describe("Event Service", () => {
           deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
         },
       };
-      mockedPrisma.$transaction.mockImplementation(async (cb: Function) =>
+      mockedPrisma.$transaction.mockImplementation(async (cb: (tx: typeof fakeTx) => unknown) =>
         cb(fakeTx)
       );
 
@@ -617,26 +610,17 @@ describe("Event Service", () => {
     futureDate.setFullYear(futureDate.getFullYear() + 1);
 
     it("OPEN + first session in the past → IN_PROGRESS", () => {
-      const sessions = [
-        { sessionDate: pastDate },
-        { sessionDate: futureDate },
-      ];
+      const sessions = [{ sessionDate: pastDate }, { sessionDate: futureDate }];
       expect(computeEffectiveStatus("OPEN", sessions)).toBe("IN_PROGRESS");
     });
 
     it("OPEN + last session in the past → COMPLETED", () => {
-      const sessions = [
-        { sessionDate: farPastDate },
-        { sessionDate: pastDate },
-      ];
+      const sessions = [{ sessionDate: farPastDate }, { sessionDate: pastDate }];
       expect(computeEffectiveStatus("OPEN", sessions)).toBe("COMPLETED");
     });
 
     it("PLANNING + sessions in the past → stays PLANNING", () => {
-      const sessions = [
-        { sessionDate: farPastDate },
-        { sessionDate: pastDate },
-      ];
+      const sessions = [{ sessionDate: farPastDate }, { sessionDate: pastDate }];
       expect(computeEffectiveStatus("PLANNING", sessions)).toBe("PLANNING");
     });
 
@@ -646,13 +630,8 @@ describe("Event Service", () => {
     });
 
     it("IN_PROGRESS + last session in the past → COMPLETED", () => {
-      const sessions = [
-        { sessionDate: farPastDate },
-        { sessionDate: pastDate },
-      ];
-      expect(computeEffectiveStatus("IN_PROGRESS", sessions)).toBe(
-        "COMPLETED"
-      );
+      const sessions = [{ sessionDate: farPastDate }, { sessionDate: pastDate }];
+      expect(computeEffectiveStatus("IN_PROGRESS", sessions)).toBe("COMPLETED");
     });
 
     it("COMPLETED + future sessions → stays COMPLETED", () => {
@@ -707,10 +686,7 @@ describe("Event Service", () => {
           maxParticipants: null,
           createdAt: new Date(),
           updatedAt: new Date(),
-          eventSessions: [
-            { sessionDate: pastDate },
-            { sessionDate: futureDate },
-          ],
+          eventSessions: [{ sessionDate: pastDate }, { sessionDate: futureDate }],
           _count: { eventSessions: 2, registrations: 0 },
         },
       ];

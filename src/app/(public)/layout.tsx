@@ -1,10 +1,6 @@
 import { PublicNavbar } from "@/components/shared/public-navbar";
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <PublicNavbar />

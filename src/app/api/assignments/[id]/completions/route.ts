@@ -12,10 +12,7 @@ import {
  * List completions for an assignment.
  * Requires assignments:read permission.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -31,8 +28,7 @@ export async function GET(
     const completions = await getCompletionsByAssignment(id);
     return NextResponse.json(completions);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -43,10 +39,7 @@ export async function GET(
  * Requires assignments:write permission.
  * Body: { userIds: string[] }
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -68,10 +61,7 @@ export async function POST(
   const { userIds } = body;
 
   if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-    return NextResponse.json(
-      { error: "userIds must be a non-empty array" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "userIds must be a non-empty array" }, { status: 400 });
   }
 
   try {

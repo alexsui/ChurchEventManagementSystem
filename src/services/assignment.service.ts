@@ -14,19 +14,13 @@ export class AssignmentServiceError extends Error {
  * Create a new assignment for a given event session.
  * Verifies the session exists before creating.
  */
-export async function createAssignment(
-  eventSessionId: string,
-  title: string
-) {
+export async function createAssignment(eventSessionId: string, title: string) {
   const session = await prisma.eventSession.findUnique({
     where: { id: eventSessionId },
   });
 
   if (!session) {
-    throw new AssignmentServiceError(
-      "Event session not found",
-      "SESSION_NOT_FOUND"
-    );
+    throw new AssignmentServiceError("Event session not found", "SESSION_NOT_FOUND");
   }
 
   return prisma.assignment.create({
@@ -44,10 +38,7 @@ export async function deleteAssignment(id: string) {
   });
 
   if (!assignment) {
-    throw new AssignmentServiceError(
-      "Assignment not found",
-      "ASSIGNMENT_NOT_FOUND"
-    );
+    throw new AssignmentServiceError("Assignment not found", "ASSIGNMENT_NOT_FOUND");
   }
 
   return prisma.assignment.delete({
@@ -108,20 +99,13 @@ export async function getCompletionsByAssignment(assignmentId: string) {
  * Skips users who have already completed the assignment.
  * Returns { created, skipped } counts.
  */
-export async function markComplete(
-  assignmentId: string,
-  userIds: string[],
-  completedById: string
-) {
+export async function markComplete(assignmentId: string, userIds: string[], completedById: string) {
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
   });
 
   if (!assignment) {
-    throw new AssignmentServiceError(
-      "Assignment not found",
-      "ASSIGNMENT_NOT_FOUND"
-    );
+    throw new AssignmentServiceError("Assignment not found", "ASSIGNMENT_NOT_FOUND");
   }
 
   // Find existing completions to skip duplicates

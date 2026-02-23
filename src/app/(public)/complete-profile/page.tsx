@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,9 +12,7 @@ export default function CompleteProfilePage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-warm-cream">
-          <div className="font-display text-warm-dark/50 text-lg">
-            載入中...
-          </div>
+          <div className="font-display text-warm-dark/50 text-lg">載入中...</div>
         </div>
       }
     >
@@ -26,7 +24,6 @@ export default function CompleteProfilePage() {
 function CompleteProfileContent() {
   const { data: session, update } = useSession();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") || "/events";
 
   const [name, setName] = useState(session?.user?.name || "");
@@ -86,35 +83,22 @@ function CompleteProfileContent() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-warm-green rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="text-white"
-            >
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-white">
               <path
                 d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
                 fill="currentColor"
               />
             </svg>
           </div>
-          <h1 className="font-display text-3xl font-bold text-warm-dark">
-            完善個人資料
-          </h1>
-          <p className="text-warm-dark/50 mt-2">
-            為了方便辨識身分，請填寫您的真實姓名
-          </p>
+          <h1 className="font-display text-3xl font-bold text-warm-dark">完善個人資料</h1>
+          <p className="text-warm-dark/50 mt-2">為了方便辨識身分，請填寫您的真實姓名</p>
         </div>
 
         {/* Form Card */}
         <div className="bg-white rounded-3xl p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label
-                htmlFor="profile-name"
-                className="text-warm-dark/70 font-medium text-sm"
-              >
+              <Label htmlFor="profile-name" className="text-warm-dark/70 font-medium text-sm">
                 真實姓名 *
               </Label>
               <Input
@@ -128,10 +112,7 @@ function CompleteProfileContent() {
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="profile-phone"
-                className="text-warm-dark/70 font-medium text-sm"
-              >
+              <Label htmlFor="profile-phone" className="text-warm-dark/70 font-medium text-sm">
                 電話
               </Label>
               <Input

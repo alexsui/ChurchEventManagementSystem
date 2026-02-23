@@ -9,8 +9,7 @@ interface AdminPermissionsContextValue {
   permissions: RolePermissions | null;
 }
 
-const AdminPermissionsContext =
-  createContext<AdminPermissionsContextValue | null>(null);
+const AdminPermissionsContext = createContext<AdminPermissionsContextValue | null>(null);
 
 export function AdminPermissionsProvider({
   isAdmin,

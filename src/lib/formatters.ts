@@ -52,11 +52,7 @@ export function formatDateTime(value: string | Date): string {
 }
 
 // Time range: "14:00 - 16:00" or fallback
-export function formatTime(
-  start?: string | null,
-  end?: string | null,
-  fallback = "-"
-): string {
+export function formatTime(start?: string | null, end?: string | null, fallback = "-"): string {
   if (!start && !end) return fallback;
   if (start && end) return `${start} - ${end}`;
   return start || end || fallback;

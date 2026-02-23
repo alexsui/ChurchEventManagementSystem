@@ -29,9 +29,7 @@ function isValidPermissionMatrix(
   for (const [role, modules] of Object.entries(matrix)) {
     if (!(VALID_ROLES as string[]).includes(role)) return false;
     if (typeof modules !== "object" || modules === null) return false;
-    for (const [mod, perms] of Object.entries(
-      modules as Record<string, unknown>
-    )) {
+    for (const [mod, perms] of Object.entries(modules as Record<string, unknown>)) {
       if (!VALID_MODULES.includes(mod as Module)) return false;
       if (
         typeof perms !== "object" ||
@@ -64,8 +62,7 @@ export async function GET() {
     const matrix = await getAllRolePermissions();
     return NextResponse.json(matrix);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -108,8 +105,7 @@ export async function PUT(request: NextRequest) {
     await bulkUpdateRolePermissions(matrix);
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

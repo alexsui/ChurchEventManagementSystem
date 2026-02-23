@@ -161,12 +161,7 @@ interface EventFormProps {
 
 // ==================== Component ====================
 
-export function EventForm({
-  mode,
-  defaultValues,
-  onSubmit,
-  isSubmitting = false,
-}: EventFormProps) {
+export function EventForm({ mode, defaultValues, onSubmit, isSubmitting = false }: EventFormProps) {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema) as unknown as Resolver<EventFormValues>,
     defaultValues: {
@@ -199,9 +194,7 @@ export function EventForm({
   async function handleSubmit(values: EventFormValues) {
     const raw = values.maxParticipants;
     const maxParticipants =
-      raw !== undefined && raw !== null && String(raw) !== ""
-        ? Number(raw)
-        : undefined;
+      raw !== undefined && raw !== null && String(raw) !== "" ? Number(raw) : undefined;
 
     const rawRate = values.minAssignmentRate;
     const minAssignmentRate =
@@ -266,11 +259,7 @@ export function EventForm({
               <FormItem>
                 <FormLabel>活動說明</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="請輸入活動說明"
-                    rows={3}
-                    {...field}
-                  />
+                  <Textarea placeholder="請輸入活動說明" rows={3} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -301,10 +290,7 @@ export function EventForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>活動類別 *</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="選擇活動類別" />
@@ -312,7 +298,9 @@ export function EventForm({
                   </FormControl>
                   <SelectContent>
                     {Object.entries(eventCategoryLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -328,10 +316,7 @@ export function EventForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>類型</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="選擇活動類型" />
@@ -339,7 +324,9 @@ export function EventForm({
                     </FormControl>
                     <SelectContent>
                       {Object.entries(eventTypeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>{label}活動</SelectItem>
+                        <SelectItem key={value} value={value}>
+                          {label}活動
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -347,7 +334,6 @@ export function EventForm({
                 </FormItem>
               )}
             />
-
           </div>
 
           <FormField
@@ -390,9 +376,7 @@ export function EventForm({
                     placeholder="例：80（表示需完成 80% 作業才能結業）"
                     value={field.value ?? ""}
                     onChange={(e) =>
-                      field.onChange(
-                        e.target.value === "" ? undefined : Number(e.target.value)
-                      )
+                      field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
                     }
                   />
                 </FormControl>
@@ -488,14 +472,9 @@ export function EventForm({
             </div>
 
             {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="rounded-md border p-4 space-y-4"
-              >
+              <div key={field.id} className="rounded-md border p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    第 {index + 1} 場
-                  </span>
+                  <span className="text-sm font-medium">第 {index + 1} 場</span>
                   {fields.length > 1 && (
                     <Button
                       type="button"
@@ -568,11 +547,7 @@ export function EventForm({
 
         <div className="flex justify-end gap-3">
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? "處理中..."
-              : mode === "create"
-                ? "建立活動"
-                : "儲存變更"}
+            {isSubmitting ? "處理中..." : mode === "create" ? "建立活動" : "儲存變更"}
           </Button>
         </div>
       </form>

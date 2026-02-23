@@ -28,9 +28,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json(summary);
   } catch (error) {
     console.error("GET /api/events/[eventId]/attendance-summary error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch attendance summary" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch attendance summary" }, { status: 500 });
   }
 }

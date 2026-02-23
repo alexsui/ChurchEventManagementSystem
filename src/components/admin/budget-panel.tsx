@@ -22,10 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -137,8 +134,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
       setBudgetLoading(true);
       const res = await fetch(`/api/budget?eventId=${eventId}`);
       if (!res.ok) throw new Error("Failed to fetch budget");
-      const data: { items: BudgetItem[]; summary: BudgetSummary } =
-        await res.json();
+      const data: { items: BudgetItem[]; summary: BudgetSummary } = await res.json();
       setItems(data.items);
       setSummary(data.summary);
     } catch {
@@ -198,8 +194,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
 
     const payload = {
       category: formData.category,
-      customCategory:
-        formData.category === "OTHER" ? formData.customCategory || null : null,
+      customCategory: formData.category === "OTHER" ? formData.customCategory || null : null,
       estimated,
       actual,
       note: formData.note || null,
@@ -235,9 +230,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
       closeDialog();
       fetchBudget();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "操作失敗，請稍後再試"
-      );
+      toast.error(error instanceof Error ? error.message : "操作失敗，請稍後再試");
     } finally {
       setSubmitting(false);
     }
@@ -261,9 +254,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
       setDeleteTarget(null);
       fetchBudget();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "刪除失敗，請稍後再試"
-      );
+      toast.error(error instanceof Error ? error.message : "刪除失敗，請稍後再試");
     } finally {
       setDeleting(false);
     }
@@ -309,9 +300,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
                   <TableHead>備註</TableHead>
                   <TableHead className="text-right">預估金額</TableHead>
                   <TableHead className="text-right">實際金額</TableHead>
-                  {canWrite && (
-                    <TableHead className="text-right">操作</TableHead>
-                  )}
+                  {canWrite && <TableHead className="text-right">操作</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -320,9 +309,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
                     <TableCell className="font-medium">
                       {getCategoryLabel(item.category, item.customCategory)}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {item.note || "—"}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{item.note || "—"}</TableCell>
                     <TableCell className="text-right">
                       {currencyFormatter.format(item.estimated)}
                     </TableCell>
@@ -332,18 +319,10 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
                     {canWrite && (
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEditDialog(item)}
-                          >
+                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteTarget(item)}
-                          >
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget(item)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -389,13 +368,9 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingItem ? "編輯預算項目" : "新增預算項目"}
-            </DialogTitle>
+            <DialogTitle>{editingItem ? "編輯預算項目" : "新增預算項目"}</DialogTitle>
             <DialogDescription>
-              {editingItem
-                ? "修改預算項目的資料"
-                : "為目前選擇的活動新增一筆預算項目"}
+              {editingItem ? "修改預算項目的資料" : "為目前選擇的活動新增一筆預算項目"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -408,8 +383,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
                   setFormData((prev) => ({
                     ...prev,
                     category: value,
-                    customCategory:
-                      value !== "OTHER" ? "" : prev.customCategory,
+                    customCategory: value !== "OTHER" ? "" : prev.customCategory,
                   }))
                 }
               >
@@ -486,9 +460,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
               <Input
                 id="dialog-note"
                 value={formData.note}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, note: e.target.value }))
-                }
+                onChange={(e) => setFormData((prev) => ({ ...prev, note: e.target.value }))}
                 placeholder="選填"
               />
             </div>
@@ -517,10 +489,7 @@ export function BudgetPanel({ eventId }: BudgetPanelProps) {
             <AlertDialogDescription>
               確定要刪除「
               {deleteTarget
-                ? getCategoryLabel(
-                    deleteTarget.category,
-                    deleteTarget.customCategory
-                  )
+                ? getCategoryLabel(deleteTarget.category, deleteTarget.customCategory)
                 : ""}
               」這筆預算項目嗎？此操作無法復原。
             </AlertDialogDescription>

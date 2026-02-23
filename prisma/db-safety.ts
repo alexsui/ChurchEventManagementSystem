@@ -19,9 +19,7 @@ const LOCAL_HOSTS = new Set([
 function getDatabaseUrl(): string {
   const url = process.env.DATABASE_URL?.trim();
   if (!url) {
-    throw new Error(
-      "DATABASE_URL is not set. Refusing to run database script."
-    );
+    throw new Error("DATABASE_URL is not set. Refusing to run database script.");
   }
   return url;
 }

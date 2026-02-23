@@ -6,13 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 export function PublicNavbar() {
@@ -22,12 +16,10 @@ export function PublicNavbar() {
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const effectiveAdminAccess = isLoggedIn && hasAdminAccess;
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      setHasAdminAccess(false);
-      return;
-    }
+    if (!isLoggedIn) return;
     fetch("/api/me/permissions")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -43,9 +35,7 @@ export function PublicNavbar() {
         // "users" module is admin-only — exclude from the check
         const ADMIN_ONLY_MODULES = ["users"];
         const hasAny = Object.entries(perms).some(
-          ([mod, val]) =>
-            !ADMIN_ONLY_MODULES.includes(mod) &&
-            (val as { read: boolean }).read
+          ([mod, val]) => !ADMIN_ONLY_MODULES.includes(mod) && (val as { read: boolean }).read
         );
         setHasAdminAccess(hasAny);
       })
@@ -59,7 +49,10 @@ export function PublicNavbar() {
         <Link href="/events" className="flex items-center gap-2.5 group">
           <div className="w-9 h-9 bg-warm-green rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                fill="currentColor"
+              />
             </svg>
           </div>
           <span className="font-display text-xl font-bold text-warm-dark tracking-tight">
@@ -73,18 +66,12 @@ export function PublicNavbar() {
             活動列表
           </NavLink>
           {isLoggedIn && (
-            <NavLink
-              href="/my/registrations"
-              active={pathname === "/my/registrations"}
-            >
+            <NavLink href="/my/registrations" active={pathname === "/my/registrations"}>
               我的報名
             </NavLink>
           )}
-          {hasAdminAccess && (
-            <NavLink
-              href="/admin/events"
-              active={pathname.startsWith("/admin")}
-            >
+          {effectiveAdminAccess && (
+            <NavLink href="/admin/events" active={pathname.startsWith("/admin")}>
               管理後台
             </NavLink>
           )}
@@ -120,7 +107,7 @@ export function PublicNavbar() {
                     我的報名
                   </MobileNavLink>
                 )}
-                {hasAdminAccess && (
+                {effectiveAdminAccess && (
                   <MobileNavLink
                     href="/admin/events"
                     active={pathname.startsWith("/admin")}
@@ -133,27 +120,27 @@ export function PublicNavbar() {
             </SheetContent>
           </Sheet>
 
-        {/* Auth */}
-        <div>
-          {isLoggedIn ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => signOut({ callbackUrl: "/events" })}
-              className="text-warm-dark/70 hover:text-warm-dark hover:bg-warm-sand/60 rounded-full px-4 font-medium"
-            >
-              登出
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              asChild
-              className="bg-warm-green hover:bg-warm-green/90 text-white rounded-full px-5 font-display font-semibold shadow-sm hover:shadow-md transition-all"
-            >
-              <Link href="/login">登入</Link>
-            </Button>
-          )}
-        </div>
+          {/* Auth */}
+          <div>
+            {isLoggedIn ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => signOut({ callbackUrl: "/events" })}
+                className="text-warm-dark/70 hover:text-warm-dark hover:bg-warm-sand/60 rounded-full px-4 font-medium"
+              >
+                登出
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                asChild
+                className="bg-warm-green hover:bg-warm-green/90 text-white rounded-full px-5 font-display font-semibold shadow-sm hover:shadow-md transition-all"
+              >
+                <Link href="/login">登入</Link>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </header>

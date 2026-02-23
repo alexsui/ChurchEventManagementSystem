@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
 import { prisma } from "@/lib/prisma";
-import {
-  cancelRegistration,
-  RegistrationServiceError,
-} from "@/services/registration.service";
+import { cancelRegistration, RegistrationServiceError } from "@/services/registration.service";
 
 /**
  * DELETE /api/registrations/[registrationId]
@@ -32,18 +29,11 @@ export async function DELETE(
     });
 
     if (!registration) {
-      return NextResponse.json(
-        { error: "Registration not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Registration not found" }, { status: 404 });
     }
 
     const isOwner = registration.userId === session.user.id;
-    const isAdmin = await hasPermission(
-      session.user.role,
-      "registrations",
-      "write"
-    );
+    const isAdmin = await hasPermission(session.user.role, "registrations", "write");
 
     if (!isOwner && !isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -63,8 +53,7 @@ export async function DELETE(
         { status: statusMap[error.code] || 400 }
       );
     }
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

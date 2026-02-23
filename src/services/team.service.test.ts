@@ -102,8 +102,20 @@ describe("team.service", () => {
   describe("getTeamTemplates", () => {
     it("should return all team templates ordered by name with counts", async () => {
       const templates = [
-        { id: "t1", name: "影音組", createdAt: new Date(), updatedAt: new Date(), _count: { defaultMembers: 2, defaultTasks: 3 } },
-        { id: "t2", name: "敬拜組", createdAt: new Date(), updatedAt: new Date(), _count: { defaultMembers: 0, defaultTasks: 0 } },
+        {
+          id: "t1",
+          name: "影音組",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          _count: { defaultMembers: 2, defaultTasks: 3 },
+        },
+        {
+          id: "t2",
+          name: "敬拜組",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          _count: { defaultMembers: 0, defaultTasks: 0 },
+        },
       ];
       mockPrisma.team.findMany.mockResolvedValue(templates);
 
@@ -194,11 +206,15 @@ describe("team.service", () => {
         id: "t1",
         name: "影音組",
         defaultMembers: [
-          { id: "dm1", teamId: "t1", userId: "u1", role: "組長", user: { id: "u1", name: "Alice", phone: "123" } },
+          {
+            id: "dm1",
+            teamId: "t1",
+            userId: "u1",
+            role: "組長",
+            user: { id: "u1", name: "Alice", phone: "123" },
+          },
         ],
-        defaultTasks: [
-          { id: "dt1", teamId: "t1", title: "Setup mic" },
-        ],
+        defaultTasks: [{ id: "dt1", teamId: "t1", title: "Setup mic" }],
       };
       mockPrisma.team.findUnique.mockResolvedValue(template);
 
@@ -354,11 +370,13 @@ describe("team.service", () => {
           customName: null,
           team: { id: "t1", name: "影音組" },
           members: [
-            { id: "m1", userId: "u1", user: { id: "u1", name: "Alice", phone: "123", image: null } },
+            {
+              id: "m1",
+              userId: "u1",
+              user: { id: "u1", name: "Alice", phone: "123", image: null },
+            },
           ],
-          tasks: [
-            { id: "tk1", title: "Setup", assignee: { id: "u1", name: "Alice" } },
-          ],
+          tasks: [{ id: "tk1", title: "Setup", assignee: { id: "u1", name: "Alice" } }],
         },
       ];
       mockPrisma.eventTeam.findMany.mockResolvedValue(eventTeams);
@@ -544,7 +562,13 @@ describe("team.service", () => {
 
   describe("createEventTeamTask", () => {
     it("should create a task without assignee or deadline", async () => {
-      const created = { id: "tk1", eventTeamId: "et1", title: "Setup mic", assigneeId: null, deadline: null };
+      const created = {
+        id: "tk1",
+        eventTeamId: "et1",
+        title: "Setup mic",
+        assigneeId: null,
+        deadline: null,
+      };
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
       const result = await createEventTeamTask("et1", "Setup mic");
@@ -556,7 +580,13 @@ describe("team.service", () => {
     });
 
     it("should create a task with an assignee", async () => {
-      const created = { id: "tk2", eventTeamId: "et1", title: "Test sound", assigneeId: "u1", deadline: null };
+      const created = {
+        id: "tk2",
+        eventTeamId: "et1",
+        title: "Test sound",
+        assigneeId: "u1",
+        deadline: null,
+      };
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
       const result = await createEventTeamTask("et1", "Test sound", "u1");
@@ -569,7 +599,13 @@ describe("team.service", () => {
 
     it("should create a task with a deadline", async () => {
       const deadline = new Date("2026-03-15");
-      const created = { id: "tk3", eventTeamId: "et1", title: "Prepare slides", assigneeId: null, deadline };
+      const created = {
+        id: "tk3",
+        eventTeamId: "et1",
+        title: "Prepare slides",
+        assigneeId: null,
+        deadline,
+      };
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
       const result = await createEventTeamTask("et1", "Prepare slides", undefined, deadline);
@@ -600,7 +636,9 @@ describe("team.service", () => {
     it("should throw when task not found", async () => {
       mockPrisma.eventTeamTask.findUnique.mockResolvedValue(null);
 
-      await expect(updateEventTeamTask("tk1", { status: "done" })).rejects.toThrow(TeamServiceError);
+      await expect(updateEventTeamTask("tk1", { status: "done" })).rejects.toThrow(
+        TeamServiceError
+      );
       await expect(updateEventTeamTask("tk1", { status: "done" })).rejects.toMatchObject({
         code: "TASK_NOT_FOUND",
       });

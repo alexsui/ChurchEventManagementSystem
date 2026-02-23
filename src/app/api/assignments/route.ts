@@ -24,18 +24,14 @@ export async function GET(request: NextRequest) {
 
   const eventSessionId = request.nextUrl.searchParams.get("eventSessionId");
   if (!eventSessionId) {
-    return NextResponse.json(
-      { error: "eventSessionId is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventSessionId is required" }, { status: 400 });
   }
 
   try {
     const assignments = await getAssignmentsBySession(eventSessionId);
     return NextResponse.json(assignments);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -69,17 +65,11 @@ export async function POST(request: NextRequest) {
   const { eventSessionId, title } = body;
 
   if (!eventSessionId) {
-    return NextResponse.json(
-      { error: "eventSessionId is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "eventSessionId is required" }, { status: 400 });
   }
 
   if (!title) {
-    return NextResponse.json(
-      { error: "title is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
 
   try {

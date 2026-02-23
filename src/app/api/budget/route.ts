@@ -9,7 +9,6 @@ import {
 } from "@/services/budget.service";
 import { validBudgetCategories } from "@/lib/constants";
 
-
 /**
  * GET /api/budget?eventId=xxx
  * List budget items and summary for an event (requires auth + budget:read).
@@ -29,10 +28,7 @@ export async function GET(request: NextRequest) {
     const eventId = searchParams.get("eventId");
 
     if (!eventId) {
-      return NextResponse.json(
-        { error: "eventId is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "eventId is required" }, { status: 400 });
     }
 
     const [items, summary] = await Promise.all([
@@ -43,10 +39,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ items, summary });
   } catch (error) {
     console.error("GET /api/budget error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch budget" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch budget" }, { status: 500 });
   }
 }
 
@@ -70,10 +63,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!eventId) {
-      return NextResponse.json(
-        { error: "eventId is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "eventId is required" }, { status: 400 });
     }
 
     if (!category || !validBudgetCategories.includes(category)) {
@@ -111,9 +101,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.error("POST /api/budget error:", error);
-    return NextResponse.json(
-      { error: "Failed to create budget item" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create budget item" }, { status: 500 });
   }
 }

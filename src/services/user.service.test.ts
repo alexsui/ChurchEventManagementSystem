@@ -12,12 +12,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: mockPrisma,
 }));
 
-import {
-  getUsers,
-  getUserById,
-  updateUserRole,
-  toggleUserActive,
-} from "./user.service";
+import { getUsers, getUserById, updateUserRole, toggleUserActive } from "./user.service";
 
 describe("user.service", () => {
   beforeEach(() => {
@@ -35,9 +30,7 @@ describe("user.service", () => {
       const result = await getUsers();
 
       expect(result).toEqual(users);
-      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: {} })
-      );
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
     });
 
     it("should filter by role", async () => {

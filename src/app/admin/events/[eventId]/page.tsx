@@ -6,13 +6,7 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -21,12 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   EventForm,
@@ -34,7 +23,12 @@ import {
   type EventFormDefaultValues,
 } from "@/components/shared/event-form";
 import { cn } from "@/lib/utils";
-import { eventStatusLabels, eventStatusFlow, eventCategoryLabels, eventStatusClassNames } from "@/lib/constants";
+import {
+  eventStatusLabels,
+  eventStatusFlow,
+  eventCategoryLabels,
+  eventStatusClassNames,
+} from "@/lib/constants";
 import { formatAdminDate } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { EventTeamsSection } from "@/components/shared/event-teams-section";
@@ -67,15 +61,12 @@ interface EventDetail {
   _count: { registrations: number };
 }
 
-
 export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const router = useRouter();
   const { canWrite } = useAdminPermissions("events");
-  const { canRead: canReadTeams, canWrite: canWriteTeams } =
-    useAdminPermissions("teams");
-  const { canRead: canReadRegistrations } =
-    useAdminPermissions("registrations");
+  const { canRead: canReadTeams, canWrite: canWriteTeams } = useAdminPermissions("teams");
+  const { canRead: canReadRegistrations } = useAdminPermissions("registrations");
   const { canRead: canReadAttendance } = useAdminPermissions("attendance");
   const { canRead: canReadAssignments } = useAdminPermissions("assignments");
   const { canRead: canReadBudget } = useAdminPermissions("budget");
@@ -171,10 +162,7 @@ export default function EventDetailPage() {
     category: event.category ?? undefined,
     type: event.type,
     maxParticipants: event.maxParticipants,
-    minAssignmentRate:
-      event.minAssignmentRate != null
-        ? event.minAssignmentRate * 100
-        : undefined,
+    minAssignmentRate: event.minAssignmentRate != null ? event.minAssignmentRate * 100 : undefined,
     ...(event.type === "SINGLE" && event.eventSessions[0]
       ? {
           session: {
@@ -206,11 +194,7 @@ export default function EventDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4 flex-wrap">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.push("/admin/events")}
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/events")}>
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex-1 min-w-0">
@@ -224,9 +208,7 @@ export default function EventDetailPage() {
                 {eventCategoryLabels[event.category] ?? event.category}
               </Badge>
             )}
-            <Badge variant="outline">
-              {event.type === "SINGLE" ? "單場" : "系列"}
-            </Badge>
+            <Badge variant="outline">{event.type === "SINGLE" ? "單場" : "系列"}</Badge>
             <span className="text-sm text-muted-foreground">
               報名人數: {event._count.registrations}
               {event.maxParticipants ? ` / ${event.maxParticipants}` : ""}
@@ -246,21 +228,11 @@ export default function EventDetailPage() {
         <div className="overflow-x-auto -mx-1 px-1">
           <TabsList variant="line" className="w-max">
             <TabsTrigger value="info">活動資訊</TabsTrigger>
-            {canReadRegistrations && (
-              <TabsTrigger value="registrations">報名</TabsTrigger>
-            )}
-            {canReadAttendance && (
-              <TabsTrigger value="attendance">出席</TabsTrigger>
-            )}
-            {canReadAssignments && (
-              <TabsTrigger value="assignments">作業</TabsTrigger>
-            )}
-            {canReadBudget && (
-              <TabsTrigger value="budget">預算</TabsTrigger>
-            )}
-            {canReadTeams && (
-              <TabsTrigger value="teams">工作小組</TabsTrigger>
-            )}
+            {canReadRegistrations && <TabsTrigger value="registrations">報名</TabsTrigger>}
+            {canReadAttendance && <TabsTrigger value="attendance">出席</TabsTrigger>}
+            {canReadAssignments && <TabsTrigger value="assignments">作業</TabsTrigger>}
+            {canReadBudget && <TabsTrigger value="budget">預算</TabsTrigger>}
+            {canReadTeams && <TabsTrigger value="teams">工作小組</TabsTrigger>}
           </TabsList>
         </div>
 
@@ -275,24 +247,18 @@ export default function EventDetailPage() {
               <CardContent className="space-y-3">
                 {event.description && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      說明
-                    </p>
+                    <p className="text-sm font-medium text-muted-foreground">說明</p>
                     <p className="whitespace-pre-wrap">{event.description}</p>
                   </div>
                 )}
                 {event.location && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      地點
-                    </p>
+                    <p className="text-sm font-medium text-muted-foreground">地點</p>
                     <p>{event.location}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    建立日期
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">建立日期</p>
                   <p>{formatAdminDate(event.createdAt)}</p>
                 </div>
               </CardContent>
@@ -334,9 +300,7 @@ export default function EventDetailPage() {
             {/* Sessions */}
             <Card>
               <CardHeader>
-                <CardTitle>
-                  場次列表 ({event.eventSessions.length} 場)
-                </CardTitle>
+                <CardTitle>場次列表 ({event.eventSessions.length} 場)</CardTitle>
               </CardHeader>
               <CardContent>
                 {event.eventSessions.length === 0 ? (
@@ -356,13 +320,11 @@ export default function EventDetailPage() {
                         {event.eventSessions.map((session) => (
                           <TableRow key={session.id}>
                             <TableCell>第 {session.sessionNo} 堂</TableCell>
-                            <TableCell>
-                              {formatAdminDate(session.sessionDate)}
-                            </TableCell>
+                            <TableCell>{formatAdminDate(session.sessionDate)}</TableCell>
                             <TableCell>
                               {session.startTime && session.endTime
                                 ? `${session.startTime} - ${session.endTime}`
-                                : session.startTime ?? "-"}
+                                : (session.startTime ?? "-")}
                             </TableCell>
                             <TableCell>{session.topic ?? "-"}</TableCell>
                           </TableRow>
@@ -373,7 +335,6 @@ export default function EventDetailPage() {
                 )}
               </CardContent>
             </Card>
-
           </div>
         </TabsContent>
 
@@ -408,10 +369,7 @@ export default function EventDetailPage() {
         {/* 工作小組 Tab */}
         {canReadTeams && (
           <TabsContent value="teams">
-            <EventTeamsSection
-              eventId={eventId}
-              canWrite={canWriteTeams}
-            />
+            <EventTeamsSection eventId={eventId} canWrite={canWriteTeams} />
           </TabsContent>
         )}
       </Tabs>
