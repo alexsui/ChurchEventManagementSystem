@@ -43,15 +43,17 @@ Conventions:
 
 ## Documentation
 
-Entry points — start here, follow links for details:
+| What                   | Where                                                          |
+| ---------------------- | -------------------------------------------------------------- |
+| Architecture overview  | [`ARCHITECTURE.md`](ARCHITECTURE.md)                           |
+| Docs navigation hub    | [`docs/README.md`](docs/README.md)                             |
+| ExecPlan specification | [`docs/PLANS.md`](docs/PLANS.md)                               |
+| Active execution plans | [`docs/exec-plans/active/`](docs/exec-plans/active/)           |
+| Technical debt         | [`docs/exec-plans/tech-debt.md`](docs/exec-plans/tech-debt.md) |
 
-| What                             | Where                                                                    |
-| -------------------------------- | ------------------------------------------------------------------------ |
-| Architecture overview            | [`ARCHITECTURE.md`](ARCHITECTURE.md)                                     |
-| Docs navigation hub              | [`docs/README.md`](docs/README.md)                                       |
-| Feature status (source of truth) | [`docs/exec-plans/feature-list.json`](docs/exec-plans/feature-list.json) |
-| Session handoff log              | [`docs/exec-plans/agent-progress.md`](docs/exec-plans/agent-progress.md) |
-| Technical debt                   | [`docs/exec-plans/tech-debt.md`](docs/exec-plans/tech-debt.md)           |
+## ExecPlans
+
+When writing complex features or significant refactors, use an ExecPlan (as described in `docs/PLANS.md`) from design to implementation. ExecPlans are living documents — their Progress, Decision Log, and Outcomes sections serve as the handoff mechanism between sessions.
 
 ## Agent Workflow
 
@@ -62,15 +64,10 @@ Entry points — start here, follow links for details:
 Starting a session:
 
 1. Read `ARCHITECTURE.md` for orientation
-2. Check `feature-list.json` for current feature status
-3. Check `docs/exec-plans/active/` for in-progress plans
+2. Check `docs/exec-plans/active/` for in-progress plans
+3. If continuing work, read the active ExecPlan's Progress section
 
 Ending a session:
 
-1. Append an entry to `agent-progress.md` — follow the template in that file exactly
-2. Update `feature-list.json` — follow the `rules` array in that file. Only set `passes: true` after you have verified the feature end-to-end yourself this session.
-3. Update `tech-debt.md` if new debt was introduced or existing debt resolved
-
-### Quick fixes
-
-Just do the work. Run `npm run test:run` to verify nothing broke. No progress entry or feature-list update needed.
+1. Update the active ExecPlan's Progress section
+2. Update `docs/exec-plans/tech-debt.md` if debt was introduced or resolved

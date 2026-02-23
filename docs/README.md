@@ -5,6 +5,15 @@ Navigation hub for all project documentation.
 For architecture overview, see [`ARCHITECTURE.md`](../ARCHITECTURE.md) at the
 project root.
 
+## Key Entry Points
+
+| What                   | Where                                                |
+| ---------------------- | ---------------------------------------------------- |
+| Architecture overview  | [`ARCHITECTURE.md`](../ARCHITECTURE.md)              |
+| ExecPlan specification | [`PLANS.md`](PLANS.md)                               |
+| Active execution plans | [`exec-plans/active/`](exec-plans/active/)           |
+| Technical debt         | [`exec-plans/tech-debt.md`](exec-plans/tech-debt.md) |
+
 ## Folder Structure
 
 ### [`product-specs/`](product-specs/)
@@ -26,15 +35,13 @@ project root.
 
 ### [`exec-plans/`](exec-plans/)
 
-**Execution state and tracking.** The operational cockpit.
+**Execution state and tracking.** Living ExecPlan documents.
 
-| File                                              | Description                               |
-| ------------------------------------------------- | ----------------------------------------- |
-| [feature-list.json](exec-plans/feature-list.json) | Feature acceptance list (source of truth) |
-| [agent-progress.md](exec-plans/agent-progress.md) | Cross-session handoff log                 |
-| [tech-debt.md](exec-plans/tech-debt.md)           | Known technical debt                      |
-| [`active/`](exec-plans/active/)                   | Plans currently being worked on           |
-| [`completed/`](exec-plans/completed/)             | Archived execution plans                  |
+| Path                                    | Description                         |
+| --------------------------------------- | ----------------------------------- |
+| [tech-debt.md](exec-plans/tech-debt.md) | Known technical debt                |
+| [`active/`](exec-plans/active/)         | ExecPlans currently being worked on |
+| [`completed/`](exec-plans/completed/)   | Finished ExecPlans (archive)        |
 
 ### [`references/`](references/)
 
