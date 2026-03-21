@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { EventStatus, RegistrationStatus } from "@/generated/prisma/client";
 import { registrationStatusLabels } from "@/lib/constants";
+import {
+  RegistrationFormModal,
+  type FormFieldForDisplay,
+  type FormResponseForDisplay,
+} from "@/components/shared/registration-form-modal";
 
 interface RegisterButtonProps {
   eventId: string;
@@ -16,6 +21,8 @@ interface RegisterButtonProps {
   registrationStatus?: RegistrationStatus | null;
   eventStatus: EventStatus;
   isFull: boolean;
+  formFields?: FormFieldForDisplay[];
+  existingResponses?: FormResponseForDisplay[];
 }
 
 export function RegisterButton({
@@ -26,9 +33,46 @@ export function RegisterButton({
   registrationStatus,
   eventStatus,
   isFull,
+  formFields = [],
+  existingResponses,
 }: RegisterButtonProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [viewResponsesOpen, setViewResponsesOpen] = useState(false);
+
+  const hasFormFields = formFields.length > 0;
+
+  async function handleRegisterWithResponses(responses: { fieldId: string; value: string }[]) {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/registrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId, formResponses: responses }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "報名失敗，請稍後再試");
+        return;
+      }
+
+      if (data.status === "WAITLISTED") {
+        toast.success("已加入候補名單");
+      } else {
+        toast.success("報名成功");
+      }
+
+      setModalOpen(false);
+      router.refresh();
+    } catch {
+      toast.error("報名失敗，請稍後再試");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Already registered
   if (isRegistered && registrationStatus) {
@@ -62,11 +106,28 @@ export function RegisterButton({
         <Badge variant="secondary" className="text-base px-6 py-2">
           {label}
         </Badge>
-        {registrationId && (
-          <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading}>
-            {loading ? "取消中..." : "取消報名"}
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {hasFormFields && existingResponses && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => setViewResponsesOpen(true)}>
+                查看報名資料
+              </Button>
+              <RegistrationFormModal
+                open={viewResponsesOpen}
+                onOpenChange={setViewResponsesOpen}
+                formFields={formFields}
+                existingResponses={existingResponses}
+                onSubmit={async () => {}}
+                isSubmitting={false}
+              />
+            </>
+          )}
+          {registrationId && (
+            <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading}>
+              {loading ? "取消中..." : "取消報名"}
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
@@ -110,7 +171,25 @@ export function RegisterButton({
     );
   }
 
-  // Logged in, event is OPEN
+  // Logged in, event is OPEN — with form fields: show modal
+  if (hasFormFields) {
+    return (
+      <>
+        <Button size="lg" onClick={() => setModalOpen(true)} disabled={loading}>
+          {isFull ? "候補報名" : "立即報名"}
+        </Button>
+        <RegistrationFormModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          formFields={formFields}
+          onSubmit={handleRegisterWithResponses}
+          isSubmitting={loading}
+        />
+      </>
+    );
+  }
+
+  // Logged in, event is OPEN — no form fields: one-click
   async function handleRegister() {
     setLoading(true);
     try {
