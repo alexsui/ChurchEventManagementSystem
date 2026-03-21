@@ -55,6 +55,11 @@ Conventions:
 
 When writing complex features or significant refactors, use an ExecPlan (as described in `docs/PLANS.md`) from design to implementation. ExecPlans are living documents — their Progress, Decision Log, and Outcomes sections serve as the handoff mechanism between sessions.
 
+## MCP Servers
+
+- **Vercel**: Scoped to `samuels-projects-af36681c/church-event-management-system`. Read operations (list deployments, get logs, get project info) are safe. **Mutating actions (deploy, environment variable changes) require explicit human confirmation before execution.**
+- **Neon**: Database operations. Use for branch management and SQL queries. Do not drop production branches without confirmation.
+
 ## Agent Workflow
 
 **Scope check** — decide if the task is _feature work_ (new features, significant refactors, bug fixes that change behavior) or _quick fix_ (typos, docs updates, config tweaks, one-line fixes). Only feature work needs the full workflow below. Quick fixes just do the work, run tests, and commit.
