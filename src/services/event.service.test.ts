@@ -484,9 +484,8 @@ describe("Event Service", () => {
           deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
         },
       };
-      mockedPrisma.$transaction.mockImplementation(async (cb: (tx: typeof fakeTx) => unknown) =>
-        cb(fakeTx)
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockedPrisma.$transaction.mockImplementation(async (cb: any) => cb(fakeTx));
 
       const result = await updateEvent("evt-1", {
         title: "Event",

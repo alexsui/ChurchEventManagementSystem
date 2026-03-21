@@ -42,7 +42,7 @@ describe("safeMigrate", () => {
 
     vi.mocked(fs.readdirSync).mockReturnValueOnce([
       "20260322000000_add_venue",
-    ] as unknown as fs.Dirent[]);
+    ] as unknown as ReturnType<typeof fs.readdirSync>);
 
     // readFileSync order: reviewed.json first, then migration SQL
     vi.mocked(fs.readFileSync)
@@ -75,7 +75,7 @@ describe("safeMigrate", () => {
 
     vi.mocked(fs.readdirSync).mockReturnValueOnce([
       "20260322000000_drop_col",
-    ] as unknown as fs.Dirent[]);
+    ] as unknown as ReturnType<typeof fs.readdirSync>);
 
     // reviewed.json first (empty), then dangerous SQL
     vi.mocked(fs.readFileSync)
@@ -95,7 +95,7 @@ describe("safeMigrate", () => {
 
     vi.mocked(fs.readdirSync).mockReturnValueOnce([
       "20260322000000_drop_col",
-    ] as unknown as fs.Dirent[]);
+    ] as unknown as ReturnType<typeof fs.readdirSync>);
 
     // reviewed.json first (with approval), then dangerous SQL
     vi.mocked(fs.readFileSync)
@@ -123,9 +123,9 @@ describe("safeMigrate", () => {
       Buffer.from("Following migration have not yet been applied:\n20260322000000_safe\n")
     );
 
-    vi.mocked(fs.readdirSync).mockReturnValueOnce([
-      "20260322000000_safe",
-    ] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValueOnce(["20260322000000_safe"] as unknown as ReturnType<
+      typeof fs.readdirSync
+    >);
 
     vi.mocked(fs.readFileSync)
       .mockReturnValueOnce("{}") // reviewed.json
@@ -148,9 +148,9 @@ describe("safeMigrate", () => {
         throw new Error("Migration failed: column does not exist");
       });
 
-    vi.mocked(fs.readdirSync).mockReturnValueOnce([
-      "20260322000000_safe",
-    ] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValueOnce(["20260322000000_safe"] as unknown as ReturnType<
+      typeof fs.readdirSync
+    >);
 
     vi.mocked(fs.readFileSync)
       .mockReturnValueOnce("{}") // reviewed.json
@@ -173,9 +173,9 @@ describe("safeMigrate", () => {
       )
       .mockReturnValueOnce(Buffer.from("All migrations applied."));
 
-    vi.mocked(fs.readdirSync).mockReturnValueOnce([
-      "20260325000000_safe",
-    ] as unknown as fs.Dirent[]);
+    vi.mocked(fs.readdirSync).mockReturnValueOnce(["20260325000000_safe"] as unknown as ReturnType<
+      typeof fs.readdirSync
+    >);
 
     vi.mocked(fs.readFileSync)
       .mockReturnValueOnce("{}") // reviewed.json

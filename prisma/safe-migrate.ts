@@ -21,8 +21,8 @@ function hasPendingMigrations(status: string): boolean {
 }
 
 function getPendingMigrationDirs(): string[] {
-  const entries = readdirSync(MIGRATIONS_DIR);
-  return entries.filter((entry) => /^\d{14}_/.test(String(entry))).sort();
+  const entries = readdirSync(MIGRATIONS_DIR, { encoding: "utf-8" });
+  return entries.filter((entry) => /^\d{14}_/.test(entry)).sort();
 }
 
 function readMigrationSql(migrationName: string): string {
