@@ -1,0 +1,4 @@
+{
+  "20260217180114_add_event_teams": "Removed User.teamId FK — teams restructured to use EventTeamMember join table",
+  "20260218122837_remove_registration_mode": "Removed registrationMode enum — replaced by event status flow"
+}
