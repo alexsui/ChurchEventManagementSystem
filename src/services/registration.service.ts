@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { RegistrationStatus, EventStatus } from "@/generated/prisma/client";
+import { RegistrationStatus, EventStatus, FormFieldType } from "@/generated/prisma/client";
 
 export class RegistrationServiceError extends Error {
   constructor(
@@ -12,13 +12,19 @@ export class RegistrationServiceError extends Error {
 }
 
 /**
- * Register a user for an event.
+ * Register a user for an event, optionally with form responses.
  *
  * - Event must be OPEN.
  * - User must not already have an active (REGISTERED / WAITLISTED) registration.
  * - If maxParticipants is set and the event is full, the registration is WAITLISTED.
+ * - If formResponses are provided, validates them against the event's form fields.
+ * - Re-registration after cancellation deletes old responses and creates fresh ones.
  */
-export async function registerForEvent(userId: string, eventId: string) {
+export async function registerForEvent(
+  userId: string,
+  eventId: string,
+  formResponses?: { fieldId: string; value: string }[]
+) {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
 
   if (!event) {
@@ -41,6 +47,11 @@ export async function registerForEvent(userId: string, eventId: string) {
     );
   }
 
+  // Validate form responses if provided
+  if (formResponses && formResponses.length > 0) {
+    await validateFormResponses(eventId, formResponses);
+  }
+
   // Determine status based on capacity
   let status: RegistrationStatus = RegistrationStatus.REGISTERED;
 
@@ -57,21 +68,97 @@ export async function registerForEvent(userId: string, eventId: string) {
     }
   }
 
-  // If the user previously cancelled, update the existing row; otherwise create new
-  if (existing && existing.status === RegistrationStatus.CANCELLED) {
-    return prisma.registration.update({
-      where: { id: existing.id },
-      data: { status },
-    });
+  // Use transaction for atomicity of registration + responses
+  return prisma.$transaction(async (tx) => {
+    let registration;
+
+    if (existing && existing.status === RegistrationStatus.CANCELLED) {
+      // Re-registration: delete old responses, update status
+      await tx.eventFormResponse.deleteMany({
+        where: { registrationId: existing.id },
+      });
+      registration = await tx.registration.update({
+        where: { id: existing.id },
+        data: { status },
+      });
+    } else {
+      registration = await tx.registration.create({
+        data: { userId, eventId, status },
+      });
+    }
+
+    // Create form responses if provided
+    if (formResponses && formResponses.length > 0) {
+      await tx.eventFormResponse.createMany({
+        data: formResponses.map((r) => ({
+          registrationId: registration.id,
+          fieldId: r.fieldId,
+          value: r.value,
+        })),
+      });
+    }
+
+    return registration;
+  });
+}
+
+/**
+ * Validate form responses against the event's form fields.
+ */
+async function validateFormResponses(
+  eventId: string,
+  responses: { fieldId: string; value: string }[]
+) {
+  const fields = await prisma.eventFormField.findMany({
+    where: { eventId },
+  });
+
+  const fieldMap = new Map(fields.map((f) => [f.id, f]));
+  const responseMap = new Map(responses.map((r) => [r.fieldId, r.value]));
+
+  // Check all fieldIds belong to this event
+  for (const response of responses) {
+    if (!fieldMap.has(response.fieldId)) {
+      throw new RegistrationServiceError("表單欄位不屬於此活動", "INVALID_FORM_RESPONSES");
+    }
   }
 
-  return prisma.registration.create({
-    data: {
-      userId,
-      eventId,
-      status,
-    },
-  });
+  // Check required fields have non-empty values
+  for (const field of fields) {
+    if (field.required) {
+      const value = responseMap.get(field.id);
+      if (!value || value.trim() === "") {
+        throw new RegistrationServiceError(
+          `「${field.label}」為必填欄位`,
+          "INVALID_FORM_RESPONSES"
+        );
+      }
+    }
+  }
+
+  // Check value constraints per type
+  for (const response of responses) {
+    const field = fieldMap.get(response.fieldId)!;
+    if (response.value === "") continue; // empty optional fields are fine
+
+    if (field.type === FormFieldType.YES_NO) {
+      if (response.value !== "是" && response.value !== "否") {
+        throw new RegistrationServiceError(
+          `「${field.label}」的值必須為「是」或「否」`,
+          "INVALID_FORM_RESPONSES"
+        );
+      }
+    }
+
+    if (field.type === FormFieldType.SINGLE_CHOICE) {
+      if (!field.options.includes(response.value)) {
+        throw new RegistrationServiceError(
+          `「${field.label}」的值不在可選範圍內`,
+          "INVALID_FORM_RESPONSES"
+        );
+      }
+    }
+  }
 }
 
 /**
@@ -128,6 +215,14 @@ export async function getRegistrationsByEvent(eventId: string) {
     include: {
       user: {
         select: { id: true, name: true, email: true, phone: true, role: true },
+      },
+      formResponses: {
+        include: {
+          field: {
+            select: { id: true, type: true, label: true, sortOrder: true },
+          },
+        },
+        orderBy: { field: { sortOrder: "asc" } },
       },
     },
     orderBy: { createdAt: "asc" },
