@@ -11,11 +11,24 @@ interface EventSession {
   topic: string | null;
 }
 
+interface FormResponseWithField {
+  fieldId: string;
+  value: string;
+  field: { id: string; label: string; sortOrder: number };
+}
+
+interface FormFieldMeta {
+  id: string;
+  label: string;
+  sortOrder: number;
+}
+
 interface Registration {
   id: string;
   status: string;
   createdAt: string;
   user: { id: string; name: string; phone: string };
+  formResponses?: FormResponseWithField[];
 }
 
 interface AttendanceSummaryRecord {
@@ -54,12 +67,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export async function fetchEventExportData(eventId: string): Promise<ExportData> {
-  const [eventRes, regRes, attRes, assignRes, budgetRes] = await Promise.all([
+  const [eventRes, regRes, attRes, assignRes, budgetRes, formFieldsRes] = await Promise.all([
     fetch(`/api/events/${eventId}`),
     fetch(`/api/registrations?eventId=${eventId}`),
     fetch(`/api/events/${eventId}/attendance-summary`),
     fetch(`/api/events/${eventId}/assignment-summary`),
     fetch(`/api/budget?eventId=${eventId}`),
+    fetch(`/api/events/${eventId}/form-fields?admin=true`),
   ]);
 
   const eventData = await eventRes.json();
@@ -71,17 +85,31 @@ export async function fetchEventExportData(eventId: string): Promise<ExportData>
   const budgetData = budgetRes.ok
     ? await budgetRes.json()
     : { items: [], summary: { totalEstimated: 0, totalActual: 0 } };
+  const formFieldsMeta: FormFieldMeta[] = formFieldsRes.ok ? await formFieldsRes.json() : [];
 
   const sessionLabels = sessions.map((s) => formatSessionColumnHeader(s));
 
   // --- Registrations ---
   const registrations = {
-    rows: allRegistrations.map((r) => ({
-      userName: r.user.name,
-      phone: r.user.phone,
-      status: r.status,
-      createdAt: r.createdAt,
-    })),
+    rows: allRegistrations.map((r) => {
+      const formResponses: Record<string, string> = {};
+      if (r.formResponses) {
+        for (const resp of r.formResponses) {
+          formResponses[resp.field.label] = resp.value;
+        }
+      }
+      return {
+        userName: r.user.name,
+        phone: r.user.phone,
+        status: r.status,
+        createdAt: r.createdAt,
+        formResponses: Object.keys(formResponses).length > 0 ? formResponses : undefined,
+      };
+    }),
+    formFields:
+      formFieldsMeta.length > 0
+        ? formFieldsMeta.map((f) => ({ label: f.label, sortOrder: f.sortOrder }))
+        : undefined,
   };
 
   // --- Attendance overview ---
