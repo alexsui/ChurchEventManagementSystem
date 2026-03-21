@@ -83,6 +83,21 @@ export async function markLate(attendanceId: string, lateMinutes: number) {
 }
 
 /**
+ * Delete an attendance record (admin use — undo a check-in).
+ */
+export async function deleteAttendance(attendanceId: string) {
+  const attendance = await prisma.attendance.findUnique({
+    where: { id: attendanceId },
+  });
+
+  if (!attendance) {
+    throw new AttendanceServiceError("Attendance record not found", "ATTENDANCE_NOT_FOUND");
+  }
+
+  return prisma.attendance.delete({ where: { id: attendanceId } });
+}
+
+/**
  * Get all attendance records for a given event session, including user info.
  */
 export async function getAttendanceBySession(eventSessionId: string) {

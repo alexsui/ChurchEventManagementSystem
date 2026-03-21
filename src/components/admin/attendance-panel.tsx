@@ -266,6 +266,27 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
     }
   }
 
+  async function handleCancelAttendance(attendanceId: string, userName: string) {
+    if (!confirm(`確定要取消 ${userName} 的出席紀錄嗎？`)) return;
+
+    try {
+      const res = await fetch("/api/attendance", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attendanceId }),
+      });
+
+      if (!res.ok) throw new Error("取消出席失敗");
+
+      toast.success(`已取消 ${userName} 的出席紀錄`);
+      if (selectedSessionId) {
+        fetchAttendanceData(selectedSessionId);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "操作失敗");
+    }
+  }
+
   // ── Derived values ──
 
   const checkedInCount = combinedRows.filter((r) => r.checkedIn).length;
@@ -442,6 +463,7 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
                               <TableHead>報到狀態</TableHead>
                               <TableHead>報到時間</TableHead>
                               <TableHead>遲到</TableHead>
+                              {canWrite && <TableHead className="w-20">操作</TableHead>}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -493,6 +515,22 @@ export function AttendancePanel({ eventId }: AttendancePanelProps) {
                                     <span className="text-muted-foreground text-sm">—</span>
                                   )}
                                 </TableCell>
+                                {canWrite && (
+                                  <TableCell>
+                                    {row.checkedIn && row.attendanceId && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-destructive hover:text-destructive"
+                                        onClick={() =>
+                                          handleCancelAttendance(row.attendanceId!, row.userName)
+                                        }
+                                      >
+                                        取消
+                                      </Button>
+                                    )}
+                                  </TableCell>
+                                )}
                               </TableRow>
                             ))}
                           </TableBody>

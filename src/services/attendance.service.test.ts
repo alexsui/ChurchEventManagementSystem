@@ -13,6 +13,7 @@ const mockPrisma = vi.hoisted(() => ({
     findUnique: vi.fn(),
     findMany: vi.fn(),
     update: vi.fn(),
+    delete: vi.fn(),
   },
   $transaction: vi.fn(),
 }));
@@ -37,10 +38,12 @@ vi.mock("@/generated/prisma/client", () => ({
 import {
   checkIn,
   markLate,
+  deleteAttendance,
   getAttendanceBySession,
   getAttendanceByUser,
   bulkCheckIn,
   getAttendanceSummaryByEvent,
+  AttendanceServiceError,
 } from "./attendance.service";
 
 describe("attendance.service", () => {
@@ -227,6 +230,28 @@ describe("attendance.service", () => {
       expect(mockPrisma.attendance.findMany).toHaveBeenCalledWith({
         where: { eventSession: { eventId: "evt-1" } },
         select: { userId: true, eventSessionId: true },
+      });
+    });
+  });
+
+  describe("deleteAttendance", () => {
+    it("should delete an existing attendance record", async () => {
+      const record = { id: "att-1", userId: "u1", eventSessionId: "s1" };
+      mockPrisma.attendance.findUnique.mockResolvedValue(record);
+      mockPrisma.attendance.delete.mockResolvedValue(record);
+
+      const result = await deleteAttendance("att-1");
+
+      expect(result).toEqual(record);
+      expect(mockPrisma.attendance.delete).toHaveBeenCalledWith({ where: { id: "att-1" } });
+    });
+
+    it("should throw when attendance record not found", async () => {
+      mockPrisma.attendance.findUnique.mockResolvedValue(null);
+
+      await expect(deleteAttendance("att-999")).rejects.toThrow(AttendanceServiceError);
+      await expect(deleteAttendance("att-999")).rejects.toMatchObject({
+        code: "ATTENDANCE_NOT_FOUND",
       });
     });
   });

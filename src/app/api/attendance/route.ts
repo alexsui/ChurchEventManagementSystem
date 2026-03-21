@@ -6,6 +6,7 @@ import {
   getAttendanceBySession,
   getAttendanceByUser,
   markLate,
+  deleteAttendance,
   AttendanceServiceError,
 } from "@/services/attendance.service";
 
@@ -155,6 +156,48 @@ export async function PATCH(request: NextRequest) {
   try {
     const attendance = await markLate(attendanceId, lateMinutes);
     return NextResponse.json(attendance);
+  } catch (error) {
+    if (error instanceof AttendanceServiceError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 404 });
+    }
+    throw error;
+  }
+}
+
+/**
+ * DELETE /api/attendance
+ * Remove an attendance record (admin undo check-in).
+ * Requires attendance:write permission.
+ * Body: { attendanceId: string }
+ */
+export async function DELETE(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const inactiveResponse = assertActive(session.user);
+  if (inactiveResponse) return inactiveResponse;
+
+  if (!(await hasPermission(session.user.role, "attendance", "write"))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  let body: { attendanceId?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const { attendanceId } = body;
+  if (!attendanceId) {
+    return NextResponse.json({ error: "attendanceId is required" }, { status: 400 });
+  }
+
+  try {
+    await deleteAttendance(attendanceId);
+    return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof AttendanceServiceError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: 404 });
