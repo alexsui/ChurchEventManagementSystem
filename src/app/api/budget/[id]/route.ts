@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
+import { hasPermission, assertActive } from "@/lib/authorization";
 import { updateBudgetItem, deleteBudgetItem, BudgetServiceError } from "@/services/budget.service";
 import { validBudgetCategories } from "@/lib/constants";
 
@@ -16,6 +16,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const inactiveResponsePatch = assertActive(session.user);
+    if (inactiveResponsePatch) return inactiveResponsePatch;
 
     if (!(await hasPermission(session.user.role, "budget", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -73,6 +76,9 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const inactiveResponseDelete = assertActive(session.user);
+    if (inactiveResponseDelete) return inactiveResponseDelete;
 
     if (!(await hasPermission(session.user.role, "budget", "write"))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

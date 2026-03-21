@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
+import { hasPermission, assertActive } from "@/lib/authorization";
 import {
   getCompletionsByAssignment,
   markComplete,
@@ -44,6 +44,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const inactiveResponse = assertActive(session.user);
+  if (inactiveResponse) return inactiveResponse;
 
   if (!(await hasPermission(session.user.role, "assignments", "write"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

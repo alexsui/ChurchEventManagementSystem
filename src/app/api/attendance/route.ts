@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { hasPermission } from "@/lib/authorization";
+import { hasPermission, assertActive } from "@/lib/authorization";
 import {
   checkIn,
   getAttendanceBySession,
@@ -71,6 +71,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const inactiveResponse = assertActive(session.user);
+  if (inactiveResponse) return inactiveResponse;
+
   // Intentionally checks "read" not "write": this endpoint is for member self-check-in
   // via QR code. All authenticated members with attendance:read can check themselves in.
   // Admin bulk-check-in operations use separate endpoints requiring attendance:write.
@@ -119,6 +122,9 @@ export async function PATCH(request: NextRequest) {
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const inactiveResponsePatch = assertActive(session.user);
+  if (inactiveResponsePatch) return inactiveResponsePatch;
 
   if (!(await hasPermission(session.user.role, "attendance", "write"))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

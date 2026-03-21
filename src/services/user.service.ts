@@ -1,5 +1,61 @@
 import { prisma } from "@/lib/prisma";
 import { Role } from "@/generated/prisma/client";
+import { hash } from "bcryptjs";
+
+export class UserServiceError extends Error {
+  constructor(
+    message: string,
+    public code: string
+  ) {
+    super(message);
+    this.name = "UserServiceError";
+  }
+}
+
+export interface RegisterUserInput {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
+
+export async function registerUser(input: RegisterUserInput) {
+  const { name, email, password, phone } = input;
+
+  if (!name || !email || !password) {
+    throw new UserServiceError("姓名、Email 及密碼為必填欄位", "MISSING_FIELDS");
+  }
+
+  if (!/^[\u4e00-\u9fff]{2,}$/.test(name.trim())) {
+    throw new UserServiceError("姓名請輸入至少兩個中文字，不接受英文或其他字元", "INVALID_NAME");
+  }
+
+  const existingEmail = await prisma.user.findUnique({ where: { email } });
+  if (existingEmail) {
+    throw new UserServiceError("註冊失敗，請確認資料後重試", "DUPLICATE_USER");
+  }
+
+  if (phone) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    if (existingPhone) {
+      throw new UserServiceError("註冊失敗，請確認資料後重試", "DUPLICATE_USER");
+    }
+  }
+
+  const hashedPassword = await hash(password, 12);
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      phone: phone || null,
+      profileCompleted: true,
+    },
+  });
+
+  return { userId: user.id };
+}
 
 export interface GetUsersFilters {
   role?: Role;

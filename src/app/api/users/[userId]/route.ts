@@ -23,7 +23,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    const { password, ...sanitized } = user;
+    return NextResponse.json({ ...sanitized, hasPassword: !!password });
   } catch (error) {
     console.error("Error fetching user:", error);
     return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
@@ -56,7 +57,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
-      return NextResponse.json(user);
+      const { password: _pw1, ...sanitizedToggle } = user;
+      return NextResponse.json({ ...sanitizedToggle, hasPassword: !!_pw1 });
     }
 
     // Update role
@@ -70,7 +72,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
 
       const user = await updateUserRole(userId, body.role as Role, expiresAt);
 
-      return NextResponse.json(user);
+      const { password: _pw2, ...sanitizedRole } = user;
+      return NextResponse.json({ ...sanitizedRole, hasPassword: !!_pw2 });
     }
 
     return NextResponse.json(

@@ -1,53 +1,29 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
+import { registerUser, UserServiceError } from "@/services/user.service";
 
 export async function POST(request: Request) {
+  let body;
   try {
-    const { name, email, password, phone } = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: "姓名、Email 及密碼為必填欄位" }, { status: 400 });
-    }
-
-    if (!/^[\u4e00-\u9fff]{2,}$/.test(name.trim())) {
+  try {
+    const result = await registerUser(body);
+    return NextResponse.json({ message: "註冊成功", userId: result.userId }, { status: 201 });
+  } catch (error) {
+    if (error instanceof UserServiceError) {
+      const statusMap: Record<string, number> = {
+        MISSING_FIELDS: 400,
+        INVALID_NAME: 400,
+        DUPLICATE_USER: 409,
+      };
       return NextResponse.json(
-        { error: "姓名請輸入至少兩個中文字，不接受英文或其他字元" },
-        { status: 400 }
+        { error: error.message, code: error.code },
+        { status: statusMap[error.code] || 400 }
       );
     }
-
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      return NextResponse.json({ error: "註冊失敗，請確認資料後重試" }, { status: 409 });
-    }
-
-    if (phone) {
-      const existingPhone = await prisma.user.findUnique({
-        where: { phone },
-      });
-      if (existingPhone) {
-        return NextResponse.json({ error: "註冊失敗，請確認資料後重試" }, { status: 409 });
-      }
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        phone: phone || null,
-        profileCompleted: true,
-      },
-    });
-
-    return NextResponse.json({ message: "註冊成功", userId: user.id }, { status: 201 });
-  } catch (error) {
     console.error("Registration error:", error);
     return NextResponse.json({ error: "註冊失敗，請稍後再試" }, { status: 500 });
   }

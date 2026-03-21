@@ -197,6 +197,62 @@ export async function bulkCheckIn(eventSessionId: string, userIds: string[]) {
 }
 
 /**
+ * Get session info for the public check-in page.
+ * Returns session + event details, plus the user's attendance record if authenticated.
+ */
+export async function getCheckInSession(sessionId: string, userId?: string) {
+  const eventSession = await prisma.eventSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      event: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          location: true,
+          type: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  if (!eventSession) {
+    throw new AttendanceServiceError("Session not found", "SESSION_NOT_FOUND");
+  }
+
+  let attendance = null;
+  if (userId) {
+    const existing = await prisma.attendance.findUnique({
+      where: {
+        userId_eventSessionId: { userId, eventSessionId: sessionId },
+      },
+      select: { id: true, checkedInAt: true },
+    });
+    if (existing) {
+      attendance = { id: existing.id, checkInTime: existing.checkedInAt };
+    }
+  }
+
+  return {
+    session: {
+      id: eventSession.id,
+      sessionNo: eventSession.sessionNo,
+      sessionDate: eventSession.sessionDate,
+      startTime: eventSession.startTime,
+      endTime: eventSession.endTime,
+      topic: eventSession.topic,
+    },
+    event: {
+      id: eventSession.event.id,
+      title: eventSession.event.title,
+      location: eventSession.event.location,
+    },
+    attendance,
+  };
+}
+
+/**
  * Get all attendance records (userId + eventSessionId) across all sessions for an event.
  * Used by the attendance overview to build a user × session matrix.
  */
