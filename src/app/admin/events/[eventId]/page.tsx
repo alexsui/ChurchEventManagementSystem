@@ -59,6 +59,15 @@ interface EventSession {
   topic: string | null;
 }
 
+interface FormField {
+  id: string;
+  type: "TEXT" | "YES_NO" | "SINGLE_CHOICE";
+  label: string;
+  options: string[];
+  required: boolean;
+  sortOrder: number;
+}
+
 interface EventDetail {
   id: string;
   title: string;
@@ -71,6 +80,7 @@ interface EventDetail {
   minAssignmentRate: number | null;
   createdAt: string;
   eventSessions: EventSession[];
+  formFields?: FormField[];
   _count: { registrations: number };
 }
 
@@ -224,6 +234,13 @@ export default function EventDetailPage() {
           })),
         }
       : {}),
+    formFields: event.formFields?.map((f) => ({
+      id: f.id,
+      type: f.type,
+      label: f.label,
+      options: f.options,
+      required: f.required,
+    })),
   };
 
   const statusInfo = {

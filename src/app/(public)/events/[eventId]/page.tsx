@@ -6,6 +6,10 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getEventById } from "@/services/event.service";
 import { getRegistrationCount, getUserRegistrationForEvent } from "@/services/registration.service";
+import {
+  getFormFieldsByEvent,
+  getFormResponsesByRegistration,
+} from "@/services/form-field.service";
 import { EventStatus, EventType } from "@/generated/prisma/client";
 import { eventStatusPublicLabels, eventCategoryLabels } from "@/lib/constants";
 import { formatLongDate, formatTime } from "@/lib/formatters";
@@ -48,6 +52,19 @@ export default async function EventDetailPage({
   const isRegistered = !!userRegistration;
   const isFull =
     event.maxParticipants !== null && registrationCount.registered >= event.maxParticipants;
+
+  // Fetch form fields (only for OPEN events per spec)
+  const formFields = event.status === EventStatus.OPEN ? await getFormFieldsByEvent(eventId) : [];
+
+  // Fetch existing responses if user is registered
+  let existingResponses: { fieldId: string; value: string }[] | undefined;
+  if (isRegistered && userRegistration && formFields.length > 0) {
+    const responses = await getFormResponsesByRegistration(userRegistration.id);
+    existingResponses = responses.map((r) => ({
+      fieldId: r.fieldId,
+      value: r.value,
+    }));
+  }
 
   const headersList = await headers();
   const host = headersList.get("host") ?? "localhost:3000";
@@ -269,6 +286,15 @@ export default async function EventDetailPage({
                 registrationStatus={userRegistration?.status ?? null}
                 eventStatus={event.status}
                 isFull={isFull}
+                formFields={formFields.map((f) => ({
+                  id: f.id,
+                  type: f.type as "TEXT" | "YES_NO" | "SINGLE_CHOICE",
+                  label: f.label,
+                  options: f.options,
+                  required: f.required,
+                  sortOrder: f.sortOrder,
+                }))}
+                existingResponses={existingResponses}
               />
             </div>
           </div>
