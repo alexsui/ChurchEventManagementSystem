@@ -5,6 +5,7 @@ interface RegistrationRow {
   phone: string | null;
   status: string;
   createdAt: string;
+  formResponses?: Record<string, string>;
 }
 
 interface AttendanceOverviewRow {
@@ -38,6 +39,7 @@ export interface ExportData {
   eventTitle: string;
   registrations?: {
     rows: RegistrationRow[];
+    formFields?: { label: string; sortOrder: number }[];
   };
   attendance?: {
     sessionLabels: string[];
@@ -64,7 +66,7 @@ export function exportEventToExcel(data: ExportData) {
   const wb = XLSX.utils.book_new();
 
   if (data.registrations) {
-    addRegistrationsSheet(wb, data.registrations.rows);
+    addRegistrationsSheet(wb, data.registrations.rows, data.registrations.formFields);
   }
 
   if (data.attendance) {
@@ -88,8 +90,15 @@ export function exportEventToExcel(data: ExportData) {
   XLSX.writeFile(wb, filename);
 }
 
-function addRegistrationsSheet(wb: XLSX.WorkBook, rows: RegistrationRow[]) {
-  const headers = ["姓名", "電話", "狀態", "報名時間"];
+function addRegistrationsSheet(
+  wb: XLSX.WorkBook,
+  rows: RegistrationRow[],
+  formFields?: { label: string; sortOrder: number }[]
+) {
+  const sortedFields = formFields ? [...formFields].sort((a, b) => a.sortOrder - b.sortOrder) : [];
+  const fieldLabels = sortedFields.map((f) => f.label);
+
+  const headers = ["姓名", "電話", "狀態", "報名時間", ...fieldLabels];
   const wsData = [
     headers,
     ...rows.map((r) => [
@@ -97,6 +106,7 @@ function addRegistrationsSheet(wb: XLSX.WorkBook, rows: RegistrationRow[]) {
       r.phone ?? "",
       STATUS_LABELS[r.status] ?? r.status,
       new Date(r.createdAt).toLocaleString("zh-TW"),
+      ...fieldLabels.map((label) => r.formResponses?.[label] ?? ""),
     ]),
   ];
   const ws = XLSX.utils.aoa_to_sheet(wsData);

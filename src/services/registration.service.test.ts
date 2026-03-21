@@ -18,6 +18,14 @@ const mockPrisma = vi.hoisted(() => ({
     update: vi.fn(),
     count: vi.fn(),
   },
+  eventFormField: {
+    findMany: vi.fn(),
+  },
+  eventFormResponse: {
+    deleteMany: vi.fn(),
+    createMany: vi.fn(),
+  },
+  $transaction: vi.fn(),
 }));
 
 vi.mock("@/lib/prisma", () => ({
@@ -67,6 +75,10 @@ function makeRegistration(overrides: Record<string, unknown> = {}) {
 describe("registration.service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // $transaction passes through: calls the callback with mockPrisma as the tx client
+    mockPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockPrisma) => unknown) =>
+      fn(mockPrisma)
+    );
   });
 
   // ─── registerForEvent ──────────────────────────────────────────────
@@ -195,6 +207,7 @@ describe("registration.service", () => {
 
       mockPrisma.event.findUnique.mockResolvedValue(event);
       mockPrisma.registration.findUnique.mockResolvedValue(cancelled);
+      mockPrisma.eventFormResponse.deleteMany.mockResolvedValue({ count: 0 });
       mockPrisma.registration.update.mockResolvedValue(updated);
 
       const result = await registerForEvent("user-1", "event-1");
@@ -204,6 +217,133 @@ describe("registration.service", () => {
         where: { id: cancelled.id },
         data: { status: RegistrationStatus.REGISTERED },
       });
+    });
+
+    // ─── Form response validation ───────────────────────────────────
+
+    it("should register with valid form responses", async () => {
+      const event = makeEvent();
+      const created = makeRegistration();
+      const formFields = [
+        { id: "f1", type: "TEXT", label: "Name", options: [], required: true, eventId: "event-1" },
+      ];
+
+      mockPrisma.event.findUnique.mockResolvedValue(event);
+      mockPrisma.registration.findUnique.mockResolvedValue(null);
+      mockPrisma.eventFormField.findMany.mockResolvedValue(formFields);
+      mockPrisma.registration.create.mockResolvedValue(created);
+      mockPrisma.eventFormResponse.createMany.mockResolvedValue({ count: 1 });
+
+      const result = await registerForEvent("user-1", "event-1", [
+        { fieldId: "f1", value: "John" },
+      ]);
+
+      expect(result).toEqual(created);
+      expect(mockPrisma.eventFormResponse.createMany).toHaveBeenCalled();
+    });
+
+    it("should throw INVALID_FORM_RESPONSES for missing required field", async () => {
+      const event = makeEvent();
+      const formFields = [
+        {
+          id: "f1",
+          type: "TEXT",
+          label: "必填欄位",
+          options: [],
+          required: true,
+          eventId: "event-1",
+        },
+      ];
+
+      mockPrisma.event.findUnique.mockResolvedValue(event);
+      mockPrisma.registration.findUnique.mockResolvedValue(null);
+      mockPrisma.eventFormField.findMany.mockResolvedValue(formFields);
+
+      await expect(
+        registerForEvent("user-1", "event-1", [{ fieldId: "f1", value: "" }])
+      ).rejects.toMatchObject({ code: "INVALID_FORM_RESPONSES" });
+    });
+
+    it("should throw INVALID_FORM_RESPONSES for invalid fieldId", async () => {
+      const event = makeEvent();
+      const formFields = [
+        { id: "f1", type: "TEXT", label: "Q1", options: [], required: false, eventId: "event-1" },
+      ];
+
+      mockPrisma.event.findUnique.mockResolvedValue(event);
+      mockPrisma.registration.findUnique.mockResolvedValue(null);
+      mockPrisma.eventFormField.findMany.mockResolvedValue(formFields);
+
+      await expect(
+        registerForEvent("user-1", "event-1", [{ fieldId: "nonexistent", value: "test" }])
+      ).rejects.toMatchObject({ code: "INVALID_FORM_RESPONSES" });
+    });
+
+    it("should throw INVALID_FORM_RESPONSES for invalid YES_NO value", async () => {
+      const event = makeEvent();
+      const formFields = [
+        {
+          id: "f1",
+          type: "YES_NO",
+          label: "是否出席",
+          options: [],
+          required: false,
+          eventId: "event-1",
+        },
+      ];
+
+      mockPrisma.event.findUnique.mockResolvedValue(event);
+      mockPrisma.registration.findUnique.mockResolvedValue(null);
+      mockPrisma.eventFormField.findMany.mockResolvedValue(formFields);
+
+      await expect(
+        registerForEvent("user-1", "event-1", [{ fieldId: "f1", value: "yes" }])
+      ).rejects.toMatchObject({ code: "INVALID_FORM_RESPONSES" });
+    });
+
+    it("should throw INVALID_FORM_RESPONSES for invalid SINGLE_CHOICE value", async () => {
+      const event = makeEvent();
+      const formFields = [
+        {
+          id: "f1",
+          type: "SINGLE_CHOICE",
+          label: "Size",
+          options: ["S", "M", "L"],
+          required: false,
+          eventId: "event-1",
+        },
+      ];
+
+      mockPrisma.event.findUnique.mockResolvedValue(event);
+      mockPrisma.registration.findUnique.mockResolvedValue(null);
+      mockPrisma.eventFormField.findMany.mockResolvedValue(formFields);
+
+      await expect(
+        registerForEvent("user-1", "event-1", [{ fieldId: "f1", value: "XXL" }])
+      ).rejects.toMatchObject({ code: "INVALID_FORM_RESPONSES" });
+    });
+
+    it("should delete old responses on re-registration", async () => {
+      const event = makeEvent();
+      const cancelled = makeRegistration({ status: RegistrationStatus.CANCELLED });
+      const updated = makeRegistration({ status: RegistrationStatus.REGISTERED });
+      const formFields = [
+        { id: "f1", type: "TEXT", label: "Q1", options: [], required: false, eventId: "event-1" },
+      ];
+
+      mockPrisma.event.findUnique.mockResolvedValue(event);
+      mockPrisma.registration.findUnique.mockResolvedValue(cancelled);
+      mockPrisma.eventFormField.findMany.mockResolvedValue(formFields);
+      mockPrisma.eventFormResponse.deleteMany.mockResolvedValue({ count: 1 });
+      mockPrisma.registration.update.mockResolvedValue(updated);
+      mockPrisma.eventFormResponse.createMany.mockResolvedValue({ count: 1 });
+
+      await registerForEvent("user-1", "event-1", [{ fieldId: "f1", value: "new answer" }]);
+
+      expect(mockPrisma.eventFormResponse.deleteMany).toHaveBeenCalledWith({
+        where: { registrationId: cancelled.id },
+      });
+      expect(mockPrisma.eventFormResponse.createMany).toHaveBeenCalled();
     });
   });
 
@@ -311,7 +451,7 @@ describe("registration.service", () => {
   // ─── getRegistrationsByEvent ───────────────────────────────────────
 
   describe("getRegistrationsByEvent", () => {
-    it("should return registrations with user info", async () => {
+    it("should return registrations with user info and form responses", async () => {
       const regs = [makeRegistration()];
       mockPrisma.registration.findMany.mockResolvedValue(regs);
 
@@ -329,6 +469,14 @@ describe("registration.service", () => {
               phone: true,
               role: true,
             },
+          },
+          formResponses: {
+            include: {
+              field: {
+                select: { id: true, type: true, label: true, sortOrder: true },
+              },
+            },
+            orderBy: { field: { sortOrder: "asc" } },
           },
         },
         orderBy: { createdAt: "asc" },

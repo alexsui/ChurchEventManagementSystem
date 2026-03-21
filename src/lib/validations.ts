@@ -10,6 +10,45 @@ const sessionSchema = z.object({
   topic: z.string().optional(),
 });
 
+// ==================== Form Fields ====================
+
+export const formFieldSchema = z
+  .object({
+    id: z.string().optional(),
+    type: z.enum(["TEXT", "YES_NO", "SINGLE_CHOICE"]),
+    label: z.string().min(1, "欄位標籤為必填"),
+    options: z.array(z.string()).optional(),
+    required: z.boolean().optional().default(false),
+    sortOrder: z.number().int().min(0),
+  })
+  .refine(
+    (data) => {
+      if (data.type === "SINGLE_CHOICE") {
+        return data.options && data.options.length >= 2;
+      }
+      return true;
+    },
+    { message: "單選題至少需要 2 個選項" }
+  )
+  .refine(
+    (data) => {
+      if (data.type === "SINGLE_CHOICE" && data.options) {
+        return new Set(data.options).size === data.options.length;
+      }
+      return true;
+    },
+    { message: "選項不可重複" }
+  );
+
+export const formFieldsArraySchema = z.array(formFieldSchema).max(20, "最多 20 個欄位");
+
+export const formResponseSchema = z.object({
+  fieldId: z.string().min(1),
+  value: z.string(),
+});
+
+export const formResponsesArraySchema = z.array(formResponseSchema);
+
 export const createEventSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
@@ -20,6 +59,7 @@ export const createEventSchema = z.object({
   minAssignmentRate: z.number().min(0).max(100).optional(),
   session: sessionSchema.optional(),
   sessions: z.array(sessionSchema).optional(),
+  formFields: formFieldsArraySchema.optional(),
 });
 
 export const updateEventSchema = createEventSchema.partial().extend({

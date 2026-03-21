@@ -7,6 +7,7 @@ import {
   getRegistrationsByUser,
   RegistrationServiceError,
 } from "@/services/registration.service";
+import { formResponsesArraySchema } from "@/lib/validations";
 
 /**
  * GET /api/registrations
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
   const inactiveResponse = assertActive(session.user);
   if (inactiveResponse) return inactiveResponse;
 
-  let body: { eventId?: string };
+  let body: { eventId?: string; formResponses?: { fieldId: string; value: string }[] };
   try {
     body = await request.json();
   } catch {
@@ -72,8 +73,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "eventId is required" }, { status: 400 });
   }
 
+  // Validate formResponses shape if provided
+  if (body.formResponses) {
+    const parsed = formResponsesArraySchema.safeParse(body.formResponses);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid form responses" },
+        { status: 400 }
+      );
+    }
+  }
+
   try {
-    const registration = await registerForEvent(session.user.id, body.eventId);
+    const registration = await registerForEvent(session.user.id, body.eventId, body.formResponses);
     return NextResponse.json(registration, { status: 201 });
   } catch (error) {
     if (error instanceof RegistrationServiceError) {
@@ -81,6 +93,7 @@ export async function POST(request: NextRequest) {
         EVENT_NOT_FOUND: 404,
         EVENT_NOT_OPEN: 400,
         ALREADY_REGISTERED: 409,
+        INVALID_FORM_RESPONSES: 400,
       };
       return NextResponse.json(
         { error: error.message, code: error.code },

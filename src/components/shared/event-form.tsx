@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, useFieldArray, type Resolver } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { eventCategoryLabels, eventTypeLabels } from "@/lib/constants";
+import { FormFieldsBuilder, type FormFieldValue } from "@/components/admin/form-fields-builder";
 
 // ==================== Schema ====================
 
@@ -126,6 +128,7 @@ export interface EventFormDefaultValues {
     endTime?: string;
     topic?: string;
   }[];
+  formFields?: FormFieldValue[];
 }
 
 export interface EventFormSubmitData {
@@ -150,6 +153,14 @@ export interface EventFormSubmitData {
     endTime?: string;
     topic?: string;
   }[];
+  formFields?: {
+    id?: string;
+    type: "TEXT" | "YES_NO" | "SINGLE_CHOICE";
+    label: string;
+    options?: string[];
+    required?: boolean;
+    sortOrder: number;
+  }[];
 }
 
 interface EventFormProps {
@@ -162,6 +173,8 @@ interface EventFormProps {
 // ==================== Component ====================
 
 export function EventForm({ mode, defaultValues, onSubmit, isSubmitting = false }: EventFormProps) {
+  const [formFields, setFormFields] = useState<FormFieldValue[]>(defaultValues?.formFields ?? []);
+
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema) as unknown as Resolver<EventFormValues>,
     defaultValues: {
@@ -227,6 +240,18 @@ export function EventForm({ mode, defaultValues, onSubmit, isSubmitting = false 
         startTime: s.startTime || undefined,
         endTime: s.endTime || undefined,
         topic: s.topic || undefined,
+      }));
+    }
+
+    // Include form fields with sortOrder derived from array index
+    if (formFields.length > 0) {
+      submitData.formFields = formFields.map((f, idx) => ({
+        id: f.id,
+        type: f.type,
+        label: f.label,
+        options: f.type === "SINGLE_CHOICE" ? f.options : undefined,
+        required: f.required,
+        sortOrder: idx,
       }));
     }
 
@@ -544,6 +569,11 @@ export function EventForm({ mode, defaultValues, onSubmit, isSubmitting = false 
             ))}
           </div>
         )}
+
+        <Separator />
+
+        {/* Form Fields Builder */}
+        <FormFieldsBuilder fields={formFields} onChange={setFormFields} />
 
         <div className="flex justify-end gap-3">
           <Button type="submit" disabled={isSubmitting}>

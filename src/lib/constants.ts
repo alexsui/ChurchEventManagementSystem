@@ -84,3 +84,9 @@ export const registrationStatusClassNames: Record<string, string> = {
   WAITLISTED: "bg-yellow-100 text-yellow-700",
   CANCELLED: "bg-red-100 text-red-700",
 };
+
+export const formFieldTypeLabels: Record<string, string> = {
+  TEXT: "文字",
+  YES_NO: "是否",
+  SINGLE_CHOICE: "單選",
+};
