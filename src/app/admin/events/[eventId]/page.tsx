@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,8 @@ import { RegistrationsPanel } from "@/components/admin/registrations-panel";
 import { AttendancePanel } from "@/components/admin/attendance-panel";
 import { AssignmentsPanel } from "@/components/admin/assignments-panel";
 import { BudgetPanel } from "@/components/admin/budget-panel";
+import { fetchEventExportData } from "@/lib/export-event-data";
+import { exportEventToExcel } from "@/lib/excel-export";
 
 interface EventSession {
   id: string;
@@ -74,6 +76,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchEvent = useCallback(async () => {
@@ -125,6 +128,19 @@ export default function EventDetailPage() {
       toast.error(err instanceof Error ? err.message : "更新失敗");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleExport() {
+    try {
+      setExporting(true);
+      const data = await fetchEventExportData(eventId);
+      exportEventToExcel(data);
+      toast.success("Excel 報表已匯出");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "匯出失敗");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -215,12 +231,18 @@ export default function EventDetailPage() {
             </span>
           </div>
         </div>
-        {canWrite && (
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            <Pencil className="size-4" />
-            編輯
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} disabled={exporting}>
+            <Download className="size-4" />
+            {exporting ? "匯出中..." : "匯出 Excel"}
           </Button>
-        )}
+          {canWrite && (
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              <Pencil className="size-4" />
+              編輯
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
