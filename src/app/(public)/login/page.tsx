@@ -162,12 +162,12 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }) {
       redirect: false,
     });
 
-    setLoading(false);
-
     if (result?.error) {
+      setLoading(false);
       setError("Email 或密碼錯誤");
-    } else if (result?.url) {
-      window.location.href = result.url;
+    } else {
+      // Navigate away — don't reset loading state since we're leaving the page
+      window.location.href = result?.url ?? callbackUrl;
     }
   }
 
