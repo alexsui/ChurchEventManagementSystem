@@ -19,7 +19,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { eventTeamId } = await params;
+    const { eventId, eventTeamId } = await params;
     const body = await request.json();
 
     if (!body.title) {
@@ -27,7 +27,13 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const deadline = body.deadline ? new Date(body.deadline) : undefined;
-    const task = await createEventTeamTask(eventTeamId, body.title, body.assigneeId, deadline);
+    const task = await createEventTeamTask(
+      eventTeamId,
+      eventId,
+      body.title,
+      body.assigneeId,
+      deadline
+    );
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
     console.error("POST task error:", error);

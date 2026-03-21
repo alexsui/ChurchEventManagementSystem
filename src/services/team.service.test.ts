@@ -471,13 +471,14 @@ describe("team.service", () => {
   describe("updateEventTeam", () => {
     it("should update sopLinks", async () => {
       const updated = { id: "et1", sopLinks: ["https://example.com/sop"] };
-      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1" });
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeam.update.mockResolvedValue(updated);
 
-      const result = await updateEventTeam("et1", { sopLinks: ["https://example.com/sop"] });
+      const result = await updateEventTeam("et1", "ev1", {
+        sopLinks: ["https://example.com/sop"],
+      });
 
       expect(result).toEqual(updated);
-      expect(mockPrisma.eventTeam.findUnique).toHaveBeenCalledWith({ where: { id: "et1" } });
       expect(mockPrisma.eventTeam.update).toHaveBeenCalledWith({
         where: { id: "et1" },
         data: { sopLinks: ["https://example.com/sop"] },
@@ -487,8 +488,15 @@ describe("team.service", () => {
     it("should throw when event team not found", async () => {
       mockPrisma.eventTeam.findUnique.mockResolvedValue(null);
 
-      await expect(updateEventTeam("et1", { customName: "X" })).rejects.toThrow(TeamServiceError);
-      await expect(updateEventTeam("et1", { customName: "X" })).rejects.toMatchObject({
+      await expect(updateEventTeam("et1", "ev1", { customName: "X" })).rejects.toThrow(
+        TeamServiceError
+      );
+    });
+
+    it("should throw when eventId does not match", async () => {
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev-other" });
+
+      await expect(updateEventTeam("et1", "ev1", { customName: "X" })).rejects.toMatchObject({
         code: "EVENT_TEAM_NOT_FOUND",
       });
     });
@@ -498,20 +506,24 @@ describe("team.service", () => {
 
   describe("deleteEventTeam", () => {
     it("should delete an event team", async () => {
-      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1" });
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeam.delete.mockResolvedValue({ id: "et1" });
 
-      await deleteEventTeam("et1");
+      await deleteEventTeam("et1", "ev1");
 
-      expect(mockPrisma.eventTeam.findUnique).toHaveBeenCalledWith({ where: { id: "et1" } });
       expect(mockPrisma.eventTeam.delete).toHaveBeenCalledWith({ where: { id: "et1" } });
     });
 
     it("should throw when event team not found", async () => {
       mockPrisma.eventTeam.findUnique.mockResolvedValue(null);
 
-      await expect(deleteEventTeam("et1")).rejects.toThrow(TeamServiceError);
-      await expect(deleteEventTeam("et1")).rejects.toMatchObject({
+      await expect(deleteEventTeam("et1", "ev1")).rejects.toThrow(TeamServiceError);
+    });
+
+    it("should throw when eventId does not match", async () => {
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev-other" });
+
+      await expect(deleteEventTeam("et1", "ev1")).rejects.toMatchObject({
         code: "EVENT_TEAM_NOT_FOUND",
       });
     });
@@ -522,9 +534,10 @@ describe("team.service", () => {
   describe("addEventTeamMember", () => {
     it("should add a member to an event team", async () => {
       const created = { id: "m1", eventTeamId: "et1", userId: "u1", role: null };
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeamMember.create.mockResolvedValue(created);
 
-      const result = await addEventTeamMember("et1", "u1");
+      const result = await addEventTeamMember("et1", "ev1", "u1");
 
       expect(result).toEqual(created);
       expect(mockPrisma.eventTeamMember.create).toHaveBeenCalledWith({
@@ -534,26 +547,44 @@ describe("team.service", () => {
 
     it("should add a member with a role", async () => {
       const created = { id: "m2", eventTeamId: "et1", userId: "u2", role: "leader" };
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeamMember.create.mockResolvedValue(created);
 
-      const result = await addEventTeamMember("et1", "u2", "leader");
+      const result = await addEventTeamMember("et1", "ev1", "u2", "leader");
 
       expect(result).toEqual(created);
       expect(mockPrisma.eventTeamMember.create).toHaveBeenCalledWith({
         data: { eventTeamId: "et1", userId: "u2", role: "leader" },
       });
     });
+
+    it("should throw when eventId does not match", async () => {
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev-other" });
+
+      await expect(addEventTeamMember("et1", "ev1", "u1")).rejects.toMatchObject({
+        code: "EVENT_TEAM_NOT_FOUND",
+      });
+    });
   });
 
   describe("removeEventTeamMember", () => {
     it("should remove a member from an event team", async () => {
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeamMember.deleteMany.mockResolvedValue({ count: 1 });
 
-      const result = await removeEventTeamMember("et1", "u1");
+      const result = await removeEventTeamMember("et1", "ev1", "u1");
 
       expect(result).toEqual({ count: 1 });
       expect(mockPrisma.eventTeamMember.deleteMany).toHaveBeenCalledWith({
         where: { eventTeamId: "et1", userId: "u1" },
+      });
+    });
+
+    it("should throw when eventId does not match", async () => {
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev-other" });
+
+      await expect(removeEventTeamMember("et1", "ev1", "u1")).rejects.toMatchObject({
+        code: "EVENT_TEAM_NOT_FOUND",
       });
     });
   });
@@ -569,9 +600,10 @@ describe("team.service", () => {
         assigneeId: null,
         deadline: null,
       };
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
-      const result = await createEventTeamTask("et1", "Setup mic");
+      const result = await createEventTeamTask("et1", "ev1", "Setup mic");
 
       expect(result).toEqual(created);
       expect(mockPrisma.eventTeamTask.create).toHaveBeenCalledWith({
@@ -587,9 +619,10 @@ describe("team.service", () => {
         assigneeId: "u1",
         deadline: null,
       };
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
-      const result = await createEventTeamTask("et1", "Test sound", "u1");
+      const result = await createEventTeamTask("et1", "ev1", "Test sound", "u1");
 
       expect(result).toEqual(created);
       expect(mockPrisma.eventTeamTask.create).toHaveBeenCalledWith({
@@ -606,13 +639,22 @@ describe("team.service", () => {
         assigneeId: null,
         deadline,
       };
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev1" });
       mockPrisma.eventTeamTask.create.mockResolvedValue(created);
 
-      const result = await createEventTeamTask("et1", "Prepare slides", undefined, deadline);
+      const result = await createEventTeamTask("et1", "ev1", "Prepare slides", undefined, deadline);
 
       expect(result).toEqual(created);
       expect(mockPrisma.eventTeamTask.create).toHaveBeenCalledWith({
         data: { eventTeamId: "et1", title: "Prepare slides", assigneeId: null, deadline },
+      });
+    });
+
+    it("should throw when eventId does not match", async () => {
+      mockPrisma.eventTeam.findUnique.mockResolvedValue({ id: "et1", eventId: "ev-other" });
+
+      await expect(createEventTeamTask("et1", "ev1", "Setup mic")).rejects.toMatchObject({
+        code: "EVENT_TEAM_NOT_FOUND",
       });
     });
   });
@@ -620,13 +662,16 @@ describe("team.service", () => {
   describe("updateEventTeamTask", () => {
     it("should update task status", async () => {
       const updated = { id: "tk1", title: "Setup mic", status: "done" };
-      mockPrisma.eventTeamTask.findUnique.mockResolvedValue({ id: "tk1" });
+      mockPrisma.eventTeamTask.findUnique.mockResolvedValue({
+        id: "tk1",
+        eventTeamId: "et1",
+        eventTeam: { eventId: "ev1" },
+      });
       mockPrisma.eventTeamTask.update.mockResolvedValue(updated);
 
-      const result = await updateEventTeamTask("tk1", { status: "done" });
+      const result = await updateEventTeamTask("tk1", "et1", "ev1", { status: "done" });
 
       expect(result).toEqual(updated);
-      expect(mockPrisma.eventTeamTask.findUnique).toHaveBeenCalledWith({ where: { id: "tk1" } });
       expect(mockPrisma.eventTeamTask.update).toHaveBeenCalledWith({
         where: { id: "tk1" },
         data: { status: "done" },
@@ -636,10 +681,21 @@ describe("team.service", () => {
     it("should throw when task not found", async () => {
       mockPrisma.eventTeamTask.findUnique.mockResolvedValue(null);
 
-      await expect(updateEventTeamTask("tk1", { status: "done" })).rejects.toThrow(
+      await expect(updateEventTeamTask("tk1", "et1", "ev1", { status: "done" })).rejects.toThrow(
         TeamServiceError
       );
-      await expect(updateEventTeamTask("tk1", { status: "done" })).rejects.toMatchObject({
+    });
+
+    it("should throw when eventTeamId does not match", async () => {
+      mockPrisma.eventTeamTask.findUnique.mockResolvedValue({
+        id: "tk1",
+        eventTeamId: "et-other",
+        eventTeam: { eventId: "ev1" },
+      });
+
+      await expect(
+        updateEventTeamTask("tk1", "et1", "ev1", { status: "done" })
+      ).rejects.toMatchObject({
         code: "TASK_NOT_FOUND",
       });
     });
@@ -647,20 +703,32 @@ describe("team.service", () => {
 
   describe("deleteEventTeamTask", () => {
     it("should delete a task", async () => {
-      mockPrisma.eventTeamTask.findUnique.mockResolvedValue({ id: "tk1" });
+      mockPrisma.eventTeamTask.findUnique.mockResolvedValue({
+        id: "tk1",
+        eventTeamId: "et1",
+        eventTeam: { eventId: "ev1" },
+      });
       mockPrisma.eventTeamTask.delete.mockResolvedValue({ id: "tk1" });
 
-      await deleteEventTeamTask("tk1");
+      await deleteEventTeamTask("tk1", "et1", "ev1");
 
-      expect(mockPrisma.eventTeamTask.findUnique).toHaveBeenCalledWith({ where: { id: "tk1" } });
       expect(mockPrisma.eventTeamTask.delete).toHaveBeenCalledWith({ where: { id: "tk1" } });
     });
 
     it("should throw when task not found", async () => {
       mockPrisma.eventTeamTask.findUnique.mockResolvedValue(null);
 
-      await expect(deleteEventTeamTask("tk1")).rejects.toThrow(TeamServiceError);
-      await expect(deleteEventTeamTask("tk1")).rejects.toMatchObject({
+      await expect(deleteEventTeamTask("tk1", "et1", "ev1")).rejects.toThrow(TeamServiceError);
+    });
+
+    it("should throw when eventId does not match", async () => {
+      mockPrisma.eventTeamTask.findUnique.mockResolvedValue({
+        id: "tk1",
+        eventTeamId: "et1",
+        eventTeam: { eventId: "ev-other" },
+      });
+
+      await expect(deleteEventTeamTask("tk1", "et1", "ev1")).rejects.toMatchObject({
         code: "TASK_NOT_FOUND",
       });
     });

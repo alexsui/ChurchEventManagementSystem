@@ -166,10 +166,11 @@ export async function createEventTeam(
 
 export async function updateEventTeam(
   id: string,
+  eventId: string,
   data: { sopLinks?: string[]; customName?: string }
 ) {
   const existing = await prisma.eventTeam.findUnique({ where: { id } });
-  if (!existing) {
+  if (!existing || existing.eventId !== eventId) {
     throw new TeamServiceError("Event team not found", "EVENT_TEAM_NOT_FOUND");
   }
 
@@ -179,9 +180,9 @@ export async function updateEventTeam(
   });
 }
 
-export async function deleteEventTeam(id: string) {
+export async function deleteEventTeam(id: string, eventId: string) {
   const existing = await prisma.eventTeam.findUnique({ where: { id } });
-  if (!existing) {
+  if (!existing || existing.eventId !== eventId) {
     throw new TeamServiceError("Event team not found", "EVENT_TEAM_NOT_FOUND");
   }
 
@@ -190,13 +191,28 @@ export async function deleteEventTeam(id: string) {
 
 // ==================== Event Team Members ====================
 
-export async function addEventTeamMember(eventTeamId: string, userId: string, role?: string) {
+export async function addEventTeamMember(
+  eventTeamId: string,
+  eventId: string,
+  userId: string,
+  role?: string
+) {
+  const team = await prisma.eventTeam.findUnique({ where: { id: eventTeamId } });
+  if (!team || team.eventId !== eventId) {
+    throw new TeamServiceError("Event team not found", "EVENT_TEAM_NOT_FOUND");
+  }
+
   return prisma.eventTeamMember.create({
     data: { eventTeamId, userId, role: role ?? null },
   });
 }
 
-export async function removeEventTeamMember(eventTeamId: string, userId: string) {
+export async function removeEventTeamMember(eventTeamId: string, eventId: string, userId: string) {
+  const team = await prisma.eventTeam.findUnique({ where: { id: eventTeamId } });
+  if (!team || team.eventId !== eventId) {
+    throw new TeamServiceError("Event team not found", "EVENT_TEAM_NOT_FOUND");
+  }
+
   return prisma.eventTeamMember.deleteMany({
     where: { eventTeamId, userId },
   });
@@ -206,10 +222,16 @@ export async function removeEventTeamMember(eventTeamId: string, userId: string)
 
 export async function createEventTeamTask(
   eventTeamId: string,
+  eventId: string,
   title: string,
   assigneeId?: string,
   deadline?: Date
 ) {
+  const team = await prisma.eventTeam.findUnique({ where: { id: eventTeamId } });
+  if (!team || team.eventId !== eventId) {
+    throw new TeamServiceError("Event team not found", "EVENT_TEAM_NOT_FOUND");
+  }
+
   return prisma.eventTeamTask.create({
     data: {
       eventTeamId,
@@ -222,10 +244,15 @@ export async function createEventTeamTask(
 
 export async function updateEventTeamTask(
   id: string,
+  eventTeamId: string,
+  eventId: string,
   data: { title?: string; assigneeId?: string | null; status?: string; deadline?: Date | null }
 ) {
-  const existing = await prisma.eventTeamTask.findUnique({ where: { id } });
-  if (!existing) {
+  const existing = await prisma.eventTeamTask.findUnique({
+    where: { id },
+    include: { eventTeam: { select: { eventId: true } } },
+  });
+  if (!existing || existing.eventTeamId !== eventTeamId || existing.eventTeam.eventId !== eventId) {
     throw new TeamServiceError("Task not found", "TASK_NOT_FOUND");
   }
 
@@ -235,9 +262,12 @@ export async function updateEventTeamTask(
   });
 }
 
-export async function deleteEventTeamTask(id: string) {
-  const existing = await prisma.eventTeamTask.findUnique({ where: { id } });
-  if (!existing) {
+export async function deleteEventTeamTask(id: string, eventTeamId: string, eventId: string) {
+  const existing = await prisma.eventTeamTask.findUnique({
+    where: { id },
+    include: { eventTeam: { select: { eventId: true } } },
+  });
+  if (!existing || existing.eventTeamId !== eventTeamId || existing.eventTeam.eventId !== eventId) {
     throw new TeamServiceError("Task not found", "TASK_NOT_FOUND");
   }
 

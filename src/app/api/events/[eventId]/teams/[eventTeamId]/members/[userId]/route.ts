@@ -21,8 +21,8 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { eventTeamId, userId } = await params;
-    await removeEventTeamMember(eventTeamId, userId);
+    const { eventId, eventTeamId, userId } = await params;
+    await removeEventTeamMember(eventTeamId, eventId, userId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE member error:", error);

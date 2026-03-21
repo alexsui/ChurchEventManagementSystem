@@ -19,10 +19,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { eventTeamId } = await params;
+    const { eventId, eventTeamId } = await params;
     const body = await request.json();
 
-    const team = await updateEventTeam(eventTeamId, {
+    const team = await updateEventTeam(eventTeamId, eventId, {
       sopLinks: body.sopLinks,
       customName: body.customName,
     });
@@ -50,8 +50,8 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { eventTeamId } = await params;
-    await deleteEventTeam(eventTeamId);
+    const { eventId, eventTeamId } = await params;
+    await deleteEventTeam(eventTeamId, eventId);
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof TeamServiceError && error.code === "EVENT_TEAM_NOT_FOUND") {
