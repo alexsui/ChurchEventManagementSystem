@@ -236,8 +236,8 @@ export default function TeamsPage() {
     try {
       const res = await fetch(`/api/users?search=${encodeURIComponent(query)}`);
       if (!res.ok) throw new Error("搜尋失敗");
-      const data = await res.json();
-      setMemberSearchResults(data);
+      const result = await res.json();
+      setMemberSearchResults(result.data);
     } catch {
       setMemberSearchResults([]);
     } finally {

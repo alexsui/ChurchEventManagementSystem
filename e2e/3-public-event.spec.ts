@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Public event page", () => {
   test("view public event detail → title, location, registration info", async ({ page }) => {
-    const eventsRes = await page.request.get("/api/events");
+    const eventsRes = await page.request.get("/api/events?all=true");
     const events = await eventsRes.json();
     const singleEvent = events.find((e: { title: string }) => e.title === "復活節特別聚會");
 
@@ -21,7 +21,7 @@ test.describe("Public event page", () => {
     await page.waitForURL("/events");
 
     // Get the series event ID
-    const eventsRes = await page.request.get("/api/events");
+    const eventsRes = await page.request.get("/api/events?all=true");
     const events = await eventsRes.json();
     const seriesEvent = events.find((e: { title: string }) => e.title === "2026 春季幸福小組");
 
@@ -33,7 +33,7 @@ test.describe("Public event page", () => {
   });
 
   test("view event when not logged in → login button visible", async ({ page }) => {
-    const eventsRes = await page.request.get("/api/events");
+    const eventsRes = await page.request.get("/api/events?all=true");
     const events = await eventsRes.json();
     const singleEvent = events.find((e: { title: string }) => e.title === "復活節特別聚會");
 

@@ -220,8 +220,8 @@ export function EventTeamsSection({ eventId, canWrite }: { eventId: string; canW
     try {
       const res = await fetch(`/api/users?search=${encodeURIComponent(query)}`);
       if (!res.ok) throw new Error("搜尋使用者失敗");
-      const data = await res.json();
-      setMemberSearchResults(data);
+      const result = await res.json();
+      setMemberSearchResults(result.data);
     } catch {
       setMemberSearchResults([]);
     } finally {

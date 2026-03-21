@@ -6,7 +6,7 @@ test.describe("QR check-in flow", () => {
   let sessionId: string;
 
   test.beforeAll(async ({ request }) => {
-    const eventsRes = await request.get("/api/events");
+    const eventsRes = await request.get("/api/events?all=true");
     const events = await eventsRes.json();
     const seriesEvent = events.find((e: { title: string }) => e.title === "2026 春季幸福小組");
     const detailRes = await request.get(`/api/events/${seriesEvent.id}`);
