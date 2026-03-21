@@ -45,6 +45,12 @@ enum RegistrationStatus {
   WAITLISTED // 候補中
 }
 
+enum FormFieldType {
+  TEXT          // 文字
+  YES_NO        // 是否
+  SINGLE_CHOICE // 單選
+}
+
 // ==================== NextAuth.js Tables ====================
 
 model Account {
@@ -205,6 +211,7 @@ model Event {
   registrations Registration[]
   eventTeams    EventTeam[]
   budgetItems   BudgetItem[]
+  formFields    EventFormField[]
 }
 
 model EventSession {
@@ -235,6 +242,7 @@ model Registration {
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  formResponses EventFormResponse[]
 
   @@unique([userId, eventId])
 }
@@ -301,4 +309,34 @@ model BudgetItem {
   updatedAt      DateTime @updatedAt
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+// ==================== Custom Registration Form ====================
+
+model EventFormField {
+  id        String        @id @default(cuid())
+  eventId   String
+  type      FormFieldType
+  label     String
+  options   String[]
+  required  Boolean       @default(false)
+  sortOrder Int
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  responses EventFormResponse[]
+}
+
+model EventFormResponse {
+  id             String   @id @default(cuid())
+  registrationId String
+  fieldId        String
+  value          String
+  createdAt      DateTime @default(now())
+
+  registration Registration   @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  field        EventFormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, fieldId])
 }
