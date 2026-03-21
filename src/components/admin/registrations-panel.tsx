@@ -25,6 +25,24 @@ import { registrationStatusLabels, registrationStatusClassNames } from "@/lib/co
 import { formatDateTime } from "@/lib/formatters";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
 
+interface FormResponseWithField {
+  fieldId: string;
+  value: string;
+  field: {
+    id: string;
+    type: string;
+    label: string;
+    sortOrder: number;
+  };
+}
+
+interface FormField {
+  id: string;
+  type: string;
+  label: string;
+  sortOrder: number;
+}
+
 interface Registration {
   id: string;
   status: string;
@@ -34,10 +52,7 @@ interface Registration {
     name: string;
     phone: string;
   };
-  eventSession: {
-    sessionNo: number;
-    sessionDate: string;
-  };
+  formResponses?: FormResponseWithField[];
 }
 
 const statusFilterOptions = [
@@ -53,22 +68,31 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
   const { canWrite } = useAdminPermissions("registrations");
 
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [formFields, setFormFields] = useState<FormField[]>([]);
   const [registrationsLoading, setRegistrationsLoading] = useState(false);
   const [registrationsError, setRegistrationsError] = useState<string | null>(null);
 
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  const fetchRegistrations = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     try {
       setRegistrationsLoading(true);
       setRegistrationsError(null);
-      const res = await fetch(`/api/registrations?eventId=${eventId}`);
-      if (!res.ok) {
-        throw new Error("無法取得報名資料");
+
+      const [regRes, fieldsRes] = await Promise.all([
+        fetch(`/api/registrations?eventId=${eventId}`),
+        fetch(`/api/events/${eventId}/form-fields?admin=true`),
+      ]);
+
+      if (!regRes.ok) throw new Error("無法取得報名資料");
+      const regData = await regRes.json();
+      setRegistrations(regData);
+
+      if (fieldsRes.ok) {
+        const fieldsData = await fieldsRes.json();
+        setFormFields(fieldsData);
       }
-      const data = await res.json();
-      setRegistrations(data);
     } catch (err) {
       setRegistrationsError(err instanceof Error ? err.message : "發生未知錯誤");
     } finally {
@@ -77,8 +101,8 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
   }, [eventId]);
 
   useEffect(() => {
-    fetchRegistrations();
-  }, [fetchRegistrations]);
+    fetchData();
+  }, [fetchData]);
 
   async function handleCancel(registrationId: string, userName: string) {
     const confirmed = window.confirm(`確定要取消 ${userName} 的報名嗎？`);
@@ -93,7 +117,7 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
         throw new Error("取消報名失敗");
       }
       toast.success(`已取消 ${userName} 的報名`);
-      fetchRegistrations();
+      fetchData();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "操作失敗");
     } finally {
@@ -103,6 +127,15 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
 
   const filteredRegistrations =
     statusFilter === "ALL" ? registrations : registrations.filter((r) => r.status === statusFilter);
+
+  const sortedFormFields = [...formFields].sort((a, b) => a.sortOrder - b.sortOrder);
+  const hasFormFields = sortedFormFields.length > 0;
+
+  // Build response lookup: registrationId -> { fieldId -> value }
+  function getResponseValue(reg: Registration, fieldId: string): string {
+    const response = reg.formResponses?.find((r) => r.fieldId === fieldId);
+    return response?.value ?? "";
+  }
 
   if (registrationsLoading) {
     return (
@@ -157,14 +190,20 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                 <p className="text-muted-foreground">無符合篩選條件的報名資料</p>
               </div>
             ) : (
-              <div className="rounded-md border">
+              <div className="overflow-x-auto rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>姓名</TableHead>
+                      <TableHead className="sticky left-0 bg-background z-10">姓名</TableHead>
                       <TableHead>電話</TableHead>
                       <TableHead>狀態</TableHead>
                       <TableHead>報名時間</TableHead>
+                      {hasFormFields &&
+                        sortedFormFields.map((field) => (
+                          <TableHead key={field.id} className="whitespace-nowrap">
+                            {field.label}
+                          </TableHead>
+                        ))}
                       {canWrite && <TableHead className="text-right">操作</TableHead>}
                     </TableRow>
                   </TableHeader>
@@ -172,7 +211,9 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                     {filteredRegistrations.map((reg) => {
                       return (
                         <TableRow key={reg.id}>
-                          <TableCell className="font-medium">{reg.user.name}</TableCell>
+                          <TableCell className="sticky left-0 bg-background z-10 font-medium">
+                            {reg.user.name}
+                          </TableCell>
                           <TableCell>{reg.user.phone}</TableCell>
                           <TableCell>
                             <Badge
@@ -182,7 +223,15 @@ export function RegistrationsPanel({ eventId }: RegistrationsPanelProps) {
                               {registrationStatusLabels[reg.status] ?? reg.status}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatDateTime(reg.createdAt)}</TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {formatDateTime(reg.createdAt)}
+                          </TableCell>
+                          {hasFormFields &&
+                            sortedFormFields.map((field) => (
+                              <TableCell key={field.id} className="whitespace-nowrap">
+                                {getResponseValue(reg, field.id)}
+                              </TableCell>
+                            ))}
                           {canWrite && (
                             <TableCell className="text-right">
                               {reg.status !== "CANCELLED" && (
