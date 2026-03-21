@@ -40,7 +40,7 @@ export function EventSelector({
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch("/api/events");
+      const res = await fetch("/api/events?all=true");
       if (!res.ok) throw new Error("無法取得活動列表");
       const data = await res.json();
       setEvents(data);

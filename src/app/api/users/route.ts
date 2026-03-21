@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { hasPermission } from "@/lib/authorization";
 import { getUsers } from "@/services/user.service";
 import { Role } from "@/generated/prisma/client";
+import { parsePaginationParams, paginatedResponse } from "@/lib/pagination";
 
 export async function GET(request: Request) {
   try {
@@ -20,34 +21,28 @@ export async function GET(request: Request) {
     const role = searchParams.get("role") as Role | null;
     const isActiveParam = searchParams.get("isActive");
     const search = searchParams.get("search");
+    const { page, limit, skip } = parsePaginationParams(searchParams);
 
     const filters: {
       role?: Role;
       isActive?: boolean;
       search?: string;
-    } = {};
+      skip?: number;
+      take?: number;
+    } = { skip, take: limit };
 
-    if (role) {
-      filters.role = role;
-    }
+    if (role) filters.role = role;
+    if (isActiveParam !== null) filters.isActive = isActiveParam === "true";
+    if (search) filters.search = search;
 
-    if (isActiveParam !== null) {
-      filters.isActive = isActiveParam === "true";
-    }
+    const { users, total } = await getUsers(filters);
 
-    if (search) {
-      filters.search = search;
-    }
-
-    const users = await getUsers(Object.keys(filters).length > 0 ? filters : undefined);
-
-    // Strip password hash, expose only a boolean flag
     const sanitized = users.map(({ password, ...rest }) => ({
       ...rest,
       hasPassword: !!password,
     }));
 
-    return NextResponse.json(sanitized);
+    return NextResponse.json(paginatedResponse(sanitized, total, page, limit));
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });

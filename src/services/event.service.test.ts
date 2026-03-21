@@ -10,6 +10,7 @@ vi.mock("@/lib/prisma", () => ({
       findUniqueOrThrow: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
     eventSession: {
       upsert: vi.fn(),
@@ -291,10 +292,12 @@ describe("Event Service", () => {
       ];
 
       mockedPrisma.event.findMany.mockResolvedValue(mockEvents as never);
+      mockedPrisma.event.count.mockResolvedValue(2 as never);
 
       const result = await getEvents();
 
-      expect(result).toEqual(mockEvents);
+      expect(result.events).toEqual(mockEvents);
+      expect(result.total).toBe(2);
       expect(mockedPrisma.event.findMany).toHaveBeenCalledWith({
         where: {},
         include: {
@@ -311,11 +314,14 @@ describe("Event Service", () => {
           },
         },
         orderBy: { createdAt: "desc" },
+        skip: undefined,
+        take: undefined,
       });
     });
 
     it("applies status filter", async () => {
       mockedPrisma.event.findMany.mockResolvedValue([] as never);
+      mockedPrisma.event.count.mockResolvedValue(0 as never);
 
       await getEvents({ status: "OPEN" });
 
@@ -328,6 +334,7 @@ describe("Event Service", () => {
 
     it("applies type filter", async () => {
       mockedPrisma.event.findMany.mockResolvedValue([] as never);
+      mockedPrisma.event.count.mockResolvedValue(0 as never);
 
       await getEvents({ type: "SERIES" });
 
@@ -340,6 +347,7 @@ describe("Event Service", () => {
 
     it("applies both status and type filters", async () => {
       mockedPrisma.event.findMany.mockResolvedValue([] as never);
+      mockedPrisma.event.count.mockResolvedValue(0 as never);
 
       await getEvents({ status: "OPEN", type: "SINGLE" });
 
@@ -691,9 +699,10 @@ describe("Event Service", () => {
       ];
 
       mockedPrisma.event.findMany.mockResolvedValue(mockEvents as never);
+      mockedPrisma.event.count.mockResolvedValue(1 as never);
 
       const result = await getEvents();
-      expect(result[0].status).toBe("IN_PROGRESS");
+      expect(result.events[0].status).toBe("IN_PROGRESS");
     });
   });
 

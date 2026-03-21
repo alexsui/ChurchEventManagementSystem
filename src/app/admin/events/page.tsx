@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   eventStatusLabels,
   eventCategoryLabels,
@@ -42,23 +50,36 @@ export default function EventsPage() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
 
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch("/api/events");
+      const params = new URLSearchParams({ page: String(page), limit: "40" });
+      if (statusFilter !== "ALL") params.set("status", statusFilter);
+
+      const res = await fetch(`/api/events?${params}`);
       if (!res.ok) {
         throw new Error("無法取得活動列表");
       }
-      const data = await res.json();
-      setEvents(data);
+      const result = await res.json();
+      setEvents(result.data);
+      setTotal(result.total);
+      setTotalPages(result.totalPages);
     } catch (err) {
       setError(err instanceof Error ? err.message : "發生未知錯誤");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, statusFilter]);
 
   useEffect(() => {
     fetchEvents();
@@ -77,6 +98,22 @@ export default function EventsPage() {
             新增活動
           </Button>
         )}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="篩選狀態" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">所有狀態</SelectItem>
+            {Object.entries(eventStatusLabels).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {loading && (
@@ -104,55 +141,62 @@ export default function EventsPage() {
       )}
 
       {!loading && !error && events.length > 0 && (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>活動名稱</TableHead>
-                <TableHead>類別</TableHead>
-                <TableHead>類型</TableHead>
-                <TableHead>狀態</TableHead>
-                <TableHead className="text-right">報名人數</TableHead>
-                <TableHead>建立日期</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {events.map((event) => {
-                return (
-                  <TableRow
-                    key={event.id}
-                    className="cursor-pointer"
-                    onClick={() => router.push(`/admin/events/${event.id}`)}
-                  >
-                    <TableCell className="font-medium">{event.title}</TableCell>
-                    <TableCell>
-                      {event.category ? (
-                        <Badge variant="outline">
-                          {eventCategoryLabels[event.category] ?? event.category}
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>活動名稱</TableHead>
+                  <TableHead>類別</TableHead>
+                  <TableHead>類型</TableHead>
+                  <TableHead>狀態</TableHead>
+                  <TableHead className="text-right">報名人數</TableHead>
+                  <TableHead>建立日期</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {events.map((event) => {
+                  return (
+                    <TableRow
+                      key={event.id}
+                      className="cursor-pointer"
+                      onClick={() => router.push(`/admin/events/${event.id}`)}
+                    >
+                      <TableCell className="font-medium">{event.title}</TableCell>
+                      <TableCell>
+                        {event.category ? (
+                          <Badge variant="outline">
+                            {eventCategoryLabels[event.category] ?? event.category}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{eventTypeLabels[event.type] ?? event.type}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className={cn(eventStatusClassNames[event.status])}
+                        >
+                          {eventStatusLabels[event.status] ?? event.status}
                         </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{eventTypeLabels[event.type] ?? event.type}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className={cn(eventStatusClassNames[event.status])}
-                      >
-                        {eventStatusLabels[event.status] ?? event.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">{event._count.registrations}</TableCell>
-                    <TableCell>{formatAdminDate(event.createdAt)}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{event._count.registrations}</TableCell>
+                      <TableCell>{formatAdminDate(event.createdAt)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">共 {total} 筆</p>
+            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        </>
       )}
     </div>
   );

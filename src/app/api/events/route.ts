@@ -5,24 +5,33 @@ import { createEvent, getEvents } from "@/services/event.service";
 import { EventStatus } from "@/generated/prisma/client";
 import type { EventType } from "@/generated/prisma/client";
 import { createEventSchema } from "@/lib/validations";
+import { parsePaginationParams, paginatedResponse } from "@/lib/pagination";
 
 /**
  * GET /api/events
  * List events (public, no auth required).
- * Optional query params: status, type
+ * Optional query params: status, type, page, limit
+ * Use ?all=true to get all events as a plain array (for dropdowns).
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") as EventStatus | null;
     const type = searchParams.get("type") as EventType | null;
+    const all = searchParams.get("all") === "true";
 
-    const filters: { status?: EventStatus; type?: EventType } = {};
+    const filters: { status?: EventStatus; type?: EventType; skip?: number; take?: number } = {};
     if (status) filters.status = status;
     if (type) filters.type = type;
 
-    const events = await getEvents(filters);
-    return NextResponse.json(events);
+    if (all) {
+      const { events } = await getEvents({ ...filters, take: 500 });
+      return NextResponse.json(events);
+    }
+
+    const { page, limit, skip } = parsePaginationParams(searchParams);
+    const { events, total } = await getEvents({ ...filters, skip, take: limit });
+    return NextResponse.json(paginatedResponse(events, total, page, limit));
   } catch (error) {
     console.error("GET /api/events error:", error);
     return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 });

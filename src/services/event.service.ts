@@ -41,6 +41,8 @@ export interface UpdateEventInput {
 export interface EventFilters {
   status?: EventStatus;
   type?: EventType;
+  skip?: number;
+  take?: number;
 }
 
 // ==================== Helper Functions ====================
@@ -141,30 +143,37 @@ export async function getEvents(filters?: EventFilters) {
     where.type = filters.type;
   }
 
-  const events = await prisma.event.findMany({
-    where,
-    include: {
-      eventSessions: {
-        orderBy: { sessionNo: "asc" },
-      },
-      _count: {
-        select: {
-          eventSessions: true,
-          registrations: {
-            where: { status: { not: "CANCELLED" } },
+  const [rawEvents, total] = await Promise.all([
+    prisma.event.findMany({
+      where,
+      include: {
+        eventSessions: {
+          orderBy: { sessionNo: "asc" },
+        },
+        _count: {
+          select: {
+            eventSessions: true,
+            registrations: {
+              where: { status: { not: "CANCELLED" } },
+            },
           },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: filters?.skip,
+      take: filters?.take,
+    }),
+    prisma.event.count({ where }),
+  ]);
 
-  return events.map((event) => ({
+  const events = rawEvents.map((event) => ({
     ...event,
     status: computeEffectiveStatus(event.status, event.eventSessions),
   }));
+
+  return { events, total };
 }
 
 /**

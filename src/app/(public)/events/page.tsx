@@ -17,7 +17,7 @@ function getCategoryIcon(category: EventCategory | null): string {
 }
 
 export default async function EventsListingPage() {
-  const allEvents = await getEvents();
+  const { events: allEvents } = await getEvents();
 
   const events = allEvents.filter(
     (e) => e.status === EventStatus.OPEN || e.status === EventStatus.IN_PROGRESS

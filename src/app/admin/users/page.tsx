@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useAdminPermissions } from "@/contexts/admin-permissions";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,8 +101,12 @@ export default function UsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
 
   // Edit dialog state
@@ -110,46 +115,54 @@ export default function UsersPage() {
   const [editIsActive, setEditIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // ---------- Fetch users ----------
+  // ---------- Debounce search ----------
+
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [searchQuery]);
+
+  // Reset page when role filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [roleFilter]);
+
+  // ---------- Fetch users (server-side) ----------
 
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch("/api/users");
+      const params = new URLSearchParams({ page: String(page), limit: "40" });
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (roleFilter !== "ALL") params.set("role", roleFilter);
+
+      const res = await fetch(`/api/users?${params}`);
       if (!res.ok) {
         throw new Error("無法取得使用者列表");
       }
-      const data = await res.json();
-      setUsers(data);
+      const result = await res.json();
+      setUsers(result.data);
+      setTotal(result.total);
+      setTotalPages(result.totalPages);
     } catch (err) {
       setError(err instanceof Error ? err.message : "發生未知錯誤");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, debouncedSearch, roleFilter]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
-
-  // ---------- Client-side filtering ----------
-
-  const filteredUsers = useMemo(() => {
-    let result = users;
-    if (roleFilter !== "ALL") {
-      result = result.filter((u) => u.role === roleFilter);
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      result = result.filter(
-        (u) =>
-          (u.name && u.name.toLowerCase().includes(q)) ||
-          (u.email && u.email.toLowerCase().includes(q))
-      );
-    }
-    return result;
-  }, [users, searchQuery, roleFilter]);
 
   // ---------- Open edit dialog ----------
 
@@ -277,7 +290,7 @@ export default function UsersPage() {
       )}
 
       {/* Empty state */}
-      {!loading && !error && filteredUsers.length === 0 && (
+      {!loading && !error && users.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12">
           <p className="text-muted-foreground">
             {searchQuery.trim() ? "找不到符合條件的使用者" : "尚無使用者資料"}
@@ -286,52 +299,59 @@ export default function UsersPage() {
       )}
 
       {/* Users table */}
-      {!loading && !error && filteredUsers.length > 0 && (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>姓名</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>電話</TableHead>
-                <TableHead>角色</TableHead>
-                <TableHead>狀態</TableHead>
-                <TableHead>登入方式</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow
-                  key={user.id}
-                  className={canWrite ? "cursor-pointer" : undefined}
-                  onClick={canWrite ? () => handleRowClick(user) : undefined}
-                >
-                  <TableCell className="font-medium">{user.name ?? "-"}</TableCell>
-                  <TableCell>{user.email ?? "-"}</TableCell>
-                  <TableCell>{user.phone ?? "-"}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={cn(getRoleBadgeClass(user.role))}>
-                      {roleLabels[user.role] ?? user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        user.isActive
-                          ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                          : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                      )}
-                    >
-                      {user.isActive ? "啟用" : "停用"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{getProviderDisplay(user.accounts, user.hasPassword)}</TableCell>
+      {!loading && !error && users.length > 0 && (
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>姓名</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>電話</TableHead>
+                  <TableHead>角色</TableHead>
+                  <TableHead>狀態</TableHead>
+                  <TableHead>登入方式</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className={canWrite ? "cursor-pointer" : undefined}
+                    onClick={canWrite ? () => handleRowClick(user) : undefined}
+                  >
+                    <TableCell className="font-medium">{user.name ?? "-"}</TableCell>
+                    <TableCell>{user.email ?? "-"}</TableCell>
+                    <TableCell>{user.phone ?? "-"}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className={cn(getRoleBadgeClass(user.role))}>
+                        {roleLabels[user.role] ?? user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          user.isActive
+                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                            : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                        )}
+                      >
+                        {user.isActive ? "啟用" : "停用"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{getProviderDisplay(user.accounts, user.hasPassword)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">共 {total} 筆</p>
+            <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        </>
       )}
 
       {/* Edit dialog */}

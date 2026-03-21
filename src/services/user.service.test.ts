@@ -5,6 +5,7 @@ const mockPrisma = vi.hoisted(() => ({
     findMany: vi.fn(),
     findUnique: vi.fn(),
     update: vi.fn(),
+    count: vi.fn(),
   },
 }));
 
@@ -26,15 +27,18 @@ describe("user.service", () => {
         { id: "u2", name: "Bob", role: "ADMIN" },
       ];
       mockPrisma.user.findMany.mockResolvedValue(users);
+      mockPrisma.user.count.mockResolvedValue(2);
 
       const result = await getUsers();
 
-      expect(result).toEqual(users);
+      expect(result.users).toEqual(users);
+      expect(result.total).toBe(2);
       expect(mockPrisma.user.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
     });
 
     it("should filter by role", async () => {
       mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
 
       await getUsers({ role: "ADMIN" });
 
@@ -47,6 +51,7 @@ describe("user.service", () => {
 
     it("should filter by isActive", async () => {
       mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
 
       await getUsers({ isActive: true });
 
@@ -59,6 +64,7 @@ describe("user.service", () => {
 
     it("should search by name or email", async () => {
       mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
 
       await getUsers({ search: "alice" });
 

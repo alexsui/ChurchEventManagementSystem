@@ -16,6 +16,7 @@ feature — what approach was chosen and why.
 | Event Detail Page      | [event-detail-page.md](features/event-detail-page.md)           | Admin event detail with team/session management           |
 | Overview Subtabs       | [overview-subtabs.md](features/overview-subtabs.md)             | Admin dashboard subtab navigation                         |
 | Migration Guardrails   | [migration-guardrails.md](features/migration-guardrails.md)     | Build-time migration safety with SQL review + Neon backup |
+| Pagination             | [pagination.md](features/pagination.md)                         | Offset-based pagination for users and events list APIs    |
 
 ## Architecture Decision Records
 
