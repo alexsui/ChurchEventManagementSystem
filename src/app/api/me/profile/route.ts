@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { updateOwnProfile } from "@/services/user.service";
+import { updateProfileSchema } from "@/lib/validations";
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -8,24 +9,25 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "未授權，請先登入" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { name, phone } = body;
-
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return NextResponse.json({ error: "請輸入您的真實姓名" }, { status: 400 });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (!/^[\u4e00-\u9fff]{2,}$/.test(name.trim())) {
+  const parsed = updateProfileSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "姓名請輸入至少兩個中文字，不接受英文或其他字元" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
       { status: 400 }
     );
   }
 
   try {
     const user = await updateOwnProfile(session.user.id, {
-      name: name.trim(),
-      phone: phone?.trim() || undefined,
+      name: parsed.data.name.trim(),
+      phone: parsed.data.phone?.trim() || undefined,
     });
 
     return NextResponse.json(user);

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
 import { getUserById, updateUserRole, toggleUserActive } from "@/services/user.service";
 import { Role } from "@/generated/prisma/client";
+import { updateUserSchema } from "@/lib/validations";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ userId: string }> }) {
   try {
@@ -47,10 +48,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
     }
 
     const { userId } = await params;
-    const body = await request.json();
 
-    // Toggle active status
-    if (body.action === "toggleActive") {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const parsed = updateUserSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
+    }
+
+    if ("action" in parsed.data) {
       const user = await toggleUserActive(userId);
 
       if (!user) {
@@ -61,25 +75,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
       return NextResponse.json({ ...sanitizedToggle, hasPassword: !!_pw1 });
     }
 
-    // Update role
-    if (body.role) {
-      const validRoles = Object.values(Role);
-      if (!validRoles.includes(body.role)) {
-        return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-      }
+    const expiresAt = parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : undefined;
+    const user = await updateUserRole(userId, parsed.data.role as Role, expiresAt);
 
-      const expiresAt = body.expiresAt ? new Date(body.expiresAt) : undefined;
-
-      const user = await updateUserRole(userId, body.role as Role, expiresAt);
-
-      const { password: _pw2, ...sanitizedRole } = user;
-      return NextResponse.json({ ...sanitizedRole, hasPassword: !!_pw2 });
-    }
-
-    return NextResponse.json(
-      { error: "Missing required parameter (role or action)" },
-      { status: 400 }
-    );
+    const { password: _pw2, ...sanitizedRole } = user;
+    return NextResponse.json({ ...sanitizedRole, hasPassword: !!_pw2 });
   } catch (error) {
     console.error("Error updating user:", error);
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });

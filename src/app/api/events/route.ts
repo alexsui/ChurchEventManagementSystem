@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
-import { createEvent, getEvents, type CreateEventInput } from "@/services/event.service";
+import { createEvent, getEvents } from "@/services/event.service";
 import { EventStatus } from "@/generated/prisma/client";
 import type { EventType } from "@/generated/prisma/client";
+import { createEventSchema } from "@/lib/validations";
 
 /**
  * GET /api/events
@@ -46,28 +47,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    let body: Record<string, unknown>;
+    let body: unknown;
     try {
       body = await request.json();
     } catch {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    if (!body.title) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    const parsed = createEventSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
     }
 
+    const { minAssignmentRate, ...rest } = parsed.data;
     const eventData = {
-      title: body.title as string,
-      description: body.description as string | undefined,
-      location: body.location as string | undefined,
-      category: body.category as CreateEventInput["category"],
-      type: body.type as CreateEventInput["type"],
-      maxParticipants: body.maxParticipants as number | undefined,
-      minAssignmentRate:
-        body.minAssignmentRate != null ? (body.minAssignmentRate as number) / 100 : undefined,
-      session: body.session as CreateEventInput["session"],
-      sessions: body.sessions as CreateEventInput["sessions"],
+      ...rest,
+      minAssignmentRate: minAssignmentRate != null ? minAssignmentRate / 100 : undefined,
     };
 
     const event = await createEvent(eventData);

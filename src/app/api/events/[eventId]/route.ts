@@ -8,7 +8,7 @@ import {
   deleteEvent,
 } from "@/services/event.service";
 import { EventStatus } from "@/generated/prisma/client";
-import type { UpdateEventInput } from "@/services/event.service";
+import { updateEventSchema } from "@/lib/validations";
 
 type RouteParams = { params: Promise<{ eventId: string }> };
 
@@ -52,11 +52,19 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const { eventId } = await params;
 
-    let body: Record<string, unknown>;
+    let body: unknown;
     try {
       body = await request.json();
     } catch {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const parsed = updateEventSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
     }
 
     const existingEvent = await getEventById(eventId);
@@ -64,17 +72,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    const updateData: UpdateEventInput = {
-      title: body.title as string | undefined,
-      description: body.description as string | undefined,
-      location: body.location as string | undefined,
-      category: body.category as UpdateEventInput["category"],
-      type: body.type as UpdateEventInput["type"],
-      maxParticipants: body.maxParticipants as number | null | undefined,
-      minAssignmentRate:
-        body.minAssignmentRate != null ? (body.minAssignmentRate as number) / 100 : undefined,
-      session: body.session as UpdateEventInput["session"],
-      sessions: body.sessions as UpdateEventInput["sessions"],
+    const { minAssignmentRate, ...rest } = parsed.data;
+    const updateData = {
+      ...rest,
+      minAssignmentRate: minAssignmentRate != null ? minAssignmentRate / 100 : undefined,
     };
 
     const event = await updateEvent(eventId, updateData);
