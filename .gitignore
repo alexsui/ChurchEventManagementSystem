@@ -30,6 +30,12 @@ e2e/.auth/
 # worktrees
 .worktrees/
 
+# claude code
+.claude/
+.agents/
+reviews/
+skills-lock.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
