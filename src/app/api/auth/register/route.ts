@@ -9,6 +9,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
   try {
     const result = await registerUser(body);
     return NextResponse.json({ message: "註冊成功", userId: result.userId }, { status: 201 });
