@@ -7,6 +7,7 @@ import {
   getRegistrationsByUser,
   RegistrationServiceError,
 } from "@/services/registration.service";
+import { formResponsesArraySchema } from "@/lib/validations";
 
 /**
  * GET /api/registrations
@@ -70,6 +71,17 @@ export async function POST(request: NextRequest) {
 
   if (!body.eventId) {
     return NextResponse.json({ error: "eventId is required" }, { status: 400 });
+  }
+
+  // Validate formResponses shape if provided
+  if (body.formResponses) {
+    const parsed = formResponsesArraySchema.safeParse(body.formResponses);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid form responses" },
+        { status: 400 }
+      );
+    }
   }
 
   try {

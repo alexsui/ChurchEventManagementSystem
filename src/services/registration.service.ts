@@ -47,11 +47,6 @@ export async function registerForEvent(
     );
   }
 
-  // Validate form responses if provided
-  if (formResponses && formResponses.length > 0) {
-    await validateFormResponses(eventId, formResponses);
-  }
-
   // Determine status based on capacity
   let status: RegistrationStatus = RegistrationStatus.REGISTERED;
 
@@ -68,8 +63,13 @@ export async function registerForEvent(
     }
   }
 
-  // Use transaction for atomicity of registration + responses
+  // Use transaction for atomicity of validation + registration + responses
   return prisma.$transaction(async (tx) => {
+    // Validate form responses inside the transaction to prevent TOCTOU races
+    if (formResponses && formResponses.length > 0) {
+      await validateFormResponses(tx, eventId, formResponses);
+    }
+
     let registration;
 
     if (existing && existing.status === RegistrationStatus.CANCELLED) {
@@ -104,12 +104,14 @@ export async function registerForEvent(
 
 /**
  * Validate form responses against the event's form fields.
+ * Accepts a transaction client to prevent TOCTOU races.
  */
 async function validateFormResponses(
+  tx: { eventFormField: { findMany: typeof prisma.eventFormField.findMany } },
   eventId: string,
   responses: { fieldId: string; value: string }[]
 ) {
-  const fields = await prisma.eventFormField.findMany({
+  const fields = await tx.eventFormField.findMany({
     where: { eventId },
   });
 

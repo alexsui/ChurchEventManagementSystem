@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +57,15 @@ export function RegistrationFormModal({
 
   const [values, setValues] = useState<Record<string, string>>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Reset state when modal opens to prevent stale values from previous attempts
+  useEffect(() => {
+    if (open) {
+      setValues(initialValues);
+      setErrors({});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function updateValue(fieldId: string, value: string) {
     setValues((prev) => ({ ...prev, [fieldId]: value }));
