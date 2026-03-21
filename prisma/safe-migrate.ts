@@ -10,10 +10,18 @@ const MAX_BACKUP_BRANCHES = 3;
 const BRANCH_PREFIX = "pre-migrate-";
 
 function getMigrateStatus(): string {
-  return execSync("npx prisma migrate status", {
-    encoding: "utf-8",
-    stdio: ["pipe", "pipe", "pipe"],
-  });
+  try {
+    return execSync("npx prisma migrate status", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  } catch (error: unknown) {
+    // prisma migrate status exits with code 1 when there are pending migrations
+    // but still outputs the status text to stdout
+    const err = error as { stdout?: string; stderr?: string };
+    if (err.stdout) return err.stdout;
+    throw error;
+  }
 }
 
 function hasPendingMigrations(status: string): boolean {
