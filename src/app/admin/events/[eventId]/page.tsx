@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Download } from "lucide-react";
+import { ArrowLeft, Pencil, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   EventForm,
@@ -78,6 +89,7 @@ export default function EventDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchEvent = useCallback(async () => {
     try {
@@ -141,6 +153,19 @@ export default function EventDetailPage() {
       toast.error(err instanceof Error ? err.message : "匯出失敗");
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      setDeleting(true);
+      const res = await fetch(`/api/events/${eventId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("刪除活動失敗");
+      toast.success("活動已刪除");
+      router.push("/admin/events");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "刪除失敗");
+      setDeleting(false);
     }
   }
 
@@ -237,10 +262,38 @@ export default function EventDetailPage() {
             {exporting ? "匯出中..." : "匯出 Excel"}
           </Button>
           {canWrite && (
-            <Button variant="outline" onClick={() => setEditOpen(true)}>
-              <Pencil className="size-4" />
-              編輯
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setEditOpen(true)}>
+                <Pencil className="size-4" />
+                編輯
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="text-destructive hover:text-destructive">
+                    <Trash2 className="size-4" />
+                    刪除
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>確定要刪除此活動？</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      刪除後將同時移除所有報名、出席、作業及預算紀錄，此操作無法復原。
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deleting ? "刪除中..." : "確定刪除"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
           )}
         </div>
       </div>
