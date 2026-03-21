@@ -9,6 +9,7 @@ import {
 } from "@/services/event.service";
 import { EventStatus } from "@/generated/prisma/client";
 import { updateEventSchema } from "@/lib/validations";
+import { upsertFormFields, getFormFieldsByEvent } from "@/services/form-field.service";
 
 type RouteParams = { params: Promise<{ eventId: string }> };
 
@@ -19,13 +20,16 @@ type RouteParams = { params: Promise<{ eventId: string }> };
 export async function GET(_request: Request, { params }: RouteParams) {
   try {
     const { eventId } = await params;
-    const event = await getEventById(eventId);
+    const [event, formFields] = await Promise.all([
+      getEventById(eventId),
+      getFormFieldsByEvent(eventId),
+    ]);
 
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    return NextResponse.json(event);
+    return NextResponse.json({ ...event, formFields });
   } catch (error) {
     console.error("GET /api/events/[eventId] error:", error);
     return NextResponse.json({ error: "Failed to fetch event" }, { status: 500 });
@@ -72,13 +76,19 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    const { minAssignmentRate, ...rest } = parsed.data;
+    const { minAssignmentRate, formFields, ...rest } = parsed.data;
     const updateData = {
       ...rest,
       minAssignmentRate: minAssignmentRate != null ? minAssignmentRate / 100 : undefined,
     };
 
     const event = await updateEvent(eventId, updateData);
+
+    // Sync form fields if provided
+    if (formFields !== undefined) {
+      await upsertFormFields(eventId, formFields ?? []);
+    }
+
     return NextResponse.json(event);
   } catch (error) {
     console.error("PUT /api/events/[eventId] error:", error);

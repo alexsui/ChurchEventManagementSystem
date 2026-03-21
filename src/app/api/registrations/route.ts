@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
   const inactiveResponse = assertActive(session.user);
   if (inactiveResponse) return inactiveResponse;
 
-  let body: { eventId?: string };
+  let body: { eventId?: string; formResponses?: { fieldId: string; value: string }[] };
   try {
     body = await request.json();
   } catch {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const registration = await registerForEvent(session.user.id, body.eventId);
+    const registration = await registerForEvent(session.user.id, body.eventId, body.formResponses);
     return NextResponse.json(registration, { status: 201 });
   } catch (error) {
     if (error instanceof RegistrationServiceError) {
@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         EVENT_NOT_FOUND: 404,
         EVENT_NOT_OPEN: 400,
         ALREADY_REGISTERED: 409,
+        INVALID_FORM_RESPONSES: 400,
       };
       return NextResponse.json(
         { error: error.message, code: error.code },

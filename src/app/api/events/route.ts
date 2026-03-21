@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasPermission, assertActive } from "@/lib/authorization";
 import { createEvent, getEvents } from "@/services/event.service";
+import { upsertFormFields } from "@/services/form-field.service";
 import { EventStatus } from "@/generated/prisma/client";
 import type { EventType } from "@/generated/prisma/client";
 import { createEventSchema } from "@/lib/validations";
@@ -71,13 +72,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const { minAssignmentRate, ...rest } = parsed.data;
+    const { minAssignmentRate, formFields, ...rest } = parsed.data;
     const eventData = {
       ...rest,
       minAssignmentRate: minAssignmentRate != null ? minAssignmentRate / 100 : undefined,
     };
 
     const event = await createEvent(eventData);
+
+    // Sync form fields if provided
+    if (formFields && formFields.length > 0) {
+      await upsertFormFields(event.id, formFields);
+    }
+
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error("POST /api/events error:", error);
