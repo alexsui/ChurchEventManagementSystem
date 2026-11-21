@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, CalendarCheck, Download, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +39,20 @@ import { useAdminPermissions } from "@/contexts/admin-permissions";
 import { punchErrorMessages, punchNavLabel } from "@/lib/constants";
 import { formatPercent } from "@/lib/formatters";
 import { exportPunchStatsToExcel } from "@/lib/excel-export";
-import { taipeiToday, formatDateOnlyDisplay, formatDateOnlyWithWeekday } from "@/lib/taipei-date";
+import {
+  taipeiToday,
+  formatDateOnlyDisplay,
+  formatDateOnlyWithWeekday,
+  formatTaipeiClock,
+} from "@/lib/taipei-date";
+
+interface PunchRecordItem {
+  id: string;
+  date: string;
+  punchedAt: string;
+  /** Admin who made up the punch; null = self check-in */
+  punchedBy: { name: string | null } | null;
+}
 
 interface MemberStats {
   memberId: string;
@@ -52,6 +65,7 @@ interface MemberStats {
   attended: number;
   eligible: number;
   rate: number | null;
+  records: PunchRecordItem[];
 }
 
 interface ActivityDetail {
@@ -125,6 +139,10 @@ export default function PunchActivityDetailPage() {
   const [editingMember, setEditingMember] = useState<MemberStats | null>(null);
   const [memberJoined, setMemberJoined] = useState("");
   const [memberLeft, setMemberLeft] = useState("");
+
+  // Member punch records dialog (補打卡)
+  const [recordsMemberId, setRecordsMemberId] = useState<string | null>(null);
+  const [makeUpDate, setMakeUpDate] = useState("");
 
   const fetchDetail = useCallback(async () => {
     const res = await fetch(apiBase);
@@ -244,6 +262,45 @@ export default function PunchActivityDetailPage() {
     });
   }
 
+  /** Selectable make-up dates: within the activity and the member's roster window, up to today. */
+  function makeUpRange(member: MemberStats) {
+    if (!detail) return { min: "", max: "" };
+    const min = [detail.startDate, member.joinedOn].sort().at(-1)!;
+    const max = [taipeiToday(), detail.endDate, member.leftOn ?? detail.endDate].sort()[0];
+    return { min, max };
+  }
+
+  function openRecords(member: MemberStats) {
+    setRecordsMemberId(member.memberId);
+    setMakeUpDate(makeUpRange(member).max);
+  }
+
+  async function handleMakeUp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!recordsMemberId) return;
+    const ok = await send(`${apiBase}/members/${recordsMemberId}/records`, "POST", {
+      date: makeUpDate,
+    });
+    if (!ok) return;
+    toast.success("已補打卡");
+    fetchDetail();
+  }
+
+  function confirmDeleteRecord(memberId: string, record: PunchRecordItem) {
+    const onlyPunch = detail?.dates.find((d) => d.date === record.date)?.count === 1;
+    setConfirm({
+      title: `刪除 ${formatDateOnlyWithWeekday(record.date)} 的打卡？`,
+      description: onlyPunch ? "這是當天唯一的打卡，這天會從團練日期移除。" : "",
+      confirmLabel: "確定刪除",
+      onConfirm: async () => {
+        if (await send(`${apiBase}/members/${memberId}/records/${record.id}`, "DELETE")) {
+          toast.success("已刪除");
+          fetchDetail();
+        }
+      },
+    });
+  }
+
   function confirmDeleteDate(date: string, count: number) {
     setConfirm({
       title: `刪除 ${formatDateOnlyWithWeekday(date)}？`,
@@ -284,6 +341,9 @@ export default function PunchActivityDetailPage() {
 
   const memberIds = new Set(detail.members.map((m) => m.userId));
   const searchResults = results.filter((u) => !memberIds.has(u.id));
+  const recordsMember = detail.members.find((m) => m.memberId === recordsMemberId) ?? null;
+  const makeUpBounds = recordsMember ? makeUpRange(recordsMember) : null;
+  const makeUpIsNewDate = !!makeUpDate && !detail.dates.some((d) => d.date === makeUpDate);
 
   return (
     <div className="space-y-6">
@@ -358,7 +418,7 @@ export default function PunchActivityDetailPage() {
                 <TableHead>退出日期</TableHead>
                 <TableHead className="text-right">出席 / 應出席</TableHead>
                 <TableHead className="text-right">出席率</TableHead>
-                {canWrite && <TableHead className="w-0" />}
+                <TableHead className="w-0" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -381,29 +441,39 @@ export default function PunchActivityDetailPage() {
                     <TableCell className="text-right font-medium">
                       {formatPercent(m.rate)}
                     </TableCell>
-                    {canWrite && (
-                      <TableCell>
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEditMember(m)}
-                            aria-label={`編輯 ${m.name ?? ""}`}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => confirmRemoveMember(m)}
-                            aria-label={`移除 ${m.name ?? ""}`}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openRecords(m)}
+                          aria-label={`打卡紀錄 ${m.name ?? ""}`}
+                        >
+                          <CalendarCheck className="size-4" />
+                        </Button>
+                        {canWrite && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditMember(m)}
+                              aria-label={`編輯 ${m.name ?? ""}`}
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => confirmRemoveMember(m)}
+                              aria-label={`移除 ${m.name ?? ""}`}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -599,6 +669,67 @@ export default function PunchActivityDetailPage() {
               <Button type="submit">儲存</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Member punch records + make-up punch */}
+      <Dialog open={!!recordsMember} onOpenChange={(open) => !open && setRecordsMemberId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{recordsMember?.name ?? ""}</DialogTitle>
+          </DialogHeader>
+          {canWrite && makeUpBounds && (
+            <form onSubmit={handleMakeUp} className="space-y-2">
+              <Label htmlFor="makeup-date">日期</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="makeup-date"
+                  type="date"
+                  value={makeUpDate}
+                  min={makeUpBounds.min}
+                  max={makeUpBounds.max}
+                  onChange={(e) => setMakeUpDate(e.target.value)}
+                  required
+                />
+                <Button type="submit">補打卡</Button>
+              </div>
+              {makeUpIsNewDate && (
+                <p className="text-sm text-muted-foreground">這天會成為新的團練日期</p>
+              )}
+            </form>
+          )}
+          <div className="max-h-80 overflow-y-auto rounded-md border">
+            {!recordsMember || recordsMember.records.length === 0 ? (
+              <p className="p-3 text-center text-sm text-muted-foreground">尚無打卡紀錄</p>
+            ) : (
+              <ul className="divide-y">
+                {recordsMember.records.map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex items-center justify-between gap-2 px-3 py-1.5 text-sm"
+                  >
+                    <span>{formatDateOnlyWithWeekday(r.date)}</span>
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      {r.punchedBy
+                        ? `補打卡 · ${r.punchedBy.name ?? "—"}`
+                        : formatTaipeiClock(r.punchedAt)}
+                      {canWrite && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => confirmDeleteRecord(recordsMember.memberId, r)}
+                          aria-label={`刪除 ${r.date} 的打卡`}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

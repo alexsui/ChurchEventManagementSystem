@@ -115,6 +115,7 @@ model User {
   assignedTasks          EventTeamTask[]
   teamDefaultMemberships TeamDefaultMember[]
   punchMemberships       PunchMember[]
+  punchRecordsMadeUp     PunchRecord[] @relation("punchRecordPunchedBy")
 }
 
 model Team {
@@ -375,13 +376,16 @@ model PunchMember {
 }
 
 // One punch per member per date (Asia/Taipei calendar date).
+// punchedById is set when an admin made up the punch; null = the member punched themselves.
 model PunchRecord {
-  id        String   @id @default(cuid())
-  memberId  String
-  date      DateTime @db.Date
-  punchedAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  memberId    String
+  date        DateTime @db.Date
+  punchedAt   DateTime @default(now())
+  punchedById String?
 
-  member PunchMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  member    PunchMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  punchedBy User?       @relation("punchRecordPunchedBy", fields: [punchedById], references: [id], onDelete: SetNull)
 
   @@unique([memberId, date])
 }

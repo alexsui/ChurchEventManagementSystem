@@ -164,7 +164,15 @@ export async function getPunchActivityDetail(activityId: string) {
         orderBy: { createdAt: "asc" },
         include: {
           user: { select: { name: true, phone: true } },
-          records: { select: { date: true } },
+          records: {
+            orderBy: { date: "desc" },
+            select: {
+              id: true,
+              date: true,
+              punchedAt: true,
+              punchedBy: { select: { name: true } },
+            },
+          },
         },
       },
     },
@@ -197,6 +205,13 @@ export async function getPunchActivityDetail(activityId: string) {
         leftOn,
         punchedDates: member.records.map((r) => formatDateOnly(r.date)),
       }),
+      // punchedBy is the admin who made up the punch; null = self check-in
+      records: member.records.map((r) => ({
+        id: r.id,
+        date: formatDateOnly(r.date),
+        punchedAt: r.punchedAt,
+        punchedBy: r.punchedBy ? { name: r.punchedBy.name } : null,
+      })),
     };
   });
 
@@ -269,6 +284,53 @@ export async function deletePunchDate(activityId: string, date: string) {
     where: { date: day, member: { activityId } },
   });
   return { count: result.count };
+}
+
+// ==================== Admin make-up punches (補打卡) ====================
+
+/**
+ * Admin punches a member in for a date within the activity period, up to today.
+ * A date nobody else punched becomes a new rehearsal date.
+ */
+export async function makeUpPunch(
+  activityId: string,
+  memberId: string,
+  date: string,
+  punchedById: string,
+  now = new Date()
+) {
+  const activity = await requireActivity(activityId);
+  const member = await requireMember(activityId, memberId);
+  const day = parseDateOnly(date);
+
+  if (date < formatDateOnly(activity.startDate) || date > formatDateOnly(activity.endDate)) {
+    throw new PunchServiceError("Date is outside the activity period", "OUT_OF_RANGE");
+  }
+  if (date > taipeiToday(now)) {
+    throw new PunchServiceError("Cannot punch for a future date", "FUTURE_DATE");
+  }
+  const leftOn = member.leftOn ? formatDateOnly(member.leftOn) : null;
+  if (!isActiveOn(date, formatDateOnly(member.joinedOn), leftOn)) {
+    throw new PunchServiceError("Member is not on the roster on this date", "NOT_ON_ROSTER");
+  }
+
+  try {
+    return await prisma.punchRecord.create({ data: { memberId, date: day, punchedById } });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new PunchServiceError("Already punched on this date", "ALREADY_PUNCHED");
+    }
+    throw error;
+  }
+}
+
+/** Delete one punch record of a member (self or made up). */
+export async function deletePunchRecord(activityId: string, memberId: string, recordId: string) {
+  await requireMember(activityId, memberId);
+  const result = await prisma.punchRecord.deleteMany({ where: { id: recordId, memberId } });
+  if (result.count === 0) {
+    throw new PunchServiceError("Punch record not found", "RECORD_NOT_FOUND");
+  }
 }
 
 // ==================== Member self check-in ====================

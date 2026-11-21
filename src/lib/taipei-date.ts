@@ -24,3 +24,12 @@ export function formatDateOnlyWithWeekday(value: string): string {
   const weekday = WEEKDAYS[new Date(`${value}T00:00:00.000Z`).getUTCDay()];
   return `${formatDateOnlyDisplay(value)} (${weekday})`;
 }
+
+/** Clock time in Taiwan, e.g. "19:32". */
+export function formatTaipeiClock(value: string | Date): string {
+  return new Date(value).toLocaleTimeString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

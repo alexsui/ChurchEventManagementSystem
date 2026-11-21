@@ -54,6 +54,8 @@ import {
   getTodayStatus,
   punchToday,
   deletePunchDate,
+  makeUpPunch,
+  deletePunchRecord,
   PunchServiceError,
 } from "./punch.service";
 
@@ -291,6 +293,33 @@ describe("punch.service", () => {
         rate: 1,
       });
     });
+
+    it("lists each member's records, marking admin make-up punches", async () => {
+      const punchedAt = new Date("2027-01-05T11:00:00.000Z");
+      mockPrisma.punchActivity.findUnique.mockResolvedValue({
+        ...activity,
+        members: [
+          {
+            id: "m1",
+            userId: "u1",
+            joinedOn: d("2027-01-01"),
+            leftOn: null,
+            user: { name: "劉大華", phone: null },
+            records: [
+              { id: "r2", date: d("2027-01-12"), punchedAt, punchedBy: { name: "Grace" } },
+              { id: "r1", date: d("2027-01-05"), punchedAt, punchedBy: null },
+            ],
+          },
+        ],
+      });
+
+      const detail = await getPunchActivityDetail("act-1");
+
+      expect(detail.members[0].records).toEqual([
+        { id: "r2", date: "2027-01-12", punchedAt, punchedBy: { name: "Grace" } },
+        { id: "r1", date: "2027-01-05", punchedAt, punchedBy: null },
+      ]);
+    });
   });
 
   describe("getTodayStatus", () => {
@@ -418,6 +447,92 @@ describe("punch.service", () => {
 
     it("rejects an invalid date", async () => {
       await expectCode(deletePunchDate("act-1", "2027-02-30"), "INVALID_DATE");
+    });
+  });
+
+  describe("makeUpPunch", () => {
+    const member = {
+      id: "m1",
+      activityId: "act-1",
+      joinedOn: d("2027-01-10"),
+      leftOn: d("2027-06-30"),
+    };
+
+    beforeEach(() => {
+      mockPrisma.punchActivity.findUnique.mockResolvedValue(activity);
+      mockPrisma.punchMember.findFirst.mockResolvedValue(member);
+    });
+
+    it("throws MEMBER_NOT_FOUND for a member of another activity", async () => {
+      mockPrisma.punchMember.findFirst.mockResolvedValue(null);
+      await expectCode(
+        makeUpPunch("act-1", "m9", "2027-03-01", "admin-1", NOW),
+        "MEMBER_NOT_FOUND"
+      );
+    });
+
+    it("rejects an invalid date", async () => {
+      await expectCode(makeUpPunch("act-1", "m1", "2027-02-30", "admin-1", NOW), "INVALID_DATE");
+    });
+
+    it("throws OUT_OF_RANGE for a date outside the activity period", async () => {
+      mockPrisma.punchMember.findFirst.mockResolvedValue({ ...member, joinedOn: d("2026-01-01") });
+      await expectCode(makeUpPunch("act-1", "m1", "2026-12-31", "admin-1", NOW), "OUT_OF_RANGE");
+    });
+
+    it("throws FUTURE_DATE for a date after today (Taipei)", async () => {
+      await expectCode(makeUpPunch("act-1", "m1", "2027-03-11", "admin-1", NOW), "FUTURE_DATE");
+    });
+
+    it("throws NOT_ON_ROSTER before the join date", async () => {
+      await expectCode(makeUpPunch("act-1", "m1", "2027-01-09", "admin-1", NOW), "NOT_ON_ROSTER");
+    });
+
+    it("throws NOT_ON_ROSTER after the leave date", async () => {
+      const later = new Date("2027-08-01T02:00:00.000Z");
+      await expectCode(makeUpPunch("act-1", "m1", "2027-07-01", "admin-1", later), "NOT_ON_ROSTER");
+    });
+
+    it("creates a record on that date, attributed to the admin", async () => {
+      mockPrisma.punchRecord.create.mockResolvedValue({ id: "r1" });
+
+      await makeUpPunch("act-1", "m1", "2027-03-10", "admin-1", NOW);
+
+      expect(mockPrisma.punchMember.findFirst).toHaveBeenCalledWith({
+        where: { id: "m1", activityId: "act-1" },
+      });
+      expect(mockPrisma.punchRecord.create).toHaveBeenCalledWith({
+        data: { memberId: "m1", date: d("2027-03-10"), punchedById: "admin-1" },
+      });
+    });
+
+    it("throws ALREADY_PUNCHED when the member already has a record that day", async () => {
+      mockPrisma.punchRecord.create.mockRejectedValue(prismaUniqueError());
+      await expectCode(makeUpPunch("act-1", "m1", "2027-03-01", "admin-1", NOW), "ALREADY_PUNCHED");
+    });
+  });
+
+  describe("deletePunchRecord", () => {
+    it("deletes the record only within that member", async () => {
+      mockPrisma.punchMember.findFirst.mockResolvedValue({ id: "m1" });
+      mockPrisma.punchRecord.deleteMany.mockResolvedValue({ count: 1 });
+
+      await deletePunchRecord("act-1", "m1", "r1");
+
+      expect(mockPrisma.punchRecord.deleteMany).toHaveBeenCalledWith({
+        where: { id: "r1", memberId: "m1" },
+      });
+    });
+
+    it("throws MEMBER_NOT_FOUND for a member of another activity", async () => {
+      mockPrisma.punchMember.findFirst.mockResolvedValue(null);
+      await expectCode(deletePunchRecord("act-1", "m9", "r1"), "MEMBER_NOT_FOUND");
+    });
+
+    it("throws RECORD_NOT_FOUND when the record is not this member's", async () => {
+      mockPrisma.punchMember.findFirst.mockResolvedValue({ id: "m1" });
+      mockPrisma.punchRecord.deleteMany.mockResolvedValue({ count: 0 });
+      await expectCode(deletePunchRecord("act-1", "m1", "r9"), "RECORD_NOT_FOUND");
     });
   });
 });

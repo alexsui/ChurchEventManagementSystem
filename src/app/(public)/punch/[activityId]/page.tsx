@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { punchStatusMessages } from "@/lib/constants";
-import { formatDateOnlyDisplay, formatDateOnlyWithWeekday } from "@/lib/taipei-date";
+import {
+  formatDateOnlyDisplay,
+  formatDateOnlyWithWeekday,
+  formatTaipeiClock,
+} from "@/lib/taipei-date";
 
 type TodayStatus = "NOT_LOGGED_IN" | "OUT_OF_RANGE" | "NOT_MEMBER" | "READY" | "PUNCHED";
 
@@ -19,14 +23,6 @@ interface TodayData {
   today: string;
   status: TodayStatus;
   punchedAt: string | null;
-}
-
-function formatClock(value: string) {
-  return new Date(value).toLocaleTimeString("zh-TW", {
-    timeZone: "Asia/Taipei",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export default function PunchPage() {
@@ -114,7 +110,7 @@ export default function PunchPage() {
         icon="success"
         animate={justPunched}
         title={justPunched ? "打卡成功！" : punchStatusMessages.PUNCHED}
-        description={data.punchedAt ? formatClock(data.punchedAt) : undefined}
+        description={data.punchedAt ? formatTaipeiClock(data.punchedAt) : undefined}
       />
     );
   } else {

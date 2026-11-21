@@ -23,6 +23,8 @@ The term "punch" is used throughout the code for 打卡 (as in punching a time c
 - [x] (2026-11-21) Milestone 4: `e2e/12-admin-punch.spec.ts` (7 tests) passing; full local e2e 54 passed / 3 failed (same 3 as baseline); unit 234 passed; `npm run build` OK; `ARCHITECTURE.md` and `docs/exec-plans/tech-debt.md` updated.
 - [x] (2026-11-21) Pushed to `dev`, applied the migration to the Neon dev database, user tested on dev (punch works; LINE login fails on per-deployment preview URLs because the callback URL is not registered with LINE).
 - [x] (2026-11-21) UI copy trimmed at the user's request: removed explanatory subtitles, dialog descriptions and label prefixes.
+- [x] (2026-11-21) Shipped to production (main `587d72c`).
+- [x] (2026-11-21) Follow-up on branch `feature/punch-makeup`: admin make-up punches (補打卡) and deleting a single punch record. Migration `20261121110923_punch_record_punched_by` adds nullable `PunchRecord.punchedById`. Unit 246 passed; punch e2e 10 passed; full e2e 56 passed / 3 failed (the same 3 pre-existing).
 
 ## Surprises & Discoveries
 
@@ -64,6 +66,18 @@ The term "punch" is used throughout the code for 打卡 (as in punching a time c
 - Decision: no explanatory secondary text in the UI. That means no subtitles under headings, no dialog descriptions except one-line consequences on destructive confirms, and no "label：" prefixes. The layout carries the meaning, e.g. the date range under the title and the time under 打卡成功. The rehearsal count is shown next to the 團練日期 heading.
   Rationale: user feedback after testing on dev.
   Date/Author: 2026-11-21 / user.
+
+- Decision: admins can make up a punch (補打卡) for any member, for any date within the activity period up to today (Taipei) and within the member's roster window. A date nobody else punched becomes a new rehearsal date, so other roster members count as absent that day; the dialog shows "這天會成為新的團練日期" when that will happen.
+  Rationale: covers both a single forgotten punch and a day when the whole team could not punch (e.g. the QR code failed). The user chose this over restricting to existing rehearsal dates.
+  Date/Author: 2026-11-21 / user.
+
+- Decision: make-up punches require `attendance:write`, the same permission as the other punch admin actions, not the ADMIN role only.
+  Rationale: user choice; the people who manage the roster are the ones who need to make up punches.
+  Date/Author: 2026-11-21 / user.
+
+- Decision: record who made up a punch in `PunchRecord.punchedById` (null = self check-in; `ON DELETE SET NULL` so deleting the admin user keeps the attendance record). Admins can delete a single record. Both live in a per-member "打卡紀錄" dialog opened from the roster row, which lists every record with the clock time (self) or "補打卡 · <admin name>".
+  Rationale: user asked for both alongside make-up punches. The per-member dialog puts make-up, audit, and undo in one place.
+  Date/Author: 2026-11-21 / user + Claude.
 
 ## Outcomes & Retrospective
 
@@ -166,3 +180,5 @@ No new libraries. In `src/services/punch.service.ts`:
 Revision note (2026-11-21): plan created, then updated at completion with progress, discoveries (Prisma 7 generate step, e2e ordering, pre-existing failures, member permission gap), outcomes, and evidence. Moved from `active/` to `completed/`.
 
 Revision note (2026-11-21, later): recorded the dev deployment and the UI copy trim (Progress, Decision Log). Updated the UI wording in Plan of Work and Validation to match.
+
+Revision note (2026-11-21, follow-up): added admin make-up punches, single-record deletion, and the `punchedById` audit field (Progress, Decision Log). The earlier "manual punch by admin is out of scope" decision is superseded by this follow-up.

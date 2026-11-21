@@ -135,7 +135,9 @@ in Asia/Taipei time. There are no sessions: any date with at least one punch
 counts as one rehearsal. Each member's attendance rate only counts rehearsals
 inside their roster window. Admin pages live at `/admin/punch` and reuse the
 `attendance` permission module. Members can punch based on roster membership
-alone, with no role permission needed. Stats export to Excel.
+alone, with no role permission needed. Admins with `attendance:write` can make
+up a punch for a member on a past date (`PunchRecord.punchedById` records who)
+and delete single records. Stats export to Excel.
 
 ### Assignments
 

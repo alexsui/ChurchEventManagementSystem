@@ -124,6 +124,56 @@ test.describe("打卡 (punch) activity", () => {
     expect(rows[1]).toEqual(["劉大華", "0972345678", today, "", 1, 1, "100%", "✓"]);
   });
 
+  test("admin makes up a punch for yesterday → new rehearsal date, marked as made up", async ({
+    page,
+  }) => {
+    const yesterday = shift(-1);
+    await page.goto(`/admin/punch/${activityId}`);
+
+    // 劉大華 joined today; backdate the join so yesterday is within the roster window
+    await page.getByRole("button", { name: "編輯 劉大華" }).click();
+    await page.getByLabel("加入日期").fill(shift(-7));
+    await page.getByRole("button", { name: "儲存" }).click();
+    await expect(page.getByText("已更新")).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole("button", { name: "打卡紀錄 劉大華" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(
+      dialog.getByRole("listitem").filter({ hasText: formatDateOnlyWithWeekday(today) })
+    ).toContainText(/\d{1,2}:\d{2}/);
+
+    await dialog.getByLabel("日期").fill(yesterday);
+    await expect(dialog.getByText("這天會成為新的團練日期")).toBeVisible();
+    await dialog.getByRole("button", { name: "補打卡" }).click();
+    await expect(page.getByText("已補打卡")).toBeVisible({ timeout: 5000 });
+    await expect(
+      dialog.getByRole("listitem").filter({ hasText: formatDateOnlyWithWeekday(yesterday) })
+    ).toContainText("補打卡 · ");
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("row").filter({ hasText: "劉大華" })).toContainText("2 / 2");
+    await expect(page.getByRole("heading", { name: "團練日期 2" })).toBeVisible();
+  });
+
+  test("admin deletes the made-up punch → that date is no longer a rehearsal", async ({ page }) => {
+    const yesterday = shift(-1);
+    await page.goto(`/admin/punch/${activityId}`);
+    await page.getByRole("button", { name: "打卡紀錄 劉大華" }).click();
+
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: `刪除 ${yesterday} 的打卡` }).click();
+    await expect(page.getByText("這是當天唯一的打卡，這天會從團練日期移除。")).toBeVisible();
+    await page.getByRole("button", { name: "確定刪除" }).click();
+    await expect(page.getByText("已刪除", { exact: true })).toBeVisible({ timeout: 5000 });
+
+    await expect(
+      dialog.getByRole("listitem").filter({ hasText: formatDateOnlyWithWeekday(yesterday) })
+    ).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("row").filter({ hasText: "劉大華" })).toContainText("1 / 1");
+    await expect(page.getByRole("heading", { name: "團練日期 1" })).toBeVisible();
+  });
+
   test("admin deletes today's records → no longer counts as a rehearsal", async ({ page }) => {
     await page.goto(`/admin/punch/${activityId}`);
     await page.getByRole("button", { name: `刪除 ${today}` }).click();
