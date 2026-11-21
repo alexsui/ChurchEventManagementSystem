@@ -114,6 +114,7 @@ model User {
   eventTeamMembers       EventTeamMember[]
   assignedTasks          EventTeamTask[]
   teamDefaultMemberships TeamDefaultMember[]
+  punchMemberships       PunchMember[]
 }
 
 model Team {
@@ -339,4 +340,48 @@ model EventFormResponse {
   field        EventFormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
 
   @@unique([registrationId, fieldId])
+}
+
+// ==================== Punch (打卡) ====================
+
+// A self check-in activity over a date range (e.g. worship team rehearsals).
+// A "rehearsal" is any date on which at least one member punched.
+model PunchActivity {
+  id        String   @id @default(cuid())
+  title     String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members PunchMember[]
+}
+
+// Roster entry. Attendance rate only counts rehearsals between joinedOn and leftOn.
+model PunchMember {
+  id         String    @id @default(cuid())
+  activityId String
+  userId     String
+  joinedOn   DateTime  @db.Date
+  leftOn     DateTime? @db.Date
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  activity PunchActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  records  PunchRecord[]
+
+  @@unique([activityId, userId])
+}
+
+// One punch per member per date (Asia/Taipei calendar date).
+model PunchRecord {
+  id        String   @id @default(cuid())
+  memberId  String
+  date      DateTime @db.Date
+  punchedAt DateTime @default(now())
+
+  member PunchMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, date])
 }

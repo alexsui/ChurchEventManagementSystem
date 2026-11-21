@@ -4,14 +4,14 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { CalendarDays, Users, UsersRound, QrCode, Menu, LogOut, Home } from "lucide-react";
+import { CalendarDays, Users, UsersRound, QrCode, Menu, LogOut, Home, Stamp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { AdminPermissionsProvider } from "@/contexts/admin-permissions";
-import { roleLabels } from "@/lib/constants";
+import { roleLabels, punchNavLabel } from "@/lib/constants";
 
 interface NavItem {
   href: string;
@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
   { href: "/admin/events", label: "活動管理", icon: CalendarDays, module: "events" },
   { href: "/admin/users", label: "使用者管理", icon: Users, module: "users", adminOnly: true },
   { href: "/admin/teams", label: "組別管理", icon: UsersRound, module: "teams" },
+  { href: "/admin/punch", label: punchNavLabel, icon: Stamp, module: "attendance" },
   { href: "/admin/share", label: "QR Code 分享", icon: QrCode, module: "events" },
 ];
 

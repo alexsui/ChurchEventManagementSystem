@@ -76,3 +76,8 @@ export function formatSessionColumnHeader(session: FormatableSession): string {
   }).format(new Date(session.sessionDate));
   return `第${session.sessionNo}堂 (${date})`;
 }
+
+// Attendance rate: 0.75 → "75%", null (nothing to count yet) → "—"
+export function formatPercent(rate: number | null): string {
+  return rate === null ? "—" : `${Math.round(rate * 100)}%`;
+}

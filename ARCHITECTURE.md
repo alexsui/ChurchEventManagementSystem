@@ -78,6 +78,7 @@ src/
 │   ├── formatters.ts          # Date/currency formatting utilities
 │   ├── prisma.ts              # Singleton Prisma client
 │   ├── qrcode.ts              # QR code generation
+│   ├── taipei-date.ts         # "YYYY-MM-DD" helpers in Asia/Taipei (client + server)
 │   └── utils.ts               # General utilities (cn, etc.)
 │
 ├── middleware.ts              # Profile completion redirect, admin auth gate
@@ -91,6 +92,7 @@ src/
 │   ├── user.service.ts
 │   ├── budget.service.ts
 │   ├── role-permission.service.ts
+│   ├── punch.service.ts
 │   └── *.service.test.ts      # Co-located unit tests
 │
 └── types/
@@ -122,6 +124,18 @@ Auto-promote first waitlisted user when a registration is cancelled.
 Per-session check-in with late tracking. Supports bulk check-in and QR code
 check-in (public `/check-in/[sessionId]` route). Attendance summary provides a
 user × session matrix view.
+
+### Punch (打卡)
+
+Standalone self check-in module, separate from events, for recurring groups
+whose meeting dates are irregular (e.g. worship team rehearsals). An activity
+has a title and a date range, plus a roster with join/leave dates. Members scan
+one fixed QR code (public `/punch/[activityId]` route) and punch once per day,
+in Asia/Taipei time. There are no sessions: any date with at least one punch
+counts as one rehearsal. Each member's attendance rate only counts rehearsals
+inside their roster window. Admin pages live at `/admin/punch` and reuse the
+`attendance` permission module. Members can punch based on roster membership
+alone, with no role permission needed. Stats export to Excel.
 
 ### Assignments
 

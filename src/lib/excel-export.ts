@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { formatPercent } from "@/lib/formatters";
 
 interface RegistrationRow {
   userName: string;
@@ -168,4 +169,56 @@ function addBudgetSheet(wb: XLSX.WorkBook, rows: BudgetRow[], summary: BudgetSum
   ];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
   XLSX.utils.book_append_sheet(wb, ws, "預算");
+}
+
+export interface PunchExportData {
+  title: string;
+  dates: string[];
+  members: {
+    name: string | null;
+    phone: string | null;
+    joinedOn: string;
+    leftOn: string | null;
+    attendedDates: string[];
+    attended: number;
+    eligible: number;
+    rate: number | null;
+  }[];
+}
+
+/** 打卡出席率: one row per member, plus one column per rehearsal date. */
+export function exportPunchStatsToExcel(data: PunchExportData) {
+  const headers = [
+    "姓名",
+    "電話",
+    "加入日期",
+    "退出日期",
+    "出席次數",
+    "應出席次數",
+    "出席率",
+    ...data.dates,
+  ];
+  const wsData = [
+    headers,
+    ...data.members.map((m) => {
+      const attended = new Set(m.attendedDates);
+      return [
+        m.name ?? "",
+        m.phone ?? "",
+        m.joinedOn,
+        m.leftOn ?? "",
+        m.attended,
+        m.eligible,
+        formatPercent(m.rate),
+        // Blank when the date is outside this member's roster window
+        ...data.dates.map((date) => {
+          if (date < m.joinedOn || (m.leftOn !== null && date > m.leftOn)) return "";
+          return attended.has(date) ? "✓" : "✗";
+        }),
+      ];
+    }),
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(wsData), "出席率");
+  XLSX.writeFile(wb, `${data.title}_出席率.xlsx`);
 }
