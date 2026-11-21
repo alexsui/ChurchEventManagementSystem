@@ -153,6 +153,15 @@ export async function deletePunchActivity(activityId: string) {
   await prisma.punchActivity.delete({ where: { id: activityId } });
 }
 
+/** Activity title for link previews, or null when the activity does not exist. */
+export async function getPunchActivityTitle(activityId: string) {
+  const activity = await prisma.punchActivity.findUnique({
+    where: { id: activityId },
+    select: { title: true },
+  });
+  return activity?.title ?? null;
+}
+
 /**
  * Activity with rehearsal dates (and how many punched each date) and per-member stats.
  */

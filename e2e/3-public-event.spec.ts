@@ -10,6 +10,13 @@ test.describe("Public event page", () => {
     await expect(page.getByText("復活節特別聚會")).toBeVisible();
     await expect(page.getByText("主堂")).toBeVisible();
     await expect(page.getByText("報名資訊")).toBeVisible();
+
+    // Shared links preview with the event name
+    await expect(page).toHaveTitle("復活節特別聚會");
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      "content",
+      "復活節特別聚會"
+    );
   });
 
   test("click 立即報名 when logged in → registration succeeds", async ({ page }) => {
