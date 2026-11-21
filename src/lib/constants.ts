@@ -113,4 +113,9 @@ export const punchErrorMessages: Record<string, string> = {
   USER_NOT_FOUND: "找不到此使用者",
   MEMBER_NOT_FOUND: "找不到此成員",
   NOT_FOUND: "找不到此打卡活動",
+  OUT_OF_RANGE: "日期不在打卡期間內",
+  FUTURE_DATE: "不能補未來的日期",
+  NOT_ON_ROSTER: "這天不在名單期間內",
+  ALREADY_PUNCHED: "這天已打卡",
+  RECORD_NOT_FOUND: "找不到這筆打卡紀錄",
 };

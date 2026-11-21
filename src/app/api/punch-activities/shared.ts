@@ -8,12 +8,15 @@ const STATUS_BY_CODE: Record<string, number> = {
   NOT_FOUND: 404,
   MEMBER_NOT_FOUND: 404,
   USER_NOT_FOUND: 404,
+  RECORD_NOT_FOUND: 404,
   NOT_MEMBER: 403,
   OUT_OF_RANGE: 403,
   ALREADY_MEMBER: 409,
   ALREADY_PUNCHED: 409,
   INVALID_INPUT: 400,
   INVALID_DATE: 400,
+  FUTURE_DATE: 400,
+  NOT_ON_ROSTER: 400,
 };
 
 /** Map service errors to JSON responses; rethrow anything unexpected. */
