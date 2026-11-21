@@ -1,5 +1,7 @@
 export const dynamic = "force-dynamic";
 
+import { cache } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -15,6 +17,20 @@ import { eventStatusPublicLabels, eventCategoryLabels } from "@/lib/constants";
 import { formatLongDate, formatTime } from "@/lib/formatters";
 import { RegisterButton } from "@/components/shared/register-button";
 import { QRCodeDisplay } from "@/components/shared/qrcode-display";
+
+// Shared by generateMetadata and the page so the event is loaded once per request
+const getEvent = cache(getEventById);
+
+/** Shared links preview with the event name instead of the site name. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ eventId: string }>;
+}): Promise<Metadata> {
+  const { eventId } = await params;
+  const event = await getEvent(eventId);
+  return event ? { title: event.title, openGraph: { title: event.title } } : {};
+}
 
 function getStatusColor(status: EventStatus): string {
   const map: Record<EventStatus, string> = {
@@ -34,7 +50,7 @@ export default async function EventDetailPage({
   const { eventId } = await params;
 
   const [event, registrationCount, session] = await Promise.all([
-    getEventById(eventId),
+    getEvent(eventId),
     getRegistrationCount(eventId),
     auth(),
   ]);

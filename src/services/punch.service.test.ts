@@ -51,6 +51,7 @@ import {
   addPunchMember,
   updatePunchMember,
   getPunchActivityDetail,
+  getPunchActivityTitle,
   getTodayStatus,
   punchToday,
   deletePunchDate,
@@ -245,6 +246,20 @@ describe("punch.service", () => {
         updatePunchMember("act-1", "m-other", { joinedOn: "2027-01-01", leftOn: null }),
         "MEMBER_NOT_FOUND"
       );
+    });
+  });
+
+  describe("getPunchActivityTitle", () => {
+    it("returns the title, or null when the activity does not exist", async () => {
+      mockPrisma.punchActivity.findUnique.mockResolvedValueOnce({ title: "2027 敬拜團團練" });
+      expect(await getPunchActivityTitle("act-1")).toBe("2027 敬拜團團練");
+      expect(mockPrisma.punchActivity.findUnique).toHaveBeenCalledWith({
+        where: { id: "act-1" },
+        select: { title: true },
+      });
+
+      mockPrisma.punchActivity.findUnique.mockResolvedValueOnce(null);
+      expect(await getPunchActivityTitle("missing")).toBeNull();
     });
   });
 

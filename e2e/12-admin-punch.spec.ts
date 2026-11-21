@@ -67,6 +67,8 @@ test.describe("打卡 (punch) activity", () => {
     const page = await anonymousPage(browser);
     await page.goto(`/punch/${activityId}`);
     await expect(page.getByText(TITLE)).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveTitle(TITLE);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", TITLE);
 
     await page.getByRole("link", { name: "登入後打卡" }).click();
     await page.waitForURL(/\/login/);
