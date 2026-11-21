@@ -18,7 +18,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -86,12 +85,7 @@ export default function PunchActivitiesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">{punchNavLabel}</h1>
-          <p className="text-muted-foreground text-sm">
-            團員掃描 QR Code 自行打卡，一天算一次，有人打卡的日子就算一次團練
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold">{punchNavLabel}</h1>
         {canWrite && (
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="size-4" />
@@ -146,7 +140,6 @@ export default function PunchActivitiesPage() {
           <form onSubmit={handleCreate} className="space-y-4">
             <DialogHeader>
               <DialogTitle>新增打卡活動</DialogTitle>
-              <DialogDescription>不用排場次，團員在期間內掃 QR Code 就能打卡</DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
               <Label htmlFor="punch-title">名稱</Label>
@@ -154,7 +147,6 @@ export default function PunchActivitiesPage() {
                 id="punch-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="例如：2027 敬拜團團練"
                 required
               />
             </div>

@@ -97,9 +97,9 @@ export const punchNavLabel = "打卡管理";
 
 // Member punch page messages, keyed by API status / error code
 export const punchStatusMessages: Record<string, string> = {
-  NOT_LOGGED_IN: "請先登入以完成打卡",
+  NOT_LOGGED_IN: "登入後打卡",
   OUT_OF_RANGE: "今天不在打卡期間內",
-  NOT_MEMBER: "你不在這個打卡名單中，如需加入請聯絡負責同工",
+  NOT_MEMBER: "你不在這個打卡名單中",
   PUNCHED: "今天已打卡",
   ALREADY_PUNCHED: "今天已打卡",
   NOT_FOUND: "找不到此打卡活動",

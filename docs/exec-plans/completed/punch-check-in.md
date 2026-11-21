@@ -21,6 +21,8 @@ The term "punch" is used throughout the code for 打卡 (as in punching a time c
 - [x] (2026-11-21) Milestone 2: API routes under `src/app/api/punch-activities/`.
 - [x] (2026-11-21) Milestone 3: admin pages `/admin/punch`, `/admin/punch/[activityId]`, member page `/punch/[activityId]`, Excel export, sidebar entry.
 - [x] (2026-11-21) Milestone 4: `e2e/12-admin-punch.spec.ts` (7 tests) passing; full local e2e 54 passed / 3 failed (same 3 as baseline); unit 234 passed; `npm run build` OK; `ARCHITECTURE.md` and `docs/exec-plans/tech-debt.md` updated.
+- [x] (2026-11-21) Pushed to `dev`, applied the migration to the Neon dev database, user tested on dev (punch works; LINE login fails on per-deployment preview URLs because the callback URL is not registered with LINE).
+- [x] (2026-11-21) UI copy trimmed at the user's request: removed explanatory subtitles, dialog descriptions and label prefixes.
 
 ## Surprises & Discoveries
 
@@ -59,6 +61,10 @@ The term "punch" is used throughout the code for 打卡 (as in punching a time c
   Rationale: the requester did not choose them; keep the first version minimal.
   Date/Author: 2026-11-21 / Claude.
 
+- Decision: no explanatory secondary text in the UI. That means no subtitles under headings, no dialog descriptions except one-line consequences on destructive confirms, and no "label：" prefixes. The layout carries the meaning, e.g. the date range under the title and the time under 打卡成功. The rehearsal count is shown next to the 團練日期 heading.
+  Rationale: user feedback after testing on dev.
+  Date/Author: 2026-11-21 / user.
+
 ## Outcomes & Retrospective
 
 (2026-11-21) Delivered the full scope in one session. Staff can create a punch activity, maintain a roster with join and leave dates, print one QR code, see per-member attendance rates and the list of rehearsal dates, delete a mistaken date, and export to Excel. Members punch from their phones; logging in from the punch page returns them to it. Plain `MEMBER` accounts can punch (verified in e2e with 劉大華), because punching is authorized by roster membership.
@@ -91,7 +97,7 @@ Write `src/services/punch.service.test.ts` covering the time-zone boundary of `t
 
 Milestone 2 adds the API routes under `src/app/api/punch-activities/`. `route.ts`: GET list (attendance:read), POST create (attendance:write). `[activityId]/route.ts`: GET detail with stats (attendance:read), PATCH and DELETE (attendance:write). `[activityId]/members/route.ts`: POST add member. `[activityId]/members/[memberId]/route.ts`: PATCH dates, DELETE. `[activityId]/dates/[date]/route.ts`: DELETE all records on that date. `[activityId]/today/route.ts`: GET (no login required) returns `{ activity, today, status, punchedAt }` where `status` is one of `NOT_LOGGED_IN`, `OUT_OF_RANGE`, `NOT_MEMBER`, `READY`, `PUNCHED`; POST (login and active account required, no module permission) punches. Status codes: `NOT_FOUND`/`MEMBER_NOT_FOUND` 404, `NOT_MEMBER` 403, `ALREADY_PUNCHED`/`ALREADY_MEMBER` 409, validation errors 400.
 
-Milestone 3 adds the UI. Add a sidebar item `{ href: "/admin/punch", label: "打卡管理", icon: Stamp, module: "attendance" }` in `src/app/admin/layout.tsx`. `src/app/admin/punch/page.tsx` lists activities (title, range, member count) with a create dialog. `src/app/admin/punch/[activityId]/page.tsx` shows the activity with edit and delete, a QR card for `${origin}/punch/${id}` using `QRCodeDisplay`, a 成員與出席率 table (name, phone, join date, leave date, attended/eligible, rate, edit and remove actions) with user search to add members and an 匯出 Excel button, and a 團練日期 table (date, number of punches, delete). `src/app/(public)/punch/[activityId]/page.tsx` is the phone page: it shows the activity title and today's date and renders one state per status, with a 前往登入 link that returns to the page after login and a 打卡 button that turns into a success state. Shared user-facing status messages go into `src/lib/constants.ts`. Add `exportPunchStatsToExcel` to `src/lib/excel-export.ts`: one sheet 出席率 with columns 姓名, 電話, 加入日期, 退出日期, 出席次數, 應出席次數, 出席率, followed by one column per rehearsal date showing ✓, ✗, or blank when outside the member's window.
+Milestone 3 adds the UI. Add a sidebar item `{ href: "/admin/punch", label: "打卡管理", icon: Stamp, module: "attendance" }` in `src/app/admin/layout.tsx`. `src/app/admin/punch/page.tsx` lists activities (title, range, member count) with a create dialog. `src/app/admin/punch/[activityId]/page.tsx` shows the activity with edit and delete, a QR card for `${origin}/punch/${id}` using `QRCodeDisplay`, a 成員 table (name, phone, join date, leave date, attended/eligible, rate, edit and remove actions) with user search to add members and an 匯出 Excel button, and a 團練日期 table (date, number of punches, delete). `src/app/(public)/punch/[activityId]/page.tsx` is the phone page: it shows the activity title and today's date and renders one state per status, with a 登入後打卡 link that returns to the page after login and a 打卡 button that turns into a success state. Shared user-facing status messages go into `src/lib/constants.ts`. Add `exportPunchStatsToExcel` to `src/lib/excel-export.ts`: one sheet 出席率 with columns 姓名, 電話, 加入日期, 退出日期, 出席次數, 應出席次數, 出席率, followed by one column per rehearsal date showing ✓, ✗, or blank when outside the member's window.
 
 Milestone 4 adds `e2e/12-admin-punch.spec.ts` covering the full scenario, runs the whole e2e suite locally, and updates `ARCHITECTURE.md` (new Punch module paragraph, service list) and this plan.
 
@@ -110,7 +116,7 @@ All commands run from the worktree root `/Users/samuel/Developer/church-event-ch
 
 Unit tests: `npm run test:run` passes, including the new `src/services/punch.service.test.ts`.
 
-End-to-end (`npm run test:e2e`), new spec `e2e/12-admin-punch.spec.ts`: as admin, create an activity covering today, add 劉大華 (`dahua@example.com`) to the roster, and see a QR code on the detail page. Not logged in, `/punch/<id>` shows a 前往登入 link. As `dahua@example.com`, open `/punch/<id>`, tap 打卡, see 打卡成功; reload and see 今天已打卡. As 趙雅婷 (`yating@example.com`, not on the roster), open the page and see the not-on-roster message. As admin, see 劉大華 at 1 / 1 and 100%, download an `.xlsx`, delete today's date, and see 劉大華 at 0 / 0 with rate "—". The pre-existing 3 baseline failures are expected to remain; everything else must pass.
+End-to-end (`npm run test:e2e`), new spec `e2e/12-admin-punch.spec.ts`: as admin, create an activity covering today, add 劉大華 (`dahua@example.com`) to the roster, and see a QR code on the detail page. Not logged in, `/punch/<id>` shows a 登入後打卡 link. As `dahua@example.com`, open `/punch/<id>`, tap 打卡, see 打卡成功; reload and see 今天已打卡. As 趙雅婷 (`yating@example.com`, not on the roster), open the page and see the not-on-roster message. As admin, see 劉大華 at 1 / 1 and 100%, download an `.xlsx`, delete today's date, and see 劉大華 at 0 / 0 with rate "—". The pre-existing 3 baseline failures are expected to remain; everything else must pass.
 
 ## Idempotence and Recovery
 
@@ -158,3 +164,5 @@ No new libraries. In `src/services/punch.service.ts`:
 ---
 
 Revision note (2026-11-21): plan created, then updated at completion with progress, discoveries (Prisma 7 generate step, e2e ordering, pre-existing failures, member permission gap), outcomes, and evidence. Moved from `active/` to `completed/`.
+
+Revision note (2026-11-21, later): recorded the dev deployment and the UI copy trim (Progress, Decision Log). Updated the UI wording in Plan of Work and Validation to match.

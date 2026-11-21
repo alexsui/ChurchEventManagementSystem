@@ -64,7 +64,6 @@ export default function PunchPage() {
       const body = await res.json().catch(() => ({}));
       if (res.ok) {
         setJustPunched(true);
-        toast.success("打卡成功！");
       } else {
         toast.error(punchStatusMessages[body.code] ?? body.error ?? "打卡失敗");
       }
@@ -83,38 +82,28 @@ export default function PunchPage() {
       <Message
         icon="error"
         title={loadError === "NOT_FOUND" ? punchStatusMessages.NOT_FOUND : "無法載入"}
-        description={
-          loadError === "NOT_FOUND" ? "此 QR Code 可能已失效" : "請檢查網路後重新整理頁面"
-        }
       />
     );
   } else if (!data || authStatus === "loading") {
     content = (
-      <div className="py-8 text-center">
+      <div className="py-8">
         <Loader2 className="mx-auto size-10 animate-spin text-muted-foreground" />
-        <p className="mt-4 text-muted-foreground">載入中...</p>
       </div>
     );
   } else if (data.status === "NOT_LOGGED_IN") {
     content = (
-      <div className="space-y-4 text-center">
-        <div className="flex items-center justify-center gap-2 text-amber-600">
-          <AlertCircle className="size-5" />
-          <span className="font-medium">{punchStatusMessages.NOT_LOGGED_IN}</span>
-        </div>
-        <Button asChild className="w-full" size="lg">
-          <Link href={`/login?callbackUrl=${encodeURIComponent(`/punch/${activityId}`)}`}>
-            前往登入
-          </Link>
-        </Button>
-      </div>
+      <Button asChild className="w-full" size="lg">
+        <Link href={`/login?callbackUrl=${encodeURIComponent(`/punch/${activityId}`)}`}>
+          {punchStatusMessages.NOT_LOGGED_IN}
+        </Link>
+      </Button>
     );
   } else if (data.status === "OUT_OF_RANGE") {
     content = (
       <Message
         icon="error"
         title={punchStatusMessages.OUT_OF_RANGE}
-        description={`打卡期間：${formatDateOnlyDisplay(data.activity.startDate)} – ${formatDateOnlyDisplay(data.activity.endDate)}`}
+        description={`${formatDateOnlyDisplay(data.activity.startDate)} – ${formatDateOnlyDisplay(data.activity.endDate)}`}
       />
     );
   } else if (data.status === "NOT_MEMBER") {
@@ -125,16 +114,13 @@ export default function PunchPage() {
         icon="success"
         animate={justPunched}
         title={justPunched ? "打卡成功！" : punchStatusMessages.PUNCHED}
-        description={data.punchedAt ? `打卡時間：${formatClock(data.punchedAt)}` : undefined}
+        description={data.punchedAt ? formatClock(data.punchedAt) : undefined}
       />
     );
   } else {
     content = (
       <div className="space-y-4">
-        <div className="flex items-center justify-between rounded-lg bg-muted/50 p-4 text-sm">
-          <span className="text-muted-foreground">姓名</span>
-          <span className="font-medium">{authSession?.user?.name || "—"}</span>
-        </div>
+        <p className="text-center text-lg font-medium">{authSession?.user?.name}</p>
         <Button onClick={handlePunch} disabled={punching} className="w-full" size="lg">
           {punching ? (
             <>
@@ -156,11 +142,11 @@ export default function PunchPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-xl">{data.activity.title}</CardTitle>
             <CardDescription className="text-base">
-              今天 {formatDateOnlyWithWeekday(data.today)}
+              {formatDateOnlyWithWeekday(data.today)}
             </CardDescription>
           </CardHeader>
         )}
-        <CardContent className={cn(!data && "pt-6")}>{content}</CardContent>
+        <CardContent>{content}</CardContent>
       </Card>
     </div>
   );

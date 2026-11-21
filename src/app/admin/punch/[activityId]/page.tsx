@@ -8,8 +8,7 @@ import { ArrowLeft, Download, Pencil, Plus, Trash2, UserPlus } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -21,7 +20,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -169,8 +167,8 @@ export default function PunchActivityDetailPage() {
 
   function confirmDeleteActivity() {
     setConfirm({
-      title: "確定要刪除此打卡活動？",
-      description: "名單和所有打卡紀錄都會一併刪除，此操作無法復原。",
+      title: `刪除「${detail?.title ?? ""}」？`,
+      description: "名單和打卡紀錄會一併刪除，無法復原。",
       confirmLabel: "確定刪除",
       onConfirm: async () => {
         if (await send(apiBase, "DELETE")) {
@@ -234,9 +232,8 @@ export default function PunchActivityDetailPage() {
 
   function confirmRemoveMember(member: MemberStats) {
     setConfirm({
-      title: `確定要將「${member.name ?? "此成員"}」移出名單？`,
-      description:
-        "此人的打卡紀錄會一併刪除。如果只是不再參加，請改用「編輯」填寫退出日期，保留過去的出席紀錄。",
+      title: `將「${member.name ?? ""}」移出名單？`,
+      description: "打卡紀錄會一併刪除。",
       confirmLabel: "確定移除",
       onConfirm: async () => {
         if (await send(`${apiBase}/members/${member.memberId}`, "DELETE")) {
@@ -249,8 +246,8 @@ export default function PunchActivityDetailPage() {
 
   function confirmDeleteDate(date: string, count: number) {
     setConfirm({
-      title: `確定要刪除 ${formatDateOnlyWithWeekday(date)} 的打卡紀錄？`,
-      description: `這天的 ${count} 筆打卡紀錄會被刪除，這天也不會再算作一次團練。適用於非團練日誤掃的情況。`,
+      title: `刪除 ${formatDateOnlyWithWeekday(date)}？`,
+      description: `${count} 筆打卡紀錄會一併刪除。`,
       confirmLabel: "確定刪除",
       onConfirm: async () => {
         if (await send(`${apiBase}/dates/${date}`, "DELETE")) {
@@ -303,8 +300,7 @@ export default function PunchActivityDetailPage() {
           <div>
             <h1 className="text-2xl font-bold">{detail.title}</h1>
             <p className="text-muted-foreground text-sm">
-              打卡期間 {formatDateOnlyDisplay(detail.startDate)} –{" "}
-              {formatDateOnlyDisplay(detail.endDate)}
+              {formatDateOnlyDisplay(detail.startDate)} – {formatDateOnlyDisplay(detail.endDate)}
             </p>
           </div>
           {canWrite && (
@@ -327,11 +323,7 @@ export default function PunchActivityDetailPage() {
       </div>
 
       {/* QR code */}
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>打卡 QR Code</CardTitle>
-          <CardDescription>印出來貼在團練場地，團員掃描後登入即可打卡，一天算一次</CardDescription>
-        </CardHeader>
+      <Card className="w-fit">
         <CardContent>
           {punchUrl && (
             <QRCodeDisplay url={punchUrl} downloadFileName={`${detail.title}_打卡QRCode.png`} />
@@ -342,13 +334,7 @@ export default function PunchActivityDetailPage() {
       {/* Members & attendance */}
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="text-lg font-semibold">成員與出席率</h2>
-            <p className="text-sm text-muted-foreground">
-              目前共 {detail.dates.length}{" "}
-              次團練。出席率只計算成員在名單期間（加入日期到退出日期）內的團練
-            </p>
-          </div>
+          <h2 className="text-lg font-semibold">成員</h2>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleExport}>
               <Download className="size-4" />
@@ -379,20 +365,13 @@ export default function PunchActivityDetailPage() {
               {detail.members.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    尚無成員，請先新增成員
+                    尚無成員
                   </TableCell>
                 </TableRow>
               ) : (
                 detail.members.map((m) => (
                   <TableRow key={m.memberId}>
-                    <TableCell className="font-medium">
-                      {m.name ?? "—"}
-                      {m.leftOn && (
-                        <Badge variant="secondary" className="ml-2">
-                          已退出
-                        </Badge>
-                      )}
-                    </TableCell>
+                    <TableCell className="font-medium">{m.name ?? "—"}</TableCell>
                     <TableCell>{m.phone ?? "—"}</TableCell>
                     <TableCell>{formatDateOnlyDisplay(m.joinedOn)}</TableCell>
                     <TableCell>{m.leftOn ? formatDateOnlyDisplay(m.leftOn) : "—"}</TableCell>
@@ -435,12 +414,9 @@ export default function PunchActivityDetailPage() {
 
       {/* Rehearsal dates */}
       <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold">團練日期</h2>
-          <p className="text-sm text-muted-foreground">
-            有人打卡的日子就算一次團練。若有人在非團練日誤掃，可刪除那天的紀錄
-          </p>
-        </div>
+        <h2 className="text-lg font-semibold">
+          團練日期 <span className="font-normal text-muted-foreground">{detail.dates.length}</span>
+        </h2>
         <div className="rounded-lg border bg-card max-w-xl">
           <Table>
             <TableHeader>
@@ -536,7 +512,6 @@ export default function PunchActivityDetailPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>新增成員</DialogTitle>
-            <DialogDescription>出席率從加入日期開始計算</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -554,7 +529,6 @@ export default function PunchActivityDetailPage() {
                 id="member-search"
                 value={search}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="輸入姓名、Email 或電話"
               />
             </div>
             <div className="max-h-64 space-y-1 overflow-y-auto">
@@ -595,10 +569,7 @@ export default function PunchActivityDetailPage() {
         <DialogContent>
           <form onSubmit={handleSaveMember} className="space-y-4">
             <DialogHeader>
-              <DialogTitle>編輯成員：{editingMember?.name ?? ""}</DialogTitle>
-              <DialogDescription>
-                不再參加時填寫退出日期，之後的團練就不會算進出席率
-              </DialogDescription>
+              <DialogTitle>{editingMember?.name ?? ""}</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

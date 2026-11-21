@@ -67,16 +67,15 @@ test.describe("打卡 (punch) activity", () => {
     const page = await anonymousPage(browser);
     await page.goto(`/punch/${activityId}`);
     await expect(page.getByText(TITLE)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("請先登入以完成打卡")).toBeVisible();
 
-    await page.getByRole("link", { name: "前往登入" }).click();
+    await page.getByRole("link", { name: "登入後打卡" }).click();
     await page.waitForURL(/\/login/);
     await fillLogin(page, "dahua@example.com");
     await page.waitForURL(`/punch/${activityId}`);
 
     await page.getByRole("button", { name: "打卡", exact: true }).click();
     await expect(page.getByRole("heading", { name: "打卡成功！" })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(/打卡時間：/)).toBeVisible();
+    await expect(page.getByText(/\d{1,2}:\d{2}/)).toBeVisible();
 
     await page.reload();
     await expect(page.getByRole("heading", { name: "今天已打卡" })).toBeVisible({
@@ -100,7 +99,7 @@ test.describe("打卡 (punch) activity", () => {
     const row = page.getByRole("row").filter({ hasText: "劉大華" });
     await expect(row).toContainText("1 / 1");
     await expect(row).toContainText("100%");
-    await expect(page.getByText("目前共 1 次團練")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "團練日期 1" })).toBeVisible();
     await expect(
       page.getByRole("row").filter({ hasText: formatDateOnlyWithWeekday(today) })
     ).toContainText("1");
@@ -133,6 +132,6 @@ test.describe("打卡 (punch) activity", () => {
 
     const row = page.getByRole("row").filter({ hasText: "劉大華" });
     await expect(row).toContainText("0 / 0");
-    await expect(page.getByText("目前共 0 次團練")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "團練日期 0" })).toBeVisible();
   });
 });
