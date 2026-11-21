@@ -18,6 +18,17 @@ E2E tests added for all 4 modules:
 - `registration.service.integration.test.ts` exists but needs a real DB connection
 - No CI pipeline runs integration tests automatically
 
+### Member self check-in for events requires a role permission (discovered 2026-11-21)
+
+- `POST /api/attendance` requires `attendance:read`, but the `MEMBER` role has no permissions (`prisma/seed.ts`, `prisma/init-production.ts`), so plain members likely get 403 when scanning an event QR code
+- `e2e/7-checkin-flow.spec.ts` only passes because `e2e/6-admin-users.spec.ts` first promotes 林小明 to 組長
+- The punch module (`/api/punch-activities/[id]/today`) authorizes by roster membership instead
+
+### Date-dependent e2e failures on the public events page (discovered 2026-11-21)
+
+- `e2e/1-auth.spec.ts` (heading 所有活動) and `e2e/3-public-event.spec.ts` (buttons 立即報名 / 登入後報名) fail on `main`
+- Likely cause: seed event dates are now in the past, so those pages no longer show the expected content
+
 ## Medium Priority
 
 ### ~~No pre-commit mechanism~~ (Resolved 2026-02-23)
@@ -33,6 +44,10 @@ Added husky + lint-staged + Prettier. Pre-commit hook runs ESLint --fix and Pret
 
 - `src/lib/qrcode.ts` untested
 - Check-in API route untested at unit level (covered by E2E only)
+
+### Punch roster user search requires `users:read`
+
+- Adding roster members on `/admin/punch/[activityId]` searches via `GET /api/users`, which requires `users:read`; staff with only `attendance:write` cannot search users (same limitation as the teams page)
 
 ### Missing API-level validation
 

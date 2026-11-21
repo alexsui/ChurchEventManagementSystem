@@ -90,3 +90,27 @@ export const formFieldTypeLabels: Record<string, string> = {
   YES_NO: "是否",
   SINGLE_CHOICE: "單選",
 };
+
+// ==================== Punch (打卡) ====================
+
+export const punchNavLabel = "打卡管理";
+
+// Member punch page messages, keyed by API status / error code
+export const punchStatusMessages: Record<string, string> = {
+  NOT_LOGGED_IN: "登入後打卡",
+  OUT_OF_RANGE: "今天不在打卡期間內",
+  NOT_MEMBER: "你不在這個打卡名單中",
+  PUNCHED: "今天已打卡",
+  ALREADY_PUNCHED: "今天已打卡",
+  NOT_FOUND: "找不到此打卡活動",
+};
+
+// Admin error messages, keyed by API error code
+export const punchErrorMessages: Record<string, string> = {
+  INVALID_INPUT: "資料有誤，請檢查名稱與日期",
+  INVALID_DATE: "日期格式不正確",
+  ALREADY_MEMBER: "此人已在名單中",
+  USER_NOT_FOUND: "找不到此使用者",
+  MEMBER_NOT_FOUND: "找不到此成員",
+  NOT_FOUND: "找不到此打卡活動",
+};

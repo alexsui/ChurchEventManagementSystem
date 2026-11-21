@@ -17,6 +17,7 @@ async function main() {
   );
 
   // Clean existing data (order matters for FK constraints)
+  await prisma.punchActivity.deleteMany(); // cascades to PunchMember and PunchRecord
   await prisma.attendance.deleteMany();
   await prisma.registration.deleteMany();
   await prisma.eventSession.deleteMany();
